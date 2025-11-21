@@ -1,9 +1,9 @@
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QSizePolicy,
     QSpacerItem, QTableWidget, QTableWidgetItem, QHeaderView
 )
-from PyQt5.QtGui import QFont, QImage, QPixmap
-from PyQt5.QtCore import Qt, QTimer
+from PyQt6.QtGui import QFont, QImage, QPixmap
+from PyQt6.QtCore import Qt, QTimer
 import cv2
 
 

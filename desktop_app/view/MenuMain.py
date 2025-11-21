@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QMenuBar, QAction
-from PyQt5.QtCore import Qt, QSize
+from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QMenuBar, QAction
+from PyQt6.QtCore import Qt, QSize
 # Import các Panel đã chia nhỏ
 from LeftPanel import LeftPanel
 from CenterPanel import CenterPanel
