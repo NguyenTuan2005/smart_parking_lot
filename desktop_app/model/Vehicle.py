@@ -10,3 +10,6 @@ class Vehicle:
 
     def method(self, type):
         pass
+
+    def __repr__(self) -> str:
+        return f"Vehicle(vehicle_id={self._vehicle_id}, type={self._type}, plate_number={self._plate_number})"

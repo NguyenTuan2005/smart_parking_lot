@@ -1,7 +1,8 @@
 from datetime import datetime
+from typing import Optional
 
 class Card:
-    def __init__(self, card_id: str, time_entry: datetime, time_exit: datetime = None, status: str = "active"):
+    def __init__(self, card_id: str, time_entry: datetime, status: str = "active", time_exit: Optional[datetime] = None):
         self._card_id = card_id
         self._time_entry = time_entry
         self._time_exit = time_exit
