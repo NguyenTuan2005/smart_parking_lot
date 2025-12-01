@@ -4,10 +4,14 @@
    1. STAFFS
 ===================================== */
 SET IDENTITY_INSERT staffs ON;
-INSERT INTO staffs (id, username, password, fullname, phone_number, role, created_at, updated_at) VALUES
-(1, 'admin', 'hashed_pw_1', 'Nguyen Van An', '0901000001', 1, GETDATE(), GETDATE()),
-(2, 'staff1', 'hashed_pw_2', 'Tran Thi B', '0901000002', 2, GETDATE(), GETDATE()),
-(3, 'staff2', 'hashed_pw_3', 'Le Van C', '0901000003', 2, GETDATE(), GETDATE());
+INSERT INTO staffs (id, username, password, fullname, phone_number, role) VALUES
+(1, 'admin', '123', 'Nguyen Van A', '0901000001', 1),
+(2, 'employee', '123', 'Nguyen Van B', '0901000002', 2),
+(3, 'tuan', '123', 'Nguyen Vo Quoc Tuan', '0901000002', 1),
+(4, 'chi', '123', 'Chi', '0901000003', 1),
+(5, 'hoang', '123', 'Phan Ba Huy Hoang', '0901000003', 2),
+(6, 'tri', '123', 'Trí', '0901000003', 2);
+
 SET IDENTITY_INSERT staffs OFF;
 
 

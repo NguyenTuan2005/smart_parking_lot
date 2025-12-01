@@ -1,71 +1,94 @@
-from typing import Set
-
+from typing import List, Optional
 from db.database import Database
 from model.Customer import Customer
+
 
 class CustomerDAO:
     def __init__(self):
         self.__db = Database()
 
-    def get_all_customers(self) -> Set[Customer]:
+    def get_all_customers(self) -> List[Customer]:
         conn = self.__db.connect()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM customers")
+
+        cursor.execute("SELECT id, full_name, phone_number, email FROM customers")
         rows = cursor.fetchall()
 
-        return {Customer(row.id, row.full_name, row.phone_number, row.email) for row in rows}
+        customers = [
+            Customer(row[0], row[1], row[2], row[3])
+            for row in rows
+        ]
 
-    def get_by_id(self, id: int) -> Customer or None:
+        cursor.close()
+        conn.close()
+
+        return customers
+
+    def get_by_id(self, customer_id: int) -> Optional[Customer]:
         conn = self.__db.connect()
         cursor = conn.cursor()
-        cursor.execute(f'SELECT * FROM customers WHERE id = {id}')
-        customer = cursor.fetchone()
-        if customer:
-            return Customer(customer.id,
-                            customer.full_name,
-                            customer.phone_number,
-                            customer.email)
+
+        cursor.execute(
+            "SELECT id, full_name, phone_number, email FROM customers WHERE id = ?",
+            (customer_id,)
+        )
+
+        row = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if row:
+            return Customer(row[0], row[1], row[2], row[3])
         return None
 
-        # customers = []
-        # for row in cursor.fetchall():
-        #     customers.append(Customer(row[0], row[1],row[2], row[3]))
-        # return customers
-
-    # def get_customer_by_id(self, customer_id):
-    #     conn = self.db.connect()
-    #     cursor = conn.cursor()
-    #     cursor.execute("SELECT id, name, email FROM Customers WHERE id = ?", (customer_id,))
-    #     row = cursor.fetchone()
-    #     if row:
-    #         return Customer(id=row[0], name=row[1], email=row[2])
-    #     return None
-
-    def update(self, customer):
-       conn = self.__db.connect()
-       cursor = conn.cursor()
-       cursor.execute(
-           "UPDATE Customers SET fullname = ?, phone_number = ?, email = ? WHERE id = ?",
-           (customer.name, customer.phone_number, customer.email, customer.id)
-       )
-
-       cursor.commit()
-       
-
-
-    def add_customer(self, customer):
+    def update(self, customer: Customer) -> None:
         conn = self.__db.connect()
         cursor = conn.cursor()
+
         cursor.execute(
-            "INSERT INTO Customers (fullname, phone_number, email) VALUES (?, ?)",
-            (customer.name, customer.phone_number , customer.email)
+            """
+            UPDATE customers 
+            SET full_name = ?, phone_number = ?, email = ?
+            WHERE id = ?
+            """,
+            (customer.fullname, customer.phone_number, customer.email, customer.id)
         )
+
         conn.commit()
-       
+        cursor.close()
+        conn.close()
 
-
-    def delete_customer(self, customer_id):
+    def add_customer(self, customer: Customer) -> None:
         conn = self.__db.connect()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM Customers WHERE id = ?", (customer_id,))
+
+        cursor.execute(
+            """
+            INSERT INTO customers (full_name, phone_number, email)
+            VALUES (?, ?, ?)
+            """,
+            (customer.fullname, customer.phone_number, customer.email)
+        )
+
         conn.commit()
+        cursor.close()
+        conn.close()
+
+    def delete_customer(self, customer_id: int) -> None:
+        conn = self.__db.connect()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "DELETE FROM customers WHERE id = ?",
+            (customer_id,)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+
+if __name__ == '__main__':
+    customer_dao = CustomerDAO()
+    print(customer_dao.get_all_customers())

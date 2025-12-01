@@ -1,15 +1,14 @@
 from model.User import User
-from model.Vehicle import Vehicle
+
 
 class Customer(User):
-    def __init__(self, user_id: str, fullname: str, phone_number: str, email: str, vehicle: Vehicle = None):
+    def __init__(self, user_id: int, fullname: str, phone_number: str, email: str):
         super().__init__(user_id, fullname, phone_number)
-        self.__email = email
-        self.__vehicle = vehicle
+        self._email = email
 
     def __repr__(self):
-        return super().__repr__() + " , email: " + str(self.__email) + " , vehicle: " + str(self.__vehicle)
+        return super().__repr__() + " , email: " + str(self._email)
 
     @property
     def email(self):
-        return self.__email
+        return self._email

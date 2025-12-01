@@ -9,16 +9,16 @@ CREATE TABLE [cameras] (
   [rtsp_url] varchar(255),
   [file_path] varchar(255),
   [description] varchar(255),
-  [created_at] datetime,
-  [updated_at] datetime
+  [created_at] datetime NOT NULL DEFAULT GETDATE(),
+  [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
 GO
 
 CREATE TABLE [vehicles] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
   [plate_number] varchar(20),
-  [created_at] datetime,
-  [updated_at] datetime
+  [created_at] datetime NOT NULL DEFAULT GETDATE(),
+  [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
 GO
 
@@ -26,8 +26,8 @@ CREATE TABLE [alpr_logs] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
   [camera_id] bigint,
   [vehicle_id] bigint NOT NULL,
-  [detected_at] datetime,
-  [image_path] varchar(255)
+  [detected_at] datetime NOT NULL DEFAULT GETDATE(),
+  [image_path] varchar(255) NOT NULL DEFAULT GETDATE()
 )
 GO
 
@@ -39,8 +39,8 @@ CREATE TABLE [monthly_cards] (
   [start_date] date,
   [end_date] date,
   [active] bit,
-  [created_at] datetime,
-  [updated_at] datetime
+  [created_at] datetime NOT NULL DEFAULT GETDATE(),
+  [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
 GO
 
@@ -48,7 +48,9 @@ CREATE TABLE [customers] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
   [full_name] varchar(100),
   [phone_number] varchar(20) UNIQUE,
-  [email] varchar(50)
+  [email] varchar(50),
+  [created_at] datetime NOT NULL DEFAULT GETDATE(),
+  [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
 GO
 
@@ -59,8 +61,8 @@ CREATE TABLE [cards] (
   [entry_time] datetime,
   [exit_time] datetime,
   [fee] int,
-  [created_at] datetime,
-  [updated_at] datetime,
+  [created_at] datetime NOT NULL DEFAULT GETDATE(),
+  [updated_at] datetime NOT NULL DEFAULT GETDATE(),
   [created_by] bigint,
   [closed_by] bigint
 )
@@ -69,19 +71,21 @@ GO
 CREATE TABLE [vehicle_cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
   [vehicle_id] bigint NOT NULL,
-  [card_id] bigint NOT NULL
+  [card_id] bigint NOT NULL,
+  [created_at] datetime NOT NULL DEFAULT GETDATE(),
+  [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
 GO
 
 CREATE TABLE [staffs] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
-  [username] varchar(50) UNIQUE,
-  [password] varchar(255),
   [fullname] varchar(100),
   [phone_number] varchar(20),
+  [username] varchar(50) UNIQUE,
+  [password] varchar(255),
   [role] int,
-  [created_at] datetime,
-  [updated_at] datetime
+  [created_at] datetime NOT NULL DEFAULT GETDATE(),
+  [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
 GO
 
@@ -92,7 +96,9 @@ CREATE TABLE [payments] (
   [amount] int,
   [payment_date] datetime,
   [method] varchar(20),
-  [processed_by] bigint
+  [processed_by] bigint,
+  [created_at] datetime NOT NULL DEFAULT GETDATE(),
+  [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
 GO
 

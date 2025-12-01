@@ -1,4 +1,6 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTabWidget, QMenuBar
+import sys
+
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTabWidget, QMenuBar, QApplication
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QAction
 
@@ -64,3 +66,9 @@ class ParkingManagementApp(QMainWindow):
 
         layout.addWidget(self.tabs)
         central_widget.setLayout(layout)
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = ParkingManagementApp()
+    window.show()
+    sys.exit(app.exec())

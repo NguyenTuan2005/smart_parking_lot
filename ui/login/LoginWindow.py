@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QHBoxLayout
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QHBoxLayout, QWidget
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
@@ -6,13 +6,17 @@ from PyQt6.QtGui import QFont
 class LoginWindow(QDialog):
     def __init__(self):
         super().__init__()
+        self.username_input = QLineEdit()
+        self.password_input = QLineEdit()
+        self.login_btn = QPushButton("Đăng nhập")
+
         self.setWindowTitle("Đăng nhập hệ thống")
-        # Đảm bảo cửa sổ đủ lớn để chứa nội dung
         self.setGeometry(500, 200, 400, 300)
         self.setStyleSheet("background-color: #f0f2f5;")
         self.accept_login = False
         self.user_type = None
         self.initUI()
+
 
     def initUI(self):
         layout = QVBoxLayout()
@@ -28,7 +32,6 @@ class LoginWindow(QDialog):
         layout.addWidget(title)
 
         # Username
-        self.username_input = QLineEdit()
         self.username_input.setPlaceholderText("Tên đăng nhập")
         self.username_input.setFixedHeight(40)
         self.username_input.setStyleSheet("""
@@ -37,7 +40,7 @@ class LoginWindow(QDialog):
                 border-radius: 10px;
                 padding-left: 10px;
                 font-size: 14px;
-                color: #333; /* Đảm bảo màu chữ là tối trên nền sáng */
+                color: #333;
             }
             QLineEdit:focus {
                 border: 2px solid #2E86C1;
@@ -46,7 +49,6 @@ class LoginWindow(QDialog):
         layout.addWidget(self.username_input)
 
         # Password
-        self.password_input = QLineEdit()
         self.password_input.setPlaceholderText("Mật khẩu")
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_input.setFixedHeight(40)
@@ -56,7 +58,7 @@ class LoginWindow(QDialog):
                 border-radius: 10px;
                 padding-left: 10px;
                 font-size: 14px;
-                color: #333; /* Đảm bảo màu chữ là tối trên nền sáng */
+                color: #333; 
             }
             QLineEdit:focus {
                 border: 2px solid #2E86C1;
@@ -65,9 +67,8 @@ class LoginWindow(QDialog):
         layout.addWidget(self.password_input)
 
         # Nút đăng nhập
-        login_btn = QPushButton("Đăng nhập")
-        login_btn.setFixedHeight(40)
-        login_btn.setStyleSheet("""
+        self.login_btn.setFixedHeight(40)
+        self.login_btn.setStyleSheet("""
             QPushButton {
                 background-color: #2E86C1;
                 color: white;
@@ -78,47 +79,53 @@ class LoginWindow(QDialog):
                 background-color: #1B4F72;
             }
         """)
-        login_btn.clicked.connect(self.check_login)
-        layout.addWidget(login_btn)
+        layout.addWidget(self.login_btn)
 
         # Ghi chú
-        note = QLabel("Admin: admin/12345 | User: user/user")
-        note.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        note.setStyleSheet("color: #555; font-size: 12px;")  # Màu chữ tối, sẽ hiển thị
-        layout.addWidget(note)
+        # note = QLabel("Admin: admin/123 | User: employee/123 |")
+        # note.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # note.setStyleSheet("color: #555; font-size: 12px;")  # Màu chữ tối, sẽ hiển thị
+        # layout.addWidget(note)
 
         self.setLayout(layout)
 
-    def check_login(self):
-        username = self.username_input.text()
-        password = self.password_input.text()
+    def get_username_input(self):
+        return self.username_input.text()
 
-        if username == "admin" and password == "12345":
-            self.accept_login = True
-            self.user_type = "admin"
-            self.close()
-        elif username == "user" and password == "user":
-            self.accept_login = True
-            self.user_type = "user"
-            self.close()
-        else:
-            # Sửa lỗi màu chữ trong QMessageBox
-            msg = QMessageBox(self)
-            msg.setWindowTitle("Lỗi Đăng nhập")
-            msg.setText("Tên đăng nhập hoặc mật khẩu không đúng!")
-            msg.setIcon(QMessageBox.Icon.Warning)
+    def get_password_input(self):
+        return self.password_input.text()
 
-            # Áp dụng Style Nền Tối và Chữ Sáng cho QMessageBox (nhất quán với theme chính)
-            msg.setStyleSheet("""
-                QMessageBox { background-color: #34495e; } 
-                QLabel { color: #ecf0f1; } 
-                QPushButton {
-                    background-color: #e74c3c; 
-                    color: white;
-                    border-radius: 4px;
-                    padding: 5px 10px;
-                }
-                QPushButton:hover { background-color: #c0392b; }
-            """)
-            # Thay thế exec_() bằng exec() cho PyQt6
-            msg.exec()
+    def get_username_password_input(self):
+        return self.username_input.text(), self.password_input.text()
+
+    @staticmethod
+    def show_error(message: str):
+        msg = QMessageBox()
+        msg.setWindowTitle("Login Error")
+        msg.setText(message)
+        msg.setIcon(QMessageBox.Icon.Critical)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+
+        msg.setStyleSheet("""
+            QMessageBox {
+            
+                background-color: white;
+                font-size: 14px;
+            }
+            QLabel { 
+                background-color: white;
+                color: black;
+            }
+            QPushButton {
+                background-color: white;
+                color: black;
+                border: 1px solid #1b4f72;
+                padding: 5px 14px;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background-color: #f2f2f2;
+            }
+        """)
+
+        msg.exec()
