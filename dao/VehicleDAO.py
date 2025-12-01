@@ -17,7 +17,7 @@ class VehicleDAO:
         """)
         rows = cursor.fetchall()
 
-        vehicles = [Vehicle(row[0], row[1]) for row in rows]
+        vehicles = [Vehicle(row[0], 'xe máy', row[1]) for row in rows]
 
         cursor.close()
         conn.close()

@@ -1,4 +1,11 @@
+pyodbc
+PyQt6
+PyQt5
 opencv-python
-pyqt6-sip
-pyodbc~=5.3.0
+numpy
+ultralytics
+pandas
+tqdm
+seaborn
+torch
 bcrypt

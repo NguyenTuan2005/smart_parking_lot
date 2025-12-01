@@ -10,16 +10,21 @@ from PyQt6.QtGui import QFont, QImage, QPixmap
 from PyQt6.QtCore import Qt, QTimer
 import cv2
 
+from controllers.AIController import AIController
+
 
 class RightPanel(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, controller: AIController, parent=None):
         super().__init__(parent)
+        self.__controller = controller
+        controller.add_view('right', self)
         self.entry_camera = None
         self.exit_camera = None
         self._setupUi()
         self._initCameras()
 
     def _setupUi(self):
+
         vLayout = QVBoxLayout(self)
         vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(10)
@@ -134,6 +139,8 @@ class RightPanel(QWidget):
         ret, frame = self.entry_camera.read()
         if not ret:
             return
+
+        self.__controller.process_entry('right', frame)
 
         # Tối ưu hóa: Bỏ cv2.flip(frame, 1) nếu camera không bị lật
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

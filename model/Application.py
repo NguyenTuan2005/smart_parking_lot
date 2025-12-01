@@ -1,8 +1,9 @@
 from typing import Set
 
-from dao.CardDAO import CardDAO
 from dao.CustomerDAO import CustomerDAO
+from dao.MonthlyCardDAO import MonthlyCardDAO
 from dao.PaymentDAO import PaymentDAO
+from dao.SingleCardDAO import SingleCardDAO
 from dao.StaffDAO import StaffDAO
 from dao.VehicleDAO import VehicleDAO
 from model.Card import Card
@@ -13,8 +14,8 @@ from model.Vehicle import Vehicle
 
 class Application:
     def __init__(self):
-        self._users: Set[User] = CustomerDAO().get_all_customers().union(StaffDAO().get_all())
-        self._cards: Set[Card] = CardDAO().get_all()
+        self._users: Set[User] = CustomerDAO().get_all().append(StaffDAO().get_all())
+        self._cards: Set[Card] = SingleCardDAO().get_all().append(MonthlyCardDAO().get_all())
         self._vehicles: Set[Vehicle] = VehicleDAO().get_all()
         self._payments: Set[Payment] = PaymentDAO().get_all()
 
