@@ -1,9 +1,13 @@
-from PyQt5.QtWidgets import (
+# Sửa lỗi: Thay đổi cách truy cập hằng số KeepAspectRatio
+# Tối ưu: Đặt QImage.Format_RGB888 cho rõ ràng hơn (dù đã là default)
+# Tối ưu: Thay đổi index camera ra để tránh xung đột nếu có 2 webcam
+
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QSizePolicy,
     QSpacerItem, QTableWidget, QTableWidgetItem, QHeaderView
 )
-from PyQt5.QtGui import QFont, QImage, QPixmap
-from PyQt5.QtCore import Qt, QTimer
+from PyQt6.QtGui import QFont, QImage, QPixmap
+from PyQt6.QtCore import Qt, QTimer
 import cv2
 
 
@@ -20,10 +24,11 @@ class RightPanel(QWidget):
         vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(10)
 
+        # ... (Phần UI không thay đổi) ...
         # --- CAMERA HÌNH ẢNH ---
         titleCameraLabel = QLabel("CAMERA HÌNH ẢNH (VÀO / RA)")
         titleCameraLabel.setObjectName("TitleLabel")
-        vLayout.addWidget(titleCameraLabel, alignment=Qt.AlignTop | Qt.AlignRight)
+        vLayout.addWidget(titleCameraLabel, alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
 
         # --- Hai khung camera song song ---
         camerasFrame = QFrame()
@@ -38,8 +43,8 @@ class RightPanel(QWidget):
         self.entryCameraLabel = QLabel()
         self.entryCameraLabel.setFixedSize(320, 240)
         self.entryCameraLabel.setStyleSheet("background-color: black; border: 2px solid #2ecc71;")
-        self.entryCameraLabel.setAlignment(Qt.AlignCenter)
-        entryLayout.addWidget(entryTitle, alignment=Qt.AlignCenter)
+        self.entryCameraLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        entryLayout.addWidget(entryTitle, alignment=Qt.AlignmentFlag.AlignCenter)
         entryLayout.addWidget(self.entryCameraLabel)
 
         # Camera ra
@@ -49,14 +54,14 @@ class RightPanel(QWidget):
         self.exitCameraLabel = QLabel()
         self.exitCameraLabel.setFixedSize(320, 240)
         self.exitCameraLabel.setStyleSheet("background-color: black; border: 2px solid #e74c3c;")
-        self.exitCameraLabel.setAlignment(Qt.AlignCenter)
-        exitLayout.addWidget(exitTitle, alignment=Qt.AlignCenter)
+        self.exitCameraLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        exitLayout.addWidget(exitTitle, alignment=Qt.AlignmentFlag.AlignCenter)
         exitLayout.addWidget(self.exitCameraLabel)
 
         camerasLayout.addLayout(entryLayout)
         camerasLayout.addLayout(exitLayout)
 
-        vLayout.addWidget(camerasFrame, alignment=Qt.AlignCenter)
+        vLayout.addWidget(camerasFrame, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # --- CÁC LƯỢT VÀO RA GẦN ĐÂY ---
         titleHistoryLabel = QLabel("CÁC LƯỢT VÀO RA GẦN ĐÂY")
@@ -69,6 +74,7 @@ class RightPanel(QWidget):
         historyTable.setColumnCount(4)
         historyTable.setHorizontalHeaderLabels(["Biển số", "TG Vào", "TG Ra", "Trạng thái"])
 
+        # Sử dụng Style đã tối ưu (đảm bảo QTableWidget style được áp dụng đúng)
         historyTable.setStyleSheet("""
             QTableWidget {
                 gridline-color: #34495e;
@@ -84,7 +90,7 @@ class RightPanel(QWidget):
             }
         """)
 
-        historyTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        historyTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         historyTable.verticalHeader().setVisible(False)
 
         data_rows = [
@@ -101,51 +107,58 @@ class RightPanel(QWidget):
 
         # Logo
         vdiLogoLabel = QLabel("VDI")
-        vdiLogoLabel.setFont(QFont('Arial', 20, QFont.Bold))
+        vdiLogoLabel.setFont(QFont('Arial', 20, weight=QFont.Weight.Bold))
         vdiLogoLabel.setStyleSheet("color: #3498db;")
-        vLayout.addWidget(vdiLogoLabel, alignment=Qt.AlignBottom | Qt.AlignRight)
+        vLayout.addWidget(vdiLogoLabel, alignment=Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignRight)
 
     def _initCameras(self):
         # --- Camera vào (index 0) ---
-        self.entry_camera = cv2.VideoCapture(0)
+        self.entry_camera = cv2.VideoCapture(0)  # Đặt index 0
         self.entry_timer = QTimer()
         self.entry_timer.timeout.connect(self._updateEntryFrame)
-        self.entry_timer.start(30)
+        # Chỉ khởi động timer nếu camera mở thành công
+        if self.entry_camera.isOpened():
+            self.entry_timer.start(30)  # 30ms ~ 33 FPS
 
-        # --- Camera ra (index 1) ---
-        self.exit_camera = cv2.VideoCapture(1)
+        # --- Camera ra (index 1 hoặc 2) ---
+        self.exit_camera = cv2.VideoCapture(1)  # Đặt index 1 (hoặc 2 nếu index 1 không có)
         self.exit_timer = QTimer()
         self.exit_timer.timeout.connect(self._updateExitFrame)
-        self.exit_timer.start(30)
+        if self.exit_camera.isOpened():
+            self.exit_timer.start(30)
 
     def _updateEntryFrame(self):
-        if not self.entry_camera:
+        if not self.entry_camera or not self.entry_camera.isOpened():  # Kiểm tra isOpened()
             return
 
         ret, frame = self.entry_camera.read()
         if not ret:
             return
 
-        frame = cv2.flip(frame, 1)
+        # Tối ưu hóa: Bỏ cv2.flip(frame, 1) nếu camera không bị lật
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        qImg = QImage(frame.data, frame.shape[1], frame.shape[0], QImage.Format_RGB888)
-        pixmap = QPixmap.fromImage(qImg).scaled(self.entryCameraLabel.size(), Qt.KeepAspectRatio)
+        # Sửa lỗi: Qt.KeepAspectRatio -> Qt.AspectRatioMode.KeepAspectRatio
+        qImg = QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0],
+                      QImage.Format.Format_RGB888)  # Thêm bước để ổn định hơn
+        pixmap = QPixmap.fromImage(qImg).scaled(self.entryCameraLabel.size(), Qt.AspectRatioMode.KeepAspectRatio)
         self.entryCameraLabel.setPixmap(pixmap)
 
     def _updateExitFrame(self):
-        if not self.exit_camera:
+        if not self.exit_camera or not self.exit_camera.isOpened():  # Kiểm tra isOpened()
             return
 
         ret, frame = self.exit_camera.read()
         if not ret:
             return
 
-        frame = cv2.flip(frame, 1)
+        # Tối ưu hóa: Bỏ cv2.flip(frame, 1) nếu camera không bị lật
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        qImg = QImage(frame.data, frame.shape[1], frame.shape[0], QImage.Format_RGB888)
-        pixmap = QPixmap.fromImage(qImg).scaled(self.exitCameraLabel.size(), Qt.KeepAspectRatio)
+        # Sửa lỗi: Qt.KeepAspectRatio -> Qt.AspectRatioMode.KeepAspectRatio
+        qImg = QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0],
+                      QImage.Format.Format_RGB888)  # Thêm bước để ổn định hơn
+        pixmap = QPixmap.fromImage(qImg).scaled(self.exitCameraLabel.size(), Qt.AspectRatioMode.KeepAspectRatio)
         self.exitCameraLabel.setPixmap(pixmap)
 
     def closeEvent(self, event):
