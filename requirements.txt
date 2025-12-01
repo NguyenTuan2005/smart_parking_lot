@@ -1,0 +1,11 @@
+pyodbc
+PyQt6
+PyQt5
+opencv-python
+numpy
+ultralytics
+pandas
+tqdm
+seaborn
+torch
+bcrypt

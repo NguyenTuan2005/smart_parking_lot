@@ -1,6 +1,7 @@
 .*
 *__pycache__*
 !.gitignore
-.env
+.venv
 .idea
 .vscode
+.venv
