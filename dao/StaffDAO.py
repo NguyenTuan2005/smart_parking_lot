@@ -5,10 +5,10 @@ from model.Staff import Staff
 
 class StaffDAO:
     def __init__(self):
-        self.__db = Database()
+        self._db = Database()
 
     def get_all(self) -> List[Staff]:
-        conn = self.__db.connect()
+        conn = self._db.connect()
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -28,7 +28,7 @@ class StaffDAO:
 
 
     def get_by_id(self, staff_id: int) -> Optional[Staff]:
-        conn = self.__db.connect()
+        conn = self._db.connect()
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -48,7 +48,7 @@ class StaffDAO:
 
 
     def get_by_username(self, username: str) -> Optional[Staff]:
-        conn = self.__db.connect()
+        conn = self._db.connect()
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -68,7 +68,7 @@ class StaffDAO:
 
 
     def save(self, staff: Staff) -> bool:
-        conn = self.__db.connect()
+        conn = self._db.connect()
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -92,7 +92,7 @@ class StaffDAO:
 
 
     def update(self, staff: Staff) -> bool:
-        conn = self.__db.connect()
+        conn = self._db.connect()
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -117,7 +117,7 @@ class StaffDAO:
 
 
     def delete(self, staff_id: int) -> bool:
-        conn = self.__db.connect()
+        conn = self._db.connect()
         cursor = conn.cursor()
 
         cursor.execute(

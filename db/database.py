@@ -9,13 +9,11 @@ class Database:
         self.conn = None
 
     def connect(self):
-        if self.conn is None:
-            self.conn = pyodbc.connect(
-                f'DRIVER={{ODBC Driver 17 for SQL Server}};'
-                f'SERVER={self.server};DATABASE={self.database};'
-                f'UID={self.username};PWD={self.password}'
-            )
-        return self.conn
+        return pyodbc.connect(
+            f'DRIVER={{ODBC Driver 17 for SQL Server}};'
+            f'SERVER={self.server};DATABASE={self.database};'
+            f'UID={self.username};PWD={self.password}'
+        )
 
     def close(self):
         if self.conn:

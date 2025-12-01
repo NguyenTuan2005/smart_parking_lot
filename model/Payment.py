@@ -1,7 +1,5 @@
 from datetime import datetime
-
 from model.Card import Card
-
 
 class Payment:
     def __init__(self, payment_id: str, card: Card, amount: float, method: str, paid_at: datetime):
@@ -12,8 +10,24 @@ class Payment:
         self._paid_at = paid_at
 
     @property
+    def id(self):
+        return self._id
+
+    @property
+    def method(self):
+        return self._method
+
+    @property
+    def paid_at(self):
+        return self._paid_at
+
+    @property
     def amount(self):
         return self._amount
+
+    @property
+    def card(self):
+        return self._card
 
     @amount.setter
     def amount(self, value: float):

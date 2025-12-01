@@ -1,15 +1,15 @@
 from datetime import datetime
-
 from model.Card import Card
+from model.Vehicle import Vehicle
+
 
 class SingleCard(Card):
-    def __init__(self, card_id: str, time_entry: datetime, plate_number: str, time_exit: datetime = None, fee: int = 0):
-        super().__init__(card_id, time_entry, time_exit, fee)
-        self._plate_number = plate_number
-
-    @property
-    def plate_number(self):
-        return self._plate_number
-
-    def method(self, type):
-        pass
+    def __init__(self, card_id: str, time_entry: datetime, time_exit: datetime, vehicle: Vehicle,
+                 fee: int = 0):
+        super().__init__(
+            card_id=card_id,
+            time_entry=time_entry,
+            time_exit=time_exit,
+            fee=fee,
+            vehicle=vehicle
+        )

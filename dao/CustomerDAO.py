@@ -2,39 +2,37 @@ from typing import List, Optional
 from db.database import Database
 from model.Customer import Customer
 
-
 class CustomerDAO:
     def __init__(self):
-        self.__db = Database()
+        self._db = Database()
 
-    def get_all_customers(self) -> List[Customer]:
-        conn = self.__db.connect()
+    def get_all(self) -> List[Customer]:
+        conn = self._db.connect()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT id, full_name, phone_number, email FROM customers")
+        cursor.execute("""
+            SELECT id, full_name, phone_number, email
+            FROM customers
+        """)
         rows = cursor.fetchall()
 
-        customers = [
-            Customer(row[0], row[1], row[2], row[3])
-            for row in rows
-        ]
+        customers = [Customer(row[0], row[1], row[2], row[3]) for row in rows]
 
         cursor.close()
         conn.close()
-
         return customers
 
     def get_by_id(self, customer_id: int) -> Optional[Customer]:
-        conn = self.__db.connect()
+        conn = self._db.connect()
         cursor = conn.cursor()
 
-        cursor.execute(
-            "SELECT id, full_name, phone_number, email FROM customers WHERE id = ?",
-            (customer_id,)
-        )
+        cursor.execute("""
+            SELECT id, full_name, phone_number, email
+            FROM customers
+            WHERE id = ?
+        """, (customer_id,))
 
         row = cursor.fetchone()
-
         cursor.close()
         conn.close()
 
@@ -42,53 +40,53 @@ class CustomerDAO:
             return Customer(row[0], row[1], row[2], row[3])
         return None
 
-    def update(self, customer: Customer) -> None:
-        conn = self.__db.connect()
+    def save(self, customer: Customer) -> bool:
+        conn = self._db.connect()
         cursor = conn.cursor()
 
-        cursor.execute(
-            """
-            UPDATE customers 
-            SET full_name = ?, phone_number = ?, email = ?
-            WHERE id = ?
-            """,
-            (customer.fullname, customer.phone_number, customer.email, customer.id)
-        )
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-    def add_customer(self, customer: Customer) -> None:
-        conn = self.__db.connect()
-        cursor = conn.cursor()
-
-        cursor.execute(
-            """
+        cursor.execute("""
             INSERT INTO customers (full_name, phone_number, email)
             VALUES (?, ?, ?)
-            """,
-            (customer.fullname, customer.phone_number, customer.email)
-        )
+        """, (customer.fullname, customer.phone_number, customer.email))
 
         conn.commit()
+        result = cursor.rowcount
         cursor.close()
         conn.close()
+        return result > 0
 
-    def delete_customer(self, customer_id: int) -> None:
-        conn = self.__db.connect()
+    def update(self, customer: Customer) -> bool:
+        conn = self._db.connect()
         cursor = conn.cursor()
 
-        cursor.execute(
-            "DELETE FROM customers WHERE id = ?",
-            (customer_id,)
-        )
+        cursor.execute("""
+            UPDATE customers
+            SET full_name = ?, phone_number = ?, email = ?, updated_at = GETDATE()
+            WHERE id = ?
+        """, (customer.fullname, customer.phone_number, customer.email, customer.id))
 
         conn.commit()
+        result = cursor.rowcount
         cursor.close()
         conn.close()
+        return result > 0
+
+    def delete(self, customer_id: int) -> bool:
+        conn = self._db.connect()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            DELETE FROM customers
+            WHERE id = ?
+        """, (customer_id,))
+
+        conn.commit()
+        result = cursor.rowcount
+        cursor.close()
+        conn.close()
+        return result > 0
 
 
 if __name__ == '__main__':
     customer_dao = CustomerDAO()
-    print(customer_dao.get_all_customers())
+    print(customer_dao.get_all())

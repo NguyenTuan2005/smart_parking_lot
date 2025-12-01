@@ -16,6 +16,7 @@ GO
 
 CREATE TABLE [vehicles] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
+  [vehicle_type] varchar(100),
   [plate_number] varchar(20),
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
@@ -35,7 +36,7 @@ CREATE TABLE [monthly_cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
   [customer_id] bigint,
   [vehicle_id] bigint NOT NULL,
-  [price] int,
+  [fee] int,
   [start_date] date,
   [end_date] date,
   [active] bit,
@@ -58,8 +59,8 @@ CREATE TABLE [cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
   [vehicle_id] bigint NOT NULL,
   [card_type] varchar(10),
-  [entry_time] datetime,
-  [exit_time] datetime,
+  [entry_at] datetime,
+  [exit_at] datetime,
   [fee] int,
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE(),
