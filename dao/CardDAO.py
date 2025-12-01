@@ -20,8 +20,11 @@ class CardDAO:
 
         cursor.execute('SELECT * FROM monthly_cards')
         rows = cursor.fetchall()
-        cards.update({MonthlyCard(row.id, row.start_date, row.end_date, CustomerDAO().get_by_id(row.customer_id), True) for row in rows})
+        cards.union({MonthlyCard(row.id, row.start_date, row.end_date, CustomerDAO().get_by_id(row.customer_id), True) for row in rows})
         return cards
+
+if __name__ == '__main__':
+    print(CardDAO().get_all())
 
     def get_by_id(self, id: int) -> Card or None:
         conn = self.__db.connect()

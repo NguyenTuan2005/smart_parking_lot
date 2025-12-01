@@ -7,6 +7,9 @@ class Customer(User):
         self.__email = email
         self.__vehicle = vehicle
 
+    def __repr__(self):
+        return super().__repr__() + " , email: " + str(self.__email) + " , vehicle: " + str(self.__vehicle)
+
     @property
     def email(self):
         return self.__email

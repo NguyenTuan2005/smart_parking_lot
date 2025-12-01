@@ -1,3 +1,5 @@
+from typing import Set
+
 from db.database import Database
 from model.Customer import Customer
 
@@ -5,14 +7,13 @@ class CustomerDAO:
     def __init__(self):
         self.__db = Database()
 
-    def get_all_customers(self):
+    def get_all_customers(self) -> Set[Customer]:
         conn = self.__db.connect()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name, email FROM Customers")
+        cursor.execute("SELECT * FROM customers")
         rows = cursor.fetchall()
-   
 
-        customers = [Customer(row.id, row.fullname, row.phoneNumber, row.email) for row in rows]
+        return {Customer(row.id, row.full_name, row.phone_number, row.email) for row in rows}
 
     def get_by_id(self, id: int) -> Customer or None:
         conn = self.__db.connect()
