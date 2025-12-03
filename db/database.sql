@@ -57,6 +57,7 @@ GO
 
 CREATE TABLE [cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
+  [card_code] varchar(10) NOT NULL,
   [vehicle_id] bigint NOT NULL,
   [card_type] varchar(10),
   [entry_at] datetime,

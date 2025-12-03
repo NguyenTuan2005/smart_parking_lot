@@ -34,7 +34,7 @@ class AIService:
         detected_plates = []
 
         for det in results.xyxy[0]:
-            x1, y1, x2, y2, conf = det
+            x1, y1, x2, y2, conf, cls = det
             x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
 
             crop_img = frame[y1:y2, x1:x2]
