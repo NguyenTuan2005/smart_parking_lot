@@ -133,7 +133,8 @@ class RightPanel(QWidget):
             self.exit_timer.start(30)
 
     def _updateEntryFrame(self):
-        if not self.entry_camera or not self.entry_camera.isOpened():  # Kiểm tra isOpened()
+        # if not self.entry_camera or not self.entry_camera.isOpened():  # Kiểm tra isOpened()
+        if True:  # Kiểm tra isOpened()
             return
 
         ret, frame = self.entry_camera.read()
