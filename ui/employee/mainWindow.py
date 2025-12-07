@@ -1,62 +1,75 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QMenuBar, QAction
-from PyQt6.QtCore import Qt, QSize
-# Import các Panel đã chia nhỏ
-from LeftPanel import LeftPanel
-from CenterPanel import CenterPanel
-from RightPanel import RightPanel
-from Styles import getGlobalStyle  # Import hàm style
+from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QMenuBar
+from PyQt6.QtCore import Qt, QSize, pyqtSignal
+from PyQt6.QtGui import QAction
+
+from controllers.AIController import AIController
+from ui.employee.leftPanel import LeftPanel
+from ui.employee.centerPanel import CenterPanel
+from ui.employee.rightPanel import RightPanel
+from ui.styles import getGlobalStyle
+from ui.common import LogoutHandler
 
 
-class MenuMain(QMainWindow):
+class EmployeeMainWindow(QMainWindow):
     """
-    Lớp chính cho Giao diện Hệ thống Quản lý Bãi đỗ xe (QMainWindow).
+    Lớp chính cho Giao diện Hệ thống Quản lý Bãi đỗ xe cho Nhân viên (QMainWindow).
     Tích hợp các panel (Left, Center, Right).
     """
+    logout_signal = pyqtSignal()
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Hệ thống Quản lý")
+        self.setWindowTitle("Hệ thống Quản lý - Nhân viên")
         self.setGeometry(100, 100, 1400, 800)
+        self.__controller = AIController()
 
         # Áp dụng Global Style
         self.setStyleSheet(getGlobalStyle())
+        
+        self.logout_handler = LogoutHandler(self)
+        self.logout_handler.logout_requested.connect(self._on_logout)
 
         self._createMenuBar()
         self._setupMainLayout()
 
+
     def _createMenuBar(self):
         """
-        Tạo thanh Menu bar ở trên cùng với các thành phần cụ thể.
+        Tạo thanh Menu bar ở trên cùng với các thành phần cụ thể (Cho Nhân viên).
         """
         menuBar = QMenuBar(self)
         self.setMenuBar(menuBar)
 
         # --- 1. Menu "Hệ thống" ---
         systemMenu = menuBar.addMenu("Hệ thống")
-        systemMenu.addAction(QAction("Cấu hình cổng", self))
-        systemMenu.addAction(QAction("Quản lý người dùng", self))
+        
+        logout_action = QAction("Đăng xuất", self)
+        logout_action.triggered.connect(self._request_logout)
+        systemMenu.addAction(logout_action)
+        
         systemMenu.addSeparator()  # Thêm đường phân cách
-        systemMenu.addAction(QAction("Đăng xuất", self))
+        
+        exit_action = QAction("Thoát", self)
+        exit_action.triggered.connect(self.close)
+        systemMenu.addAction(exit_action)
 
-        # --- 2. Menu "Quản lý" ---
-        managementMenu = menuBar.addMenu("Quản lý")
-        managementMenu.addAction(QAction("Danh sách vé tháng", self))
-        managementMenu.addAction(QAction("Báo cáo", self))
-        managementMenu.addSeparator()
-        managementMenu.addAction(QAction("Theo dõi sự kiện", self))
-
-        # --- 3. Menu "HÌNH ẢNH" ---
+        # --- 2. Menu "Hình ảnh" ---
         menuBar.addAction(QAction("Hình ảnh", self))
 
-        # --- 4. Menu "Hỗ trợ" ---
+        # --- 3. Menu "Hỗ trợ" ---
         support_menu = menuBar.addMenu("Hỗ trợ")
         support_menu.addAction(QAction("Về chúng tôi", self))
         support_menu.addAction(QAction("Trợ giúp", self))
 
-        # --- 5. Menu "Style" (Theme) ---
-        style_menu = menuBar.addMenu("Style")
-        style_menu.addAction(QAction("Dark", self))
+    def _request_logout(self):
+        """Xử lý yêu cầu đăng xuất"""
+        if self.logout_handler.confirm_logout(self):
+            self.logout_signal.emit()
+            self.close()
 
+    def _on_logout(self):
+        """Callback khi đăng xuất"""
+        pass
 
     def _setupMainLayout(self):
         """
@@ -78,5 +91,5 @@ class MenuMain(QMainWindow):
         mainLayout.addWidget(centerPane, 4)  # Tỉ lệ 4 (cột rộng nhất)
 
         # 3. Cột Phải (Right Pane) - Sử dụng lớp RightPanel
-        rightPane = RightPanel()
+        rightPane = RightPanel(self.__controller)
         mainLayout.addWidget(rightPane, 2)  # Tỉ lệ 2 (cột trung bình)
