@@ -8,6 +8,7 @@ from ui.admin.tabs.cardsTab import CardTab
 from ui.admin.tabs.customersTab import CustomerTab
 from ui.admin.tabs.vehiclesTab import VehicleTab
 from ui.admin.tabs.statsTab import StatsTab
+from ui.admin.tabs.parkingConfigTab import ParkingConfigTab
 from ui.common import LogoutHandler
 
 
@@ -63,6 +64,7 @@ class ParkingManagementApp(QMainWindow):
         self.tabs.addTab(CustomerTab(), "Quản lý khách hàng")
         self.tabs.addTab(VehicleTab(), "Quản lý phương tiện")
         self.tabs.addTab(StatsTab(), "Thống kê")
+        self.tabs.addTab(ParkingConfigTab(), "Cấu hình bãi xe")
 
         layout.addWidget(self.tabs)
         central_widget.setLayout(layout)

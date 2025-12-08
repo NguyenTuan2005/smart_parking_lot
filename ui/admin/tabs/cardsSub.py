@@ -36,7 +36,7 @@ class CardSubTabLuot(QWidget):
             "Ngày ra",
             "Giờ ra",
             "Số ngày gửi",
-            "Số lượt/Phí", "Trạng thái", "Loại thẻ","Mã nhân viên" ,"Ghi chú"
+            "Số lượt/Phí", "Trạng thái", "Loại thẻ","Tên nhân viên" ,"Ghi chú"
         ])
 
         layout.addWidget(self.table)
@@ -44,10 +44,10 @@ class CardSubTabLuot(QWidget):
         data = [
             ("L001", "70-F1 666.66", "Khách vãng lai", "2025-11-01", "08:30",
              "2025-11-03", "",
-             2, "0", "Đang gửi", "Thẻ lượt", "NV01", ""),
+             2, "0", "Đang gửi", "Thẻ lượt", "Nguyễn Văn A", ""),
             ("L002", "30B-678.90", "Khách vãng lai","2025-11-01", "08:30",
              "2025-11-03", "09:40",
-             2, "15000", "Đã ra", "Thẻ lượt","NV02", "")
+             2, "15000", "Đã ra", "Thẻ lượt","Nguyễn Văn A", "")
         ]
 
         self.table.setRowCount(len(data))
@@ -99,16 +99,16 @@ class CardSubTabThang(QWidget):
             "Ngày ra",
             "Giờ ra",
             "Số ngày gửi",
-            "Số lượt/Phí", "Trạng thái", "Loại thẻ","Mã nhân viên" ,"Ghi chú"
+            "Số lượt/Phí", "Trạng thái", "Loại thẻ","Tên nhân viên" ,"Ghi chú"
         ])
 
         data = [
             ("C101", "51C-111.22", "Lê Thị C", "2025-11-01", "08:30",
              "2025-11-03", "",
-             2, "", "Đang gửi", "Thẻ tháng","NV01" ,""),
+             2, "", "Đang gửi", "Thẻ tháng","Nguyễn Văn A" ,""),
             ("C102", "49K1-999.99", "Nguyễn Minh Trí", "2025-11-01", "08:30",
              "2025-11-03", "09:40",
-             2, "0", "Đã ra", "Thẻ tháng", "NV01","")
+             2, "0", "Đã ra", "Thẻ tháng", "Nguyễn Văn B","")
         ]
 
         table.setRowCount(len(data))
