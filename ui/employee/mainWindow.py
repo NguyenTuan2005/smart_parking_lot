@@ -53,9 +53,6 @@ class EmployeeMainWindow(QMainWindow):
         exit_action.triggered.connect(self.close)
         systemMenu.addAction(exit_action)
 
-        # --- 2. Menu "Hình ảnh" ---
-        menuBar.addAction(QAction("Hình ảnh", self))
-
         # --- 3. Menu "Hỗ trợ" ---
         support_menu = menuBar.addMenu("Hỗ trợ")
         support_menu.addAction(QAction("Về chúng tôi", self))

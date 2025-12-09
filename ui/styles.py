@@ -23,7 +23,7 @@ def getGlobalStyle():
         }
         
         QFrame#VideoFrame {
-            border: 2px solid #3498db;
+            border: 2px solid #ffffff;
             border-radius: 4px; /* Giảm từ 5px */
             background-color: #000000;
         }
@@ -32,8 +32,8 @@ def getGlobalStyle():
         QLabel#TitleLabel {
             font-size: 16px; /* Giảm từ 18px */
             font-weight: bold;
-            color: #f39c12;
-            border-bottom: 1px solid #f39c12; /* Giảm từ 2px */
+            color: #ffffff;
+            border-bottom: 1px solid #f1c40f; /* vàng nhạt */
             padding-bottom: 3px; /* Giảm từ 5px */
             margin-bottom: 8px; /* Giảm từ 10px */
         }
@@ -42,19 +42,19 @@ def getGlobalStyle():
         QLabel#ParkingLogo {
             font-size: 20px; /* Giảm từ 24px */
             font-weight: bold;
-            color: #3498db;
+            color: #ffffff;
         }
         
         QLabel#BigNumber {
             font-size: 30px; /* Giảm từ 36px */
             font-weight: bold;
-            color: #e74c3c;
+            color: #f1c40f;
         }
         
         /* === INPUT FIELDS === */
         QLineEdit {
             padding: 4px; /* Giảm từ 5px */
-            border: 1px solid #3498db;
+            border: 1px solid #f1c40f;
             border-radius: 3px; /* Giảm từ 4px */
             background-color: #34495e;
             color: #ecf0f1;
@@ -67,20 +67,20 @@ def getGlobalStyle():
         
         /* === BUTTONS === */
         QPushButton {
-            background-color: #3498db;
-            color: white;
+            background-color: #f1c40f;
+            color: #000000;
             border-radius: 3px; /* Giảm từ 4px */
             padding: 4px 8px; /* Giảm từ 5px 10px */
             font-weight: bold;
             border: none;
         }
-        
+
         QPushButton:hover {
-            background-color: #2980b9;
+            background-color: #d4b013;
         }
-        
+
         QPushButton:pressed {
-            background-color: #1b5a7a;
+            background-color: #a8870f;
         }
         
         /* === TABLES === */
@@ -103,7 +103,7 @@ def getGlobalStyle():
         
         QHeaderView::section {
             background-color: #2c3e50;
-            color: #f39c12;
+            color: #f1c40f;
             padding: 3px; /* Giảm từ 4px */
             border: 1px solid #34495e;
             font-weight: bold;
@@ -146,11 +146,11 @@ def getGlobalStyle():
         }
         
         QTabBar::tab:selected {
-            background-color: #3498db;
-            color: white;
+            background-color: #f1c40f;
+            color: #000000;
         }
-        
+
         QTabBar::tab:hover {
-            background-color: #2980b9;
+            background-color: #d4b013;
         }
     """
