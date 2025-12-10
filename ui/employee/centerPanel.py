@@ -45,11 +45,11 @@ class CenterPanel(QWidget):
                 if i == 0:
                     baseText = "HÌNH ẢNH XE VÀO"
                     timeText = "24/10/2024 08:12:06"
-                    labelStyle = "color: #2ecc71;"
+                    labelStyle = "color: white;"
                 else:
                     baseText = "HÌNH ẢNH XE RA"
                     timeText = "24/10/2024 16:17:51"
-                    labelStyle = "color: #e74c3c;"
+                    labelStyle = "color: white;"
 
                 labelText = f"{baseText} - {timeText}"
 
@@ -64,7 +64,7 @@ class CenterPanel(QWidget):
                 # --- PHẦN ĐIỀU CHỈNH CHÍNH ---
                 imgLabel = QLabel()
                 imgLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                imgLabel.setStyleSheet("border: 1px solid #3498db;")
+                imgLabel.setStyleSheet("border: 1px solid #ffffff;")
 
                 # 1. Tải Pixmap
                 pixmap = QPixmap(self.imagePaths[imgIndex])

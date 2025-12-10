@@ -33,7 +33,7 @@ class LeftPanel(QWidget):
         # Khung trạng thái
         statusFrame = QFrame()
         statusFrame.setObjectName("StatusFrame")
-        statusFrame.setStyleSheet("background-color: #27ae60;")
+        statusFrame.setStyleSheet("background-color: #2c3e50;")
         statusVLayout = QVBoxLayout(statusFrame)
 
         statusLabel1 = QLabel("KHÁCH HÀNG CÓ THẺ THÁNG")
@@ -69,7 +69,7 @@ class LeftPanel(QWidget):
 
         bsVaoLabel = QLabel("20B1-073.64")
         bsVaoLabel.setFont(QFont('Arial', 30, weight=QFont.Weight.Bold))  # Giảm font
-        bsVaoLabel.setStyleSheet("color: #3498db;")
+        bsVaoLabel.setStyleSheet("color: #f1c40f;")
 
         bsVaoVLayout.addWidget(bsVaoLabel, alignment=Qt.AlignmentFlag.AlignCenter)
         infoLayout.addWidget(bsVaoFrame, 1, 0)
@@ -95,7 +95,7 @@ class LeftPanel(QWidget):
 
         bsRaLabel = QLabel("20B1-073.64")
         bsRaLabel.setFont(QFont('Arial', 30, weight=QFont.Weight.Bold))  # Giảm font
-        bsRaLabel.setStyleSheet("color: #3498db;")
+        bsRaLabel.setStyleSheet("color: #f1c40f;")
 
         bsRaVLayout.addWidget(bsRaLabel, alignment=Qt.AlignmentFlag.AlignCenter)
         infoLayout.addWidget(bsRaFrame, 3, 0)

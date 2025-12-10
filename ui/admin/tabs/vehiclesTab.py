@@ -51,6 +51,7 @@ class VehicleTab(QWidget):
         table.setColumnCount(3)
 
         table.setHorizontalHeaderLabels([
+            "Tên khách hàng",
             "Biển số",
             "Loại phương tiện",
             "Ghi chú"
@@ -66,10 +67,10 @@ class VehicleTab(QWidget):
         #       DỮ LIỆU MẪU
         # =========================
         data = [
-            ("70-F1 666.66", "Xe máy",
+            ("Nguyen Văn Hồ","70-F1 666.66", "Xe máy",
               ""),
 
-            ("30B-678.90", "Xe máy", "")
+            ("Hồ Văn Bao","30B-678.90", "Xe máy", "")
         ]
 
         table.setRowCount(len(data))
