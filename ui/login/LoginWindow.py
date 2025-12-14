@@ -1,9 +1,11 @@
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QHBoxLayout, QWidget
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
 
 class LoginWindow(QDialog):
+    login_requested = pyqtSignal(str, str)
+
     def __init__(self):
         super().__init__()
         self.username_input = QLineEdit()
@@ -13,8 +15,6 @@ class LoginWindow(QDialog):
         self.setWindowTitle("Đăng nhập hệ thống")
         self.setGeometry(500, 200, 400, 300)
         self.setStyleSheet("background-color: #f0f2f5;")
-        self.accept_login = False
-        self.user_type = None
         self.initUI()
 
 
@@ -80,23 +80,15 @@ class LoginWindow(QDialog):
             }
         """)
         layout.addWidget(self.login_btn)
-
-        # Ghi chú
-        # note = QLabel("Admin: admin/123 | User: employee/123 |")
-        # note.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # note.setStyleSheet("color: #555; font-size: 12px;")  # Màu chữ tối, sẽ hiển thị
-        # layout.addWidget(note)
+        self.login_btn.clicked.connect(self._emit_login)
 
         self.setLayout(layout)
 
-    def get_username_input(self):
-        return self.username_input.text()
-
-    def get_password_input(self):
-        return self.password_input.text()
-
-    def get_username_password_input(self):
-        return self.username_input.text(), self.password_input.text()
+    def _emit_login(self):
+        self.login_requested.emit(
+            self.username_input.text(),
+            self.password_input.text()
+        )
 
     @staticmethod
     def show_error(message: str):

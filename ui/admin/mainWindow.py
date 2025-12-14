@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTabWidget, QMenu
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QAction
 
+from services.Session import Session
 from ui.admin.tabs.cardsTab import CardTab
 from ui.admin.tabs.customersTab import CustomerTab
 from ui.admin.tabs.vehiclesTab import VehicleTab
@@ -13,7 +14,7 @@ from ui.common import LogoutHandler
 
 
 class ParkingManagementApp(QMainWindow):
-    logout_signal = pyqtSignal()
+    logout_requested = pyqtSignal()
     
     def __init__(self):
         super().__init__()
@@ -46,7 +47,7 @@ class ParkingManagementApp(QMainWindow):
     def _request_logout(self):
         """Xử lý yêu cầu đăng xuất"""
         if self.logout_handler.confirm_logout(self):
-            self.logout_signal.emit()
+            self.logout_requested.emit()
             self.close()
 
     def _on_logout(self):
