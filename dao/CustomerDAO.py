@@ -86,7 +86,20 @@ class CustomerDAO:
         conn.close()
         return result > 0
 
-
-if __name__ == '__main__':
-    customer_dao = CustomerDAO()
-    print(customer_dao.get_all())
+    def get_or_create(self, name, phone, email):
+        conn = self._db.connect()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM customers WHERE phone_number=?", (phone,))
+            row = cursor.fetchone()
+            if row:
+                return type('Customer', (), {'id': row[0], 'fullname': name})()  # fake object đơn giản
+            # Nếu chưa có, insert
+            cursor.execute(
+                "INSERT INTO customers (fullname, phone_number, email) VALUES (?, ?, ?)",
+                (name, phone, email)
+            )
+            conn.commit()
+            return type('Customer', (), {'id': cursor.lastrowid, 'fullname': name})()
+        finally:
+            conn.close()

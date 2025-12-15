@@ -1,4 +1,7 @@
 from typing import List, Optional
+
+from dao.CustomerDAO import CustomerDAO
+from dao.VehicleDAO import VehicleDAO
 from db.database import Database
 from model.MonthlyCard import MonthlyCard
 from model.Vehicle import Vehicle
@@ -6,140 +9,146 @@ from model.Customer import Customer
 
 
 class MonthlyCardDAO:
-    def __init__(self):
+    def __init__(self, customer_dao: CustomerDAO, vehicle_dao: VehicleDAO):
         self._db = Database()
+        self._customer_dao = customer_dao
+        self._vehicle_dao = vehicle_dao
 
-    def get_all(self) -> List[MonthlyCard]:
+    # ---------- READ ----------
+    def get_by_id(self, card_id: int) -> MonthlyCard | None:
         conn = self._db.connect()
         cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT mc.id, mc.fee, mc.start_date, mc.end_date, mc.active,
-                   c.id, c.full_name, c.phone_number, c.email,
-                   v.id, v.plate_number, v.vehicle_type
-            FROM monthly_cards mc
-            JOIN customers c ON mc.customer_id = c.id
-            JOIN vehicles v ON mc.vehicle_id = v.id
-        """)
+        sql = """
+        SELECT *
+        FROM monthly_cards
+        WHERE id = ? AND is_active = 1
+        """
 
-        rows = cursor.fetchall()
-
-        cards = [
-            MonthlyCard(
-                card_id=row[0],
-                fee=row[1],
-                start_date=row[2],
-                expiry_date=row[3],
-                is_paid=row[4],
-                customer=Customer(row[5], row[6], row[7], row[8]),
-                vehicle=Vehicle(row[9], row[10], row[11])
-            )
-            for row in rows
-        ]
-
-        cursor.close()
-        conn.close()
-        return cards
-
-    def get_by_id(self, card_id: int) -> Optional[MonthlyCard]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
-
-        cursor.execute("""
-            SELECT mc.id, mc.fee, mc.start_date, mc.end_date, mc.active,
-                   c.id, c.full_name, c.phone_number, c.email,
-                   v.id, v.plate_number, v.vehicle_type
-            FROM monthly_cards mc
-            JOIN customers c ON mc.customer_id = c.id
-            JOIN vehicles v ON mc.vehicle_id = v.id
-            WHERE mc.id = ?
-        """, (card_id,))
-
-        row = cursor.fetchone()
-
-        cursor.close()
+        row = cursor.execute(sql, card_id).fetchone()
         conn.close()
 
-        if row:
-            return MonthlyCard(
-                card_id=row[0],
-                fee=row[1],
-                start_date=row[2],
-                expiry_date=row[3],
-                is_paid=row[4],
-                customer=Customer(row[5], row[6], row[7], row[8]),
-                vehicle=Vehicle(row[9], row[10], row[11])
-            )
-        return None
+        if not row:
+            return None
 
-    def save(self, card: MonthlyCard) -> bool:
+        return self._map_row_to_monthly_card(row)
+
+    def get_by_code(self, card_code: str) -> MonthlyCard | None:
         conn = self._db.connect()
         cursor = conn.cursor()
 
-        cursor.execute("""
-            INSERT INTO monthly_cards
-            (customer_id, vehicle_id, fee, start_date, end_date, active)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (
-            card.customer.id,
-            card.vehicle.id,
-            card.fee,
-            card.start_date,
-            card.expiry_date,
-            card.is_paid
-        ))
+        sql = """
+        SELECT *
+        FROM monthly_cards
+        WHERE card_code = ? AND is_active = 1
+        """
 
-        conn.commit()
-        result = cursor.rowcount
-
-        cursor.close()
+        row = cursor.execute(sql, card_code).fetchone()
         conn.close()
-        return result > 0
 
-    def update(self, card: MonthlyCard) -> bool:
+        if not row:
+            return None
+
+        return self._map_row_to_monthly_card(row)
+
+    def get_all(self) -> list[MonthlyCard]:
         conn = self._db.connect()
         cursor = conn.cursor()
 
-        cursor.execute("""
-            UPDATE monthly_cards
-            SET customer_id = ?, vehicle_id = ?, fee = ?,
-                start_date = ?, end_date = ?, active = ?, updated_at = GETDATE()
-            WHERE id = ?
-        """, (
-            card.customer.id,
-            card.vehicle.id,
-            card.fee,
-            card.start_date,
-            card.expiry_date,
-            card.is_paid,
-            card.card_id
-        ))
-
-        conn.commit()
-        result = cursor.rowcount
-
-        cursor.close()
+        sql = "SELECT * FROM monthly_cards WHERE is_active = 1"
+        rows = cursor.execute(sql).fetchall()
         conn.close()
-        return result > 0
 
-    def delete(self, card_id: int) -> bool:
+        return [self._map_row_to_monthly_card(r) for r in rows]
+
+    # ---------- CREATE ----------
+    def create(
+        self,
+        card_code: str,
+        customer_id: int,
+        vehicle_id: int,
+        monthly_fee: int,
+        start_date,
+        expiry_date,
+        is_paid: bool = True
+    ):
         conn = self._db.connect()
         cursor = conn.cursor()
+
+        sql = """
+        INSERT INTO monthly_cards
+        (card_code, customer_id, vehicle_id,
+         monthly_fee, start_date, expiry_date, is_paid)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """
 
         cursor.execute(
-            "DELETE FROM monthly_cards WHERE id = ?",
-            (card_id,)
+            sql,
+            card_code,
+            customer_id,
+            vehicle_id,
+            monthly_fee,
+            start_date,
+            expiry_date,
+            is_paid
+        )
+        conn.commit()
+        conn.close()
+
+    # ---------- UPDATE ----------
+    def update_payment(self, card_id: int, is_paid: bool):
+        conn = self._db.connect()
+        cursor = conn.cursor()
+
+        sql = """
+        UPDATE monthly_cards
+        SET is_paid = ?, updated_at = GETDATE()
+        WHERE id = ?
+        """
+
+        cursor.execute(sql, is_paid, card_id)
+        conn.commit()
+        conn.close()
+
+    def extend_expiry(self, card_id: int, new_expiry):
+        conn = self._db.connect()
+        cursor = conn.cursor()
+
+        sql = """
+        UPDATE monthly_cards
+        SET expiry_date = ?, updated_at = GETDATE()
+        WHERE id = ?
+        """
+
+        cursor.execute(sql, new_expiry, card_id)
+        conn.commit()
+        conn.close()
+
+    # ---------- DELETE (soft) ----------
+    def deactivate(self, card_id: int):
+        conn = self._db.connect()
+        cursor = conn.cursor()
+
+        sql = "UPDATE monthly_cards SET is_active = 0 WHERE id = ?"
+        cursor.execute(sql, card_id)
+        conn.commit()
+        conn.close()
+
+   
+    def _map_row_to_monthly_card(self, row) -> MonthlyCard:
+        customer = self._customer_dao.get_by_id(row.customer_id)
+        vehicle = self._vehicle_dao.get_by_id(row.vehicle_id)
+
+        return MonthlyCard(
+            card_id=row.id,
+            card_code=row.card_code,
+            customer=customer,
+            vehicle=vehicle,
+            monthly_fee=row.monthly_fee,
+            start_date=row.start_date,
+            expiry_date=row.expiry_date,
+            is_paid=row.is_paid
         )
 
-        conn.commit()
-        result = cursor.rowcount
-
-        cursor.close()
-        conn.close()
-        return result > 0
-
-
 if __name__ == '__main__':
-    dao = MonthlyCardDAO()
-    print(dao.get_by_id(1))
-
+    print(MonthlyCardDAO(CustomerDAO(), VehicleDAO()).get_all())

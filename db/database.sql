@@ -1,4 +1,4 @@
---DROP DATABASE SmartParkingLotSystem;
+-- DROP DATABASE SmartParkingLotSystem;
 CREATE DATABASE SmartParkingLotSystem;
 
 USE SmartParkingLotSystem;
@@ -34,12 +34,14 @@ GO
 
 CREATE TABLE [monthly_cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
+  [card_code] varchar(10) NOT NULL,
   [customer_id] bigint,
   [vehicle_id] bigint NOT NULL,
-  [fee] int,
+  [monthly_fee] int,
   [start_date] date,
-  [end_date] date,
-  [active] bit,
+  [expiry_date] date,
+  [is_paid] bit,
+  [is_active] bit NOT NULL DEFAULT 1,
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
@@ -47,7 +49,7 @@ GO
 
 CREATE TABLE [customers] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
-  [full_name] varchar(100),
+  [full_name] nvarchar(100),
   [phone_number] varchar(20) UNIQUE,
   [email] varchar(50),
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
@@ -58,17 +60,24 @@ GO
 CREATE TABLE [cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
   [card_code] varchar(10) NOT NULL,
-  [vehicle_id] bigint NOT NULL,
-  [card_type] varchar(10),
-  [entry_at] datetime,
-  [exit_at] datetime,
-  [fee] int,
+  [price] INT,
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE(),
-  [created_by] bigint,
-  [closed_by] bigint
+  [is_active] bit NOT NULL DEFAULT 1,
+  [created_by] bigint
 )
 GO
+
+CREATE TABLE card_logs (
+  id BIGINT PRIMARY KEY IDENTITY,
+  card_id BIGINT NOT NULL,
+  vehicle_id BIGINT NOT NULL,
+  entry_at DATETIME NOT NULL DEFAULT GETDATE(),
+  exit_at DATETIME,
+  fee INT,
+  created_by BIGINT,
+  closed_by BIGINT,
+);
 
 CREATE TABLE [vehicle_cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -81,7 +90,7 @@ GO
 
 CREATE TABLE [staffs] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
-  [fullname] varchar(100),
+  [fullname] nvarchar(100),
   [phone_number] varchar(20),
   [username] varchar(50) UNIQUE,
   [password] varchar(255),
@@ -107,9 +116,6 @@ GO
 ALTER TABLE [cards] ADD FOREIGN KEY ([created_by]) REFERENCES [staffs] ([id])
 GO
 
-ALTER TABLE [cards] ADD FOREIGN KEY ([closed_by]) REFERENCES [staffs] ([id])
-GO
-
 ALTER TABLE [payments] ADD FOREIGN KEY ([processed_by]) REFERENCES [staffs] ([id])
 GO
 
@@ -128,10 +134,10 @@ GO
 ALTER TABLE [payments] ADD FOREIGN KEY ([monthly_card_id]) REFERENCES [monthly_cards] ([id])
 GO
 
-ALTER TABLE [vehicle_cards] ADD FOREIGN KEY ([vehicle_id]) REFERENCES [vehicles] ([id])
+ALTER TABLE [card_logs] ADD FOREIGN KEY ([vehicle_id]) REFERENCES [vehicles] ([id])
 GO
 
-ALTER TABLE [vehicle_cards] ADD FOREIGN KEY ([card_id]) REFERENCES [cards] ([id])
+ALTER TABLE [card_logs] ADD FOREIGN KEY ([card_id]) REFERENCES [cards] ([id])
 GO
 
 ALTER TABLE [payments] ADD FOREIGN KEY ([card_id]) REFERENCES [cards] ([id])

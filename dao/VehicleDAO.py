@@ -5,10 +5,10 @@ from model.Vehicle import Vehicle
 
 class VehicleDAO:
     def __init__(self):
-        self.__db = Database()
+        self._db = Database()
 
     def get_all(self) -> List[Vehicle]:
-        conn = self.__db.connect()
+        conn = self._db.connect()
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -24,11 +24,11 @@ class VehicleDAO:
         return vehicles
 
     def get_by_id(self, vehicle_id: int) -> Optional[Vehicle]:
-        conn = self.__db.connect()
+        conn = self._db.connect()
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT id, plate_number
+            SELECT id, vehicle_type, plate_number
             FROM vehicles
             WHERE id = ?
         """, (vehicle_id,))
@@ -38,11 +38,11 @@ class VehicleDAO:
         conn.close()
 
         if row:
-            return Vehicle(row[0], row[1])
+            return Vehicle(row[0], row[1], row[2])
         return None
 
     def save(self, vehicle: Vehicle) -> bool:
-        conn = self.__db.connect()
+        conn = self._db.connect()
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -57,7 +57,7 @@ class VehicleDAO:
         return result > 0
 
     def update(self, vehicle: Vehicle) -> bool:
-        conn = self.__db.connect()
+        conn = self._db.connect()
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -73,7 +73,7 @@ class VehicleDAO:
         return result > 0
 
     def delete(self, vehicle_id: int) -> bool:
-        conn = self.__db.connect()
+        conn = self._db.connect()
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -85,3 +85,20 @@ class VehicleDAO:
         cursor.close()
         conn.close()
         return result > 0
+
+    def get_or_create(self, plate_number, vehicle_type):
+        conn = self._db.connect()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM vehicles WHERE plate_number=?", (plate_number,))
+            row = cursor.fetchone()
+            if row:
+                return type('Vehicle', (), {'id': row[0], 'plate_number': plate_number})()
+            cursor.execute(
+                "INSERT INTO vehicles (plate_number, vehicle_type) VALUES (?, ?)",
+                (plate_number, vehicle_type)
+            )
+            conn.commit()
+            return type('Vehicle', (), {'id': cursor.lastrowid, 'plate_number': plate_number})()
+        finally:
+            conn.close()
