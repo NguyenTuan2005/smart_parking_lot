@@ -15,7 +15,7 @@ class EmployeeMainWindow(QMainWindow):
     Lớp chính cho Giao diện Hệ thống Quản lý Bãi đỗ xe cho Nhân viên (QMainWindow).
     Tích hợp các panel (Left, Center, Right).
     """
-    logout_signal = pyqtSignal()
+    logout_requested = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -61,7 +61,7 @@ class EmployeeMainWindow(QMainWindow):
     def _request_logout(self):
         """Xử lý yêu cầu đăng xuất"""
         if self.logout_handler.confirm_logout(self):
-            self.logout_signal.emit()
+            self.logout_requested.emit()
             self.close()
 
     def _on_logout(self):
