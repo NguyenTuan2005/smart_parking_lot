@@ -14,7 +14,7 @@ class MonthlyCardDAO:
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT mc.id, mc.fee, mc.start_date, mc.end_date, mc.active,
+            SELECT mc.id, mc.card_code, mc.fee, mc.start_date, mc.end_date, mc.active,
                    c.id, c.full_name, c.phone_number, c.email,
                    v.id, v.plate_number, v.vehicle_type
             FROM monthly_cards mc
@@ -27,12 +27,13 @@ class MonthlyCardDAO:
         cards = [
             MonthlyCard(
                 card_id=row[0],
-                fee=row[1],
-                start_date=row[2],
-                expiry_date=row[3],
-                is_paid=row[4],
-                customer=Customer(row[5], row[6], row[7], row[8]),
-                vehicle=Vehicle(row[9], row[10], row[11])
+                card_code=row[1],
+                fee=row[2],
+                start_date=row[3],
+                expiry_date=row[4],
+                is_paid=row[5],
+                customer=Customer(row[6], row[7], row[8], row[9]),
+                vehicle=Vehicle(row[10], row[11], row[12])
             )
             for row in rows
         ]
@@ -46,7 +47,7 @@ class MonthlyCardDAO:
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT mc.id, mc.fee, mc.start_date, mc.end_date, mc.active,
+            SELECT mc.id, mc.card_code, mc.fee, mc.start_date, mc.end_date, mc.active,
                    c.id, c.full_name, c.phone_number, c.email,
                    v.id, v.plate_number, v.vehicle_type
             FROM monthly_cards mc
@@ -63,12 +64,13 @@ class MonthlyCardDAO:
         if row:
             return MonthlyCard(
                 card_id=row[0],
-                fee=row[1],
-                start_date=row[2],
-                expiry_date=row[3],
-                is_paid=row[4],
-                customer=Customer(row[5], row[6], row[7], row[8]),
-                vehicle=Vehicle(row[9], row[10], row[11])
+                card_code=row[1],
+                fee=row[2],
+                start_date=row[3],
+                expiry_date=row[4],
+                is_paid=row[5],
+                customer=Customer(row[6], row[7], row[8], row[9]),
+                vehicle=Vehicle(row[10], row[11], row[12])
             )
         return None
 
@@ -78,11 +80,12 @@ class MonthlyCardDAO:
 
         cursor.execute("""
             INSERT INTO monthly_cards
-            (customer_id, vehicle_id, fee, start_date, end_date, active)
-            VALUES (?, ?, ?, ?, ?, ?)
+            (card_code, customer_id, vehicle_id, fee, start_date, end_date, active)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
+            card.card_code,
             card.customer.id,
-            card.vehicle.id,
+            card.vehicle.vehicle_id,
             card.fee,
             card.start_date,
             card.expiry_date,
@@ -97,30 +100,34 @@ class MonthlyCardDAO:
         return result > 0
 
     def update(self, card: MonthlyCard) -> bool:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        cursor.execute("""
-            UPDATE monthly_cards
-            SET customer_id = ?, vehicle_id = ?, fee = ?,
-                start_date = ?, end_date = ?, active = ?, updated_at = GETDATE()
-            WHERE id = ?
-        """, (
-            card.customer.id,
-            card.vehicle.id,
-            card.fee,
-            card.start_date,
-            card.expiry_date,
-            card.is_paid,
-            card.card_id
-        ))
+            cursor.execute("""
+                UPDATE monthly_cards
+                SET card_code= ?, customer_id = ?, vehicle_id = ?, fee = ?,
+                    start_date = ?, end_date = ?, active = ?, updated_at = GETDATE()
+                WHERE id = ?
+            """, (
+                card.card_code,
+                card.customer.id,
+                card.vehicle.vehicle_id,
+                card.fee,
+                card.start_date,
+                card.expiry_date,
+                card.is_paid,
+                card.card_id
+            ))
 
-        conn.commit()
-        result = cursor.rowcount
+            conn.commit()
+            result = cursor.rowcount
 
-        cursor.close()
-        conn.close()
-        return result > 0
+            cursor.close()
+            conn.close()
+            return result > 0
+        except Exception as e:
+            print(e)
 
     def delete(self, card_id: int) -> bool:
         conn = self._db.connect()

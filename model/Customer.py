@@ -10,5 +10,9 @@ class Customer(User):
         return super().__repr__() + " , email: " + str(self._email)
 
     @property
+    def fullname(self):
+        return self._fullname
+
+    @property
     def email(self):
         return self._email

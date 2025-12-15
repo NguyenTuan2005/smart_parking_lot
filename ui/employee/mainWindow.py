@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QMenuBar
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
 from PyQt6.QtGui import QAction
 
-from controllers.AIController import AIController
+from controllers.StaffController import StaffController
 from ui.employee.leftPanel import LeftPanel
 from ui.employee.centerPanel import CenterPanel
 from ui.employee.rightPanel import RightPanel
@@ -21,7 +21,7 @@ class EmployeeMainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Hệ thống Quản lý - Nhân viên")
         self.setGeometry(100, 100, 1400, 800)
-        self.__controller = AIController()
+        self.__controller = StaffController()
 
         # Áp dụng Global Style
         self.setStyleSheet(getGlobalStyle())
@@ -80,11 +80,11 @@ class EmployeeMainWindow(QMainWindow):
         mainLayout.setSpacing(10)
 
         # 1. Cột Trái (Left Pane) - Sử dụng lớp LeftPanel
-        leftPane = LeftPanel()
+        leftPane = LeftPanel(self.__controller)
         mainLayout.addWidget(leftPane, 1)  # Tỉ lệ 1 (cột hẹp)
 
         # 2. Cột Giữa (Center Pane) - Sử dụng lớp CenterPanel
-        centerPane = CenterPanel()
+        centerPane = CenterPanel(self.__controller)
         mainLayout.addWidget(centerPane, 4)  # Tỉ lệ 4 (cột rộng nhất)
 
         # 3. Cột Phải (Right Pane) - Sử dụng lớp RightPanel
