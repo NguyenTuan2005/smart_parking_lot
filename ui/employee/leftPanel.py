@@ -4,6 +4,9 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt
 
+from controllers.StaffController import StaffController
+from model.Card import Card
+
 
 class LeftPanel(QWidget):
     """
@@ -11,8 +14,10 @@ class LeftPanel(QWidget):
     (Đã tối ưu hóa kích thước cho PyQt6)
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, controller: StaffController, parent=None):
         super().__init__(parent)
+        self.__controller = controller
+        controller.add_view("left", self)
         self._setupUi()
 
     def _setupUi(self):
@@ -36,10 +41,10 @@ class LeftPanel(QWidget):
         statusFrame.setStyleSheet("background-color: #2c3e50;")
         statusVLayout = QVBoxLayout(statusFrame)
 
-        statusLabel1 = QLabel("KHÁCH HÀNG CÓ THẺ THÁNG")
-        statusLabel1.setFont(QFont('Arial', 16, weight=QFont.Weight.Bold))  # Giảm font
-        statusLabel1.setStyleSheet("color: white;")
-        statusVLayout.addWidget(statusLabel1, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.__statusLabel1 = QLabel("KHÁCH HÀNG CÓ THẺ THÁNG")
+        self.__statusLabel1.setFont(QFont('Arial', 16, weight=QFont.Weight.Bold))  # Giảm font
+        self.__statusLabel1.setStyleSheet("color: white;")
+        statusVLayout.addWidget(self.__statusLabel1, alignment=Qt.AlignmentFlag.AlignCenter)
 
         vLayout.addWidget(statusFrame)
 
@@ -67,11 +72,11 @@ class LeftPanel(QWidget):
         bsVaoVLayout = QVBoxLayout(bsVaoFrame)
         bsVaoVLayout.setContentsMargins(8, 3, 8, 3)  # Giảm margin
 
-        bsVaoLabel = QLabel("20B1-073.64")
-        bsVaoLabel.setFont(QFont('Arial', 30, weight=QFont.Weight.Bold))  # Giảm font
-        bsVaoLabel.setStyleSheet("color: #f1c40f;")
+        self.__bsVaoLabel = QLabel("Trống")
+        self.__bsVaoLabel.setFont(QFont('Arial', 30, weight=QFont.Weight.Bold))  # Giảm font
+        self.__bsVaoLabel.setStyleSheet("color: #f1c40f;")
 
-        bsVaoVLayout.addWidget(bsVaoLabel, alignment=Qt.AlignmentFlag.AlignCenter)
+        bsVaoVLayout.addWidget(self.__bsVaoLabel, alignment=Qt.AlignmentFlag.AlignCenter)
         infoLayout.addWidget(bsVaoFrame, 1, 0)
 
         # Hàng 2: Biển số Ra Label
@@ -93,11 +98,11 @@ class LeftPanel(QWidget):
         bsRaVLayout = QVBoxLayout(bsRaFrame)
         bsRaVLayout.setContentsMargins(8, 3, 8, 3)
 
-        bsRaLabel = QLabel("20B1-073.64")
-        bsRaLabel.setFont(QFont('Arial', 30, weight=QFont.Weight.Bold))  # Giảm font
-        bsRaLabel.setStyleSheet("color: #f1c40f;")
+        self.__bsRaLabel = QLabel("Trống")
+        self.__bsRaLabel.setFont(QFont('Arial', 30, weight=QFont.Weight.Bold))  # Giảm font
+        self.__bsRaLabel.setStyleSheet("color: #f1c40f;")
 
-        bsRaVLayout.addWidget(bsRaLabel, alignment=Qt.AlignmentFlag.AlignCenter)
+        bsRaVLayout.addWidget(self.__bsRaLabel, alignment=Qt.AlignmentFlag.AlignCenter)
         infoLayout.addWidget(bsRaFrame, 3, 0)
 
         # Hàng 4, 5: SỐ NGÀY GỬI
@@ -105,10 +110,10 @@ class LeftPanel(QWidget):
         durationLabel.setStyleSheet("color: #95a5a6; font-size: 14px;")  # Giảm font
         infoLayout.addWidget(durationLabel, 4, 0)
 
-        durationValue = QLabel("1 NGÀY 08 GIỜ")
-        durationValue.setFont(QFont('Arial', 16, weight=QFont.Weight.Bold))  # Giảm font
-        durationValue.setStyleSheet("color: #f1c40f;")
-        infoLayout.addWidget(durationValue, 5, 0, alignment=Qt.AlignmentFlag.AlignHCenter)
+        self.__durationValue = QLabel("1 NGÀY 08 GIỜ")
+        self.__durationValue.setFont(QFont('Arial', 16, weight=QFont.Weight.Bold))  # Giảm font
+        self.__durationValue.setStyleSheet("color: #f1c40f;")
+        infoLayout.addWidget(self.__durationValue, 5, 0, alignment=Qt.AlignmentFlag.AlignHCenter)
 
         # Hàng 6: Phí giữ xe
         infoLayout.addWidget(QLabel("PHÍ GIỮ XE"), 6, 0)
@@ -119,9 +124,9 @@ class LeftPanel(QWidget):
         feeFrame.setStyleSheet("background-color: #34495e;")
         feeVLayout = QVBoxLayout(feeFrame)
 
-        fee_label = QLabel("0,000 VNĐ")
-        fee_label.setObjectName("BigNumber")
-        feeVLayout.addWidget(fee_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.__fee_label = QLabel("0 VNĐ")
+        self.__fee_label.setObjectName("BigNumber")
+        feeVLayout.addWidget(self.__fee_label, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Hàng 7: Khung Phí giữ xe
         infoLayout.addWidget(feeFrame, 7, 0, 1, 1)
@@ -151,6 +156,7 @@ class LeftPanel(QWidget):
             ("SỐ THẺ", "20739369"),
         ]
 
+        self.__card_info_labels = {}
         for i, (labelText, valueText) in enumerate(cardData):
             label = QLabel(labelText)
             label.setStyleSheet("color: #95a5a6; font-size: 11px;")  # Giảm font
@@ -159,6 +165,7 @@ class LeftPanel(QWidget):
 
             cardGridLayout.addWidget(label, i, 0)
             cardGridLayout.addWidget(value, i, 1, alignment=Qt.AlignmentFlag.AlignRight)
+            self.__card_info_labels[labelText] = value
 
         # Giãn cách cho cột dữ liệu
         cardGridLayout.setColumnStretch(1, 1)
@@ -168,3 +175,21 @@ class LeftPanel(QWidget):
         # Giãn cách cuối cùng để đẩy tất cả lên trên
         vLayout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum,
                                           QSizePolicy.Policy.Expanding))
+
+    def update_view(self, card: Card):
+        self.__bsVaoLabel.setText(card.vehicle.plate_number)
+        self.__bsRaLabel.setText("" if card.time_exit is None else str(card.time_exit))
+        self.__durationValue.setText(str(card.duration()))
+        self.__fee_label.setText(f"{card.calculate_fee()} VNĐ")
+        self.__card_info_labels["BIỂN SỐ ĐK"].setText(card.vehicle.plate_number)
+        self.__card_info_labels["MÃ THẺ"].setText(card.card_code)
+        self.__card_info_labels["T/G XE VÀO"].setText(str(card.time_entry))
+        self.__card_info_labels["T/G XE RA"].setText("" if card.time_exit is None else str(card.time_exit))
+        self.__card_info_labels["SỐ THẺ"].setText(str(card.card_id))
+
+        if card.is_month_card():
+            self.__card_info_labels["CHỦ XE"].setText(str(card.customer.fullname))
+            self.__statusLabel1.setText("KHÁCH HÀNG CÓ THẺ THÁNG")
+        else:
+            self.__card_info_labels["CHỦ XE"].setText("KHÁCH VÃNG LAI")
+            self.__statusLabel1.setText("THẺ LẺ")

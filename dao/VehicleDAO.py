@@ -41,6 +41,24 @@ class VehicleDAO:
             return Vehicle(row[0], row[1])
         return None
 
+    def get_by_plate_number(self, plate_number: str) -> Vehicle:
+        conn = self.__db.connect()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+                       SELECT id, vehicle_type, plate_number
+                       FROM vehicles
+                       WHERE plate_number = ?
+                       """, (plate_number,))
+
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if row:
+            return Vehicle(row[0], row[1], row[2])
+        return None
+
     def save(self, vehicle: Vehicle) -> bool:
         conn = self.__db.connect()
         cursor = conn.cursor()

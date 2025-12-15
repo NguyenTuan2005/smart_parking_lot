@@ -13,7 +13,7 @@ class SingleCardDAO:
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT c.id, c.entry_at, c.exit_at, c.fee,
+            SELECT c.id, c.card_code, c.entry_at, c.exit_at, c.fee,
                    v.id, v.plate_number, v.vehicle_type
             FROM cards c
             JOIN vehicles v ON c.vehicle_id = v.id
@@ -25,10 +25,11 @@ class SingleCardDAO:
         cards = [
             SingleCard(
                 card_id=row[0],
-                time_entry=row[1],
-                time_exit=row[2],
-                fee=row[3],
-                vehicle=Vehicle(row[4], row[5], row[6])
+                card_code= row[1],
+                time_entry=row[2],
+                time_exit=row[3],
+                fee=row[4],
+                vehicle=Vehicle(row[5], row[6], row[7])
             )
             for row in rows
         ]
@@ -42,7 +43,7 @@ class SingleCardDAO:
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT c.id, c.entry_at, c.exit_at, c.fee,
+            SELECT c.id, c.card_code, c.entry_at, c.exit_at, c.fee,
                    v.id, v.plate_number, v.vehicle_type
             FROM cards c
             JOIN vehicles v ON c.vehicle_id = v.id
@@ -57,10 +58,11 @@ class SingleCardDAO:
         if row:
             return SingleCard(
                 card_id=row[0],
-                time_entry=row[1],
-                time_exit=row[2],
-                fee=row[3],
-                vehicle=Vehicle(row[4], row[5], row[6])
+                card_code= row[1],
+                time_entry=row[2],
+                time_exit=row[3],
+                fee=row[4],
+                vehicle=Vehicle(row[5], row[6], row[7])
             )
         return None
 
@@ -69,10 +71,11 @@ class SingleCardDAO:
         cursor = conn.cursor()
 
         cursor.execute("""
-            INSERT INTO cards (vehicle_id, card_type, entry_at, exit_at, fee, created_by)
-            VALUES (?, 'SINGLE', ?, ?, ?, ?)
+            INSERT INTO cards (card_code, vehicle_id, card_type, entry_at, exit_at, fee, created_by)
+            VALUES (?,?, 'SINGLE', ?, ?, ?, ?)
         """, (
-            card.vehicle.id,
+            card.card_code,
+            card.vehicle.vehicle_id,
             card.time_entry,
             card.time_exit,
             card.fee,
@@ -120,8 +123,3 @@ class SingleCardDAO:
         conn.close()
 
         return result > 0
-
-
-if __name__ == '__main__':
-    dao = SingleCardDAO()
-    print(dao.get_all())

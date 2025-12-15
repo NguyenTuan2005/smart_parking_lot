@@ -12,7 +12,6 @@ CREATE TABLE [cameras] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [vehicles] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -21,7 +20,6 @@ CREATE TABLE [vehicles] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [alpr_logs] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -30,10 +28,10 @@ CREATE TABLE [alpr_logs] (
   [detected_at] datetime NOT NULL DEFAULT GETDATE(),
   [image_path] varchar(255) NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [monthly_cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
+  [card_code] varchar(10) NOT NULL,
   [customer_id] bigint,
   [vehicle_id] bigint NOT NULL,
   [fee] int,
@@ -43,7 +41,6 @@ CREATE TABLE [monthly_cards] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [customers] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -53,7 +50,6 @@ CREATE TABLE [customers] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -68,7 +64,6 @@ CREATE TABLE [cards] (
   [created_by] bigint,
   [closed_by] bigint
 )
-GO
 
 CREATE TABLE [vehicle_cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -77,7 +72,6 @@ CREATE TABLE [vehicle_cards] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [staffs] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -89,7 +83,6 @@ CREATE TABLE [staffs] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [payments] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -102,37 +95,25 @@ CREATE TABLE [payments] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 ALTER TABLE [cards] ADD FOREIGN KEY ([created_by]) REFERENCES [staffs] ([id])
-GO
 
 ALTER TABLE [cards] ADD FOREIGN KEY ([closed_by]) REFERENCES [staffs] ([id])
-GO
 
 ALTER TABLE [payments] ADD FOREIGN KEY ([processed_by]) REFERENCES [staffs] ([id])
-GO
 
 ALTER TABLE [alpr_logs] ADD FOREIGN KEY ([camera_id]) REFERENCES [cameras] ([id])
-GO
 
 ALTER TABLE [alpr_logs] ADD FOREIGN KEY ([vehicle_id]) REFERENCES [vehicles] ([id])
-GO
 
 ALTER TABLE [monthly_cards] ADD FOREIGN KEY ([customer_id]) REFERENCES [customers] ([id])
-GO
 
 ALTER TABLE [monthly_cards] ADD FOREIGN KEY ([vehicle_id]) REFERENCES [vehicles] ([id])
-GO
 
 ALTER TABLE [payments] ADD FOREIGN KEY ([monthly_card_id]) REFERENCES [monthly_cards] ([id])
-GO
 
 ALTER TABLE [vehicle_cards] ADD FOREIGN KEY ([vehicle_id]) REFERENCES [vehicles] ([id])
-GO
 
 ALTER TABLE [vehicle_cards] ADD FOREIGN KEY ([card_id]) REFERENCES [cards] ([id])
-GO
 
 ALTER TABLE [payments] ADD FOREIGN KEY ([card_id]) REFERENCES [cards] ([id])
-GO

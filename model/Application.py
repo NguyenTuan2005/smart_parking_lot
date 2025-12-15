@@ -1,3 +1,4 @@
+import random
 from typing import Set
 
 from dao.CustomerDAO import CustomerDAO
@@ -14,10 +15,10 @@ from model.Vehicle import Vehicle
 
 class Application:
     def __init__(self):
-        self._users: Set[User] = CustomerDAO().get_all().append(StaffDAO().get_all())
-        self._cards: Set[Card] = SingleCardDAO().get_all().append(MonthlyCardDAO().get_all())
-        self._vehicles: Set[Vehicle] = VehicleDAO().get_all()
-        self._payments: Set[Payment] = PaymentDAO().get_all()
+        self._users: Set[User] = set(CustomerDAO().get_all()) | set(StaffDAO().get_all())
+        self._cards: Set[Card] = set(SingleCardDAO().get_all()) | set(MonthlyCardDAO().get_all())
+        self._vehicles: Set[Vehicle] = set(VehicleDAO().get_all())
+        self._payments: Set[Payment] = set(PaymentDAO().get_all())
 
     def calculate_total_revenue(self):
         pass
@@ -25,8 +26,11 @@ class Application:
     def statistic_revenue_by_month(self):
         pass
 
-    def check_in(self, card_id: str) :
-        pass
+    def check_in(self, card: Card, plate: str) -> Card:
+        if card is None:
+            card = random.choice(list(self._cards))
+        card.check_in(plate)
+        return card
 
     def check_out(self, card_id: str) -> None:
         pass

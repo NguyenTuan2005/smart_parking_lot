@@ -1,8 +1,12 @@
+
+import cv2
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QGridLayout, QLabel, QFrame, QSizePolicy, QSpacerItem
+    QWidget, QVBoxLayout, QGridLayout, QLabel, QFrame, QSizePolicy
 )
-from PyQt6.QtGui import QFont, QPixmap
+from PyQt6.QtGui import QFont, QPixmap, QImage
 from PyQt6.QtCore import Qt
+
+from controllers.StaffController import StaffController
 
 
 class CenterPanel(QWidget):
@@ -10,7 +14,7 @@ class CenterPanel(QWidget):
     Khu vực giữa chứa 4 khung Ảnh lớn.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, controller: StaffController, parent=None):
         super().__init__(parent)
         self.imagePaths = [
             "../../assets/images/xevao_1.jpg",
@@ -19,12 +23,14 @@ class CenterPanel(QWidget):
             "../../assets/images/xera_1.jpg",
         ]
         self.imgLabels = []  # Lưu trữ các QLabel để dễ dàng truy cập lại
+        self.__controller = controller
+        controller.add_view("center", self)
         self._setupUi()
 
     def _setupUi(self):
-        gridLayout = QGridLayout(self)
-        gridLayout.setContentsMargins(0, 0, 0, 0)
-        gridLayout.setSpacing(5)
+        self.__gridLayout = QGridLayout(self)
+        self.__gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.__gridLayout.setSpacing(5)
 
         imgIndex = 0
 
@@ -69,7 +75,7 @@ class CenterPanel(QWidget):
                 # 1. Tải Pixmap
                 pixmap = QPixmap(self.imagePaths[imgIndex])
                 imgLabel.original_pixmap = pixmap  # Lưu bản gốc
-
+                imgLabel.setMaximumWidth(245)
                 # 2. BẬT co giãn nội dung (Quan trọng)
                 imgLabel.setScaledContents(True)
 
@@ -83,22 +89,28 @@ class CenterPanel(QWidget):
                 imgIndex += 1
 
                 frameVLayout.addWidget(imgLabel)
-                gridLayout.addWidget(videoFrame, i, j)
+                self.__gridLayout.addWidget(videoFrame, i, j)
 
-    # --- THÊM PHƯƠNG THỨC RESIZE EVENT (Tùy chọn, nếu setScaledContents(True) chưa đủ) ---
-    def resizeEvent(self, event):
-        """
-        Đảm bảo hình ảnh được co giãn lại mỗi khi widget thay đổi kích thước.
-        (Thường không cần thiết nếu dùng setScaledContents(True) và QGridLayout,
-        nhưng hữu ích khi cần kiểm soát chính xác hơn).
-        """
-        for label in self.imgLabels:
-            if hasattr(label, 'original_pixmap') and not label.original_pixmap.isNull():
-                # Lấy kích thước hiện tại của QLabel để co giãn ảnh theo đó
-                scaled_pixmap = label.original_pixmap.scaled(
-                    label.size(),
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation
-                )
-                label.setPixmap(scaled_pixmap)
-        super().resizeEvent(event)
+    def set_frame(self, frame):
+        if frame is None:
+            return
+
+        height, width, channel = frame.shape
+        bytes_per_line = 3 * width
+
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        q_image = QImage(rgb_frame.data, width, height, bytes_per_line, QImage.Format.Format_RGB888)
+        pixmap = QPixmap.fromImage(q_image)
+
+        if pixmap.isNull():
+            return
+
+        for idx in range(2):
+            imgLabel = self.imgLabels[idx]
+            imgLabel.original_pixmap = pixmap
+            imgLabel.setPixmap(pixmap.scaled(
+                imgLabel.size(),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            ))
