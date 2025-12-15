@@ -63,7 +63,7 @@ class MonthlyCard(Card):
             f"start_date={self._start_date}, "
             f"expiry_date={self._expiry_date}, "
             f"is_paid={self._is_paid}"
-            f")"
+            f")\n"
         )
 
 

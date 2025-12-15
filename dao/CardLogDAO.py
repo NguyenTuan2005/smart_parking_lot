@@ -50,7 +50,7 @@ class CardLogDAO:
         vehicle = self._vehicle_dao.get_by_id(row.vehicle_id)
 
         return CardLog(
-            id=row.id,
+            id=row.vehicle_id,
             card=card,
             vehicle=vehicle,
             entry_at=row.entry_at,

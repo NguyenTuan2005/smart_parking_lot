@@ -1,8 +1,10 @@
+from datetime import date
 from typing import List, Optional
 
 from dao.CustomerDAO import CustomerDAO
 from dao.VehicleDAO import VehicleDAO
 from db.database import Database
+from dto.dtos import MonthlyCardDTO
 from model.MonthlyCard import MonthlyCard
 from model.Vehicle import Vehicle
 from model.Customer import Customer
@@ -20,10 +22,11 @@ class MonthlyCardDAO:
         cursor = conn.cursor()
 
         sql = """
-        SELECT *
-        FROM monthly_cards
-        WHERE id = ? AND is_active = 1
-        """
+              SELECT *
+              FROM monthly_cards
+              WHERE id = ?
+                AND is_active = 1 \
+              """
 
         row = cursor.execute(sql, card_id).fetchone()
         conn.close()
@@ -38,10 +41,11 @@ class MonthlyCardDAO:
         cursor = conn.cursor()
 
         sql = """
-        SELECT *
-        FROM monthly_cards
-        WHERE card_code = ? AND is_active = 1
-        """
+              SELECT *
+              FROM monthly_cards
+              WHERE card_code = ?
+                AND is_active = 1 \
+              """
 
         row = cursor.execute(sql, card_code).fetchone()
         conn.close()
@@ -61,50 +65,50 @@ class MonthlyCardDAO:
 
         return [self._map_row_to_monthly_card(r) for r in rows]
 
-    # ---------- CREATE ----------
-    def create(
-        self,
-        card_code: str,
-        customer_id: int,
-        vehicle_id: int,
-        monthly_fee: int,
-        start_date,
-        expiry_date,
-        is_paid: bool = True
-    ):
+    def save(self, card_dto: MonthlyCardDTO) -> bool:
+
         conn = self._db.connect()
         cursor = conn.cursor()
 
-        sql = """
-        INSERT INTO monthly_cards
-        (card_code, customer_id, vehicle_id,
-         monthly_fee, start_date, expiry_date, is_paid)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """
+        try:
+            start_date_str = card_dto.start_date.strftime('%Y-%m-%d')
+            expiry_date_str = card_dto.expiry_date.strftime('%Y-%m-%d')
 
-        cursor.execute(
-            sql,
-            card_code,
-            customer_id,
-            vehicle_id,
-            monthly_fee,
-            start_date,
-            expiry_date,
-            is_paid
-        )
-        conn.commit()
-        conn.close()
+            cursor.execute("""
+                           INSERT INTO monthly_cards (card_code, customer_id, vehicle_id, monthly_fee,
+                                                      start_date, expiry_date, is_paid)
+                           VALUES (?, ?, ?, ?, ?, ?, ?)
+                           """, (
+                               card_dto.card_code,
+                               card_dto.customer_id,
+                               card_dto.vehicle_id,
+                               card_dto.monthly_fee,
+                               start_date_str,
+                               expiry_date_str,
+                               card_dto.is_paid
+                           ))
+            conn.commit()
 
-    # ---------- UPDATE ----------
+            return cursor.rowcount > 0
+
+        except Exception as e:
+            print(f"Lỗi DB MonthlyCardDAO.insert: {e}")
+            conn.rollback()
+            return False
+        finally:
+            cursor.close()
+            conn.close()
+
     def update_payment(self, card_id: int, is_paid: bool):
         conn = self._db.connect()
         cursor = conn.cursor()
 
         sql = """
-        UPDATE monthly_cards
-        SET is_paid = ?, updated_at = GETDATE()
-        WHERE id = ?
-        """
+              UPDATE monthly_cards
+              SET is_paid    = ?,
+                  updated_at = GETDATE()
+              WHERE id = ? \
+              """
 
         cursor.execute(sql, is_paid, card_id)
         conn.commit()
@@ -115,32 +119,34 @@ class MonthlyCardDAO:
         cursor = conn.cursor()
 
         sql = """
-        UPDATE monthly_cards
-        SET expiry_date = ?, updated_at = GETDATE()
-        WHERE id = ?
-        """
+              UPDATE monthly_cards
+              SET expiry_date = ?,
+                  updated_at  = GETDATE()
+              WHERE id = ? \
+              """
 
         cursor.execute(sql, new_expiry, card_id)
         conn.commit()
         conn.close()
 
-    # ---------- DELETE (soft) ----------
-    def deactivate(self, card_id: int):
+    def delete(self, card_code:str):
         conn = self._db.connect()
         cursor = conn.cursor()
 
-        sql = "UPDATE monthly_cards SET is_active = 0 WHERE id = ?"
-        cursor.execute(sql, card_id)
+        sql = "UPDATE monthly_cards SET is_active = 0 WHERE card_code = ?"
+        cursor.execute(sql, card_code)
+        result = cursor.rowcount
         conn.commit()
         conn.close()
 
-   
+        return result>0
+
     def _map_row_to_monthly_card(self, row) -> MonthlyCard:
         customer = self._customer_dao.get_by_id(row.customer_id)
         vehicle = self._vehicle_dao.get_by_id(row.vehicle_id)
 
         return MonthlyCard(
-            card_id=row.id,
+            card_id=row.vehicle_id,
             card_code=row.card_code,
             customer=customer,
             vehicle=vehicle,
@@ -150,5 +156,4 @@ class MonthlyCardDAO:
             is_paid=row.is_paid
         )
 
-if __name__ == '__main__':
-    print(MonthlyCardDAO(CustomerDAO(), VehicleDAO()).get_all())
+

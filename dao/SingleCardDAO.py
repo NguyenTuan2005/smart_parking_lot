@@ -25,7 +25,7 @@ class SingleCardDAO:
         if not row:
             return None
 
-        return SingleCard(row.id, row.card_code, row.price)
+        return SingleCard(row.vehicle_id, row.card_code, row.price)
 
     def get_by_code(self, card_code: str) -> SingleCard | None:
         conn = self._db.connect()
@@ -44,7 +44,7 @@ class SingleCardDAO:
             return None
 
         return SingleCard(
-            card_id=row.id,
+            card_id=row.vehicle_id,
             card_code=row.card_code,
             price=row.price
         )
@@ -62,7 +62,7 @@ class SingleCardDAO:
         rows = cursor.execute(sql).fetchall()
         conn.close()
 
-        return [SingleCard(r.id, r.card_code, r.price) for r in rows]
+        return [SingleCard(r.vehicle_id, r.card_code, r.price) for r in rows]
 
     # ---------- CREATE ----------
     def create(self, card_code: str, price: int, created_by: int):

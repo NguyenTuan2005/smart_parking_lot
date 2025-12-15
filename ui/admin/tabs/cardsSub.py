@@ -1,5 +1,3 @@
-from random import choice, randint
-
 from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
@@ -153,9 +151,11 @@ class MonthlyCardLogTab(QWidget):
     viewRequested = pyqtSignal(dict)
     editRequested = pyqtSignal(dict)
     deleteRequested = pyqtSignal(dict)
+    cardAdded = pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()
+        self._current_dialog = None
         self.init_ui()
         # self.populate_sample_data()
 
@@ -380,58 +380,80 @@ class MonthlyCardLogTab(QWidget):
             layout.setContentsMargins(0, 0, 0, 0)
             layout.setSpacing(2)
 
-            # Nút Xem
-            btn_view = QPushButton()
-            btn_view.setIcon(QIcon("assets/icons/view.svg"))
-            btn_view.setIconSize(QSize(16, 16))
-            btn_view.setToolTip("Xem chi tiết")
 
-            # Nút Sửa
             btn_edit = QPushButton()
             btn_edit.setIcon(QIcon("assets/icons/edit.svg"))
             btn_edit.setIconSize(QSize(16, 16))
             btn_edit.setToolTip("Chỉnh sửa")
 
-            # Nút Xóa
             btn_delete = QPushButton()
             btn_delete.setIcon(QIcon("assets/icons/delete.svg"))
             btn_delete.setIconSize(QSize(16, 16))
             btn_delete.setToolTip("Xóa")
 
-            # for btn in [btn_view, btn_edit, btn_delete]:
-            #     btn.setStyleSheet("""
-            #         QPushButton {
-            #             border: none;
-            #             background-color: transparent;
-            #         }
-            #         QPushButton:hover {
-            #             background-color: #f0f0f0;
-            #         }
-            #     """)
+            btn_delete.clicked.connect(lambda checked, c=card: self.on_delete_button_clicked(c))
 
-            # Thêm vào layout
-            layout.addWidget(btn_view)
             layout.addWidget(btn_edit)
             layout.addWidget(btn_delete)
 
-            # Đặt widget vào cell
+
             self.tblCardLogs.setCellWidget(row, 8, action_widget)
 
-            # Gắn signal
-            # btn_view.clicked.connect(lambda checked, c=card: self.view_card(c))
             # btn_edit.clicked.connect(lambda checked, c=card: self.edit_card(c))
-            # btn_delete.clicked.connect(lambda checked, c=card: self.delete_card(c))
 
+    # add
     def show_add_card_dialog(self):
-        dialog = AddMonthlyCardDialog(self)
-        dialog.exec()
 
+        if hasattr(self, "_current_dialog") and self._current_dialog is not None:
+            self._current_dialog.raise_()
+            self._current_dialog.activateWindow()
+            return
 
+        self._current_dialog = AddMonthlyCardDialog(self)
+        # Gắn signal về tab
+        self._current_dialog.cardAdded.connect(self.on_card_added)
+        self._current_dialog.finished.connect(self._clear_dialog_reference)
+
+        self._current_dialog.show()
+
+    def _clear_dialog_reference(self):
+        self._current_dialog = None
+
+    def on_card_added(self, card_data: dict):
+        print("Card data received:", card_data)
+        self.cardAdded.emit(card_data)
+
+    # delete
+    def show_confirmation_dialog(self, title: str, message: str) -> bool:
+        msg_box = QMessageBox(self)
+        msg_box.setIcon(QMessageBox.Icon.Warning)
+        msg_box.setWindowTitle(title)
+        msg_box.setText(message)
+        msg_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        msg_box.setDefaultButton(QMessageBox.StandardButton.No)
+
+        # Tùy chỉnh nút
+        yes_button = msg_box.button(QMessageBox.StandardButton.Yes)
+        yes_button.setText("Xóa")
+        no_button = msg_box.button(QMessageBox.StandardButton.No)
+        no_button.setText("Hủy")
+
+        # Chạy dialog
+        result = msg_box.exec()  # exec() an toàn hơn exec_() trong PyQt6
+        return result == QMessageBox.StandardButton.Yes
+
+    def on_delete_button_clicked(self, card_data_object):
+
+        data_to_delete = {
+            'card_code': card_data_object.card_code,
+        }
+
+        self.deleteRequested.emit(data_to_delete)
 
 
 
 class AddMonthlyCardDialog(QDialog):
-    cardAdded = pyqtSignal(dict)  # Signal để gửi dữ liệu về
+    cardAdded = pyqtSignal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -583,7 +605,6 @@ class AddMonthlyCardDialog(QDialog):
         """)
 
     def _create_form_row(self, label_text, widget, parent_layout):
-        """Helper để tạo một hàng form"""
         row_layout = QHBoxLayout()
         row_layout.setSpacing(10)
 
@@ -598,14 +619,12 @@ class AddMonthlyCardDialog(QDialog):
         return widget
 
     def update_expiry_date(self):
-        """Tự động tính ngày hết hạn khi thay đổi ngày bắt đầu hoặc số tháng"""
         start_date = self.dateStart.date()
         months = self.spinMonths.value()
         expiry_date = start_date.addMonths(months)
         self.dateExpiry.setDate(expiry_date)
 
     def save_card(self):
-        """Xử lý khi nhấn nút Lưu"""
         # Validate
         if not self.txtCardCode.text().strip():
             QMessageBox.warning(self, "Lỗi", "Vui lòng nhập mã thẻ!")
@@ -613,6 +632,10 @@ class AddMonthlyCardDialog(QDialog):
 
         if not self.txtCustomerName.text().strip():
             QMessageBox.warning(self, "Lỗi", "Vui lòng nhập tên khách hàng!")
+            return
+
+        if not self.txtPhoneNumber.text().strip():
+            QMessageBox.warning(self, "Lỗi", "Vui lòng nhập số điện thoại khách hàng!")
             return
 
         if not self.txtPlateNumber.text().strip():
