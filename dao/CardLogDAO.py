@@ -48,15 +48,15 @@ class CardLogDAO:
     def _map_row_to_card_log(self, row) -> CardLog:
         card = self._single_card_dao.get_by_id(row.card_id)
         vehicle = self._vehicle_dao.get_by_id(row.vehicle_id)
-
-        return CardLog(
+        card_log = CardLog(
             id=row.vehicle_id,
-            card=card,
             vehicle=vehicle,
             entry_at=row.entry_at,
             exit_at=row.exit_at,
             fee=row.fee if row.fee else 0
         )
+        card.setCardLog(card_log)
+        return  card_log
 
     def create_entry(self, card_id: int, vehicle_id: int, created_by: int) -> CardLog:
         conn = self._db.connect()

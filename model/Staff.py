@@ -2,8 +2,8 @@ from model.User import User
 
 
 class Staff(User):
-    def __init__(self, user_id: int, fullname: str, phone_number: str, username: str, password: str, role: int):
-        super().__init__(user_id, fullname, phone_number)
+    def __init__(self, id: int, fullname: str, phone_number: str, username: str, password: str, role: int):
+        super().__init__(id, fullname, phone_number)
         self._username = username
         self._password = password
         self._role = role

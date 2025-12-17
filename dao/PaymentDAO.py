@@ -1,4 +1,7 @@
 from typing import List, Optional
+
+from dao.CustomerDAO import CustomerDAO
+from dao.VehicleDAO import VehicleDAO
 from db.database import Database
 from model.MonthlyCard import MonthlyCard
 from model.Payment import Payment
@@ -10,39 +13,39 @@ from model.SingleCard import SingleCard
 class PaymentDAO:
     def __init__(self):
         self._single_card_dao = SingleCardDAO()
-        self._monthly_card_dao = MonthlyCardDAO()
+        self._monthly_card_dao = MonthlyCardDAO(CustomerDAO(), VehicleDAO())
         self._db = Database()
 
     def get_all(self) -> List[Payment]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, card_id, monthly_card_id, amount, method, payment_date
+                FROM payments
+            """)
+            rows = cursor.fetchall()
+            payments = []
+            for row in rows:
+                card = None
+                if row[1]:
+                    card = self._single_card_dao.get_by_id(row[1])
+                elif row[2]:
+                    card = self._monthly_card_dao.get_by_id(row[2])
 
-        cursor.execute("""
-            SELECT id, card_id, monthly_card_id, amount, method, payment_date
-            FROM payments
-        """)
-        rows = cursor.fetchall()
-
-        payments = []
-        for row in rows:
-            card = None
-            if row[1]:
-                card = self._single_card_dao.get_by_id(row[1])
-            elif row[2]:
-                card = self._monthly_card_dao.get_by_id(row[2])
-
-            payment = Payment(
-                payment_id=str(row[0]),
-                card=card,
-                amount=row[3],
-                method=row[4],
-                paid_at=row[5]
-            )
-            payments.append(payment)
-
-        cursor.close()
-        conn.close()
-        return payments
+                payment = Payment(
+                    payment_id=str(row[0]),
+                    card=card,
+                    amount=row[3],
+                    method=row[4],
+                    paid_at=row[5]
+                )
+                payments.append(payment)
+            cursor.close()
+            conn.close()
+            return payments
+        except Exception as e:
+            print(f"Error retrieving payments: {e}")
 
     def get_by_id(self, payment_id: int) -> Optional[Payment]:
         conn = self._db.connect()

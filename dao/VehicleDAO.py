@@ -43,22 +43,26 @@ class VehicleDAO:
         return None
 
     def get_by_plate(self, plate_number) -> Optional[Vehicle]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT id, vehicle_type, plate_number
-            FROM vehicles
-            WHERE plate_number = ?
-        """, plate_number)
+            cursor.execute("""
+                SELECT id, vehicle_type, plate_number
+                FROM vehicles
+                WHERE plate_number = ?
+            """, plate_number)
 
-        row = cursor.fetchone()
-        cursor.close()
-        conn.close()
+            row = cursor.fetchone()
+            cursor.close()
+            conn.close()
 
-        if row:
-            return Vehicle(row[0], row[1], row[2])
-        return None
+            if row:
+                return Vehicle(row[0], row[1], row[2])
+            return None
+        except Exception as e:
+            print(f"Lỗi DB VehicleDAO.get_by_plate: {e}")
+            return None
 
     def save(self, vehicle_dto: VehicleDTO) -> int | None:
         conn = self._db.connect()

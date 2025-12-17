@@ -9,23 +9,26 @@ class SingleCardDAO:
         self._db = Database()
 
     def get_by_id(self, card_id: int) -> SingleCard | None:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-              SELECT id, card_code, price
-              FROM cards
-              WHERE id = ? \
-                AND is_active = 1 \
-              """
+            sql = """
+                  SELECT id, card_code, price
+                  FROM cards
+                  WHERE id = ? \
+                    AND is_active = 1 \
+                  """
 
-        row = cursor.execute(sql, card_id).fetchone()
-        conn.close()
+            row = cursor.execute(sql, card_id).fetchone()
+            conn.close()
 
-        if not row:
-            return None
+            if not row:
+                return None
 
-        return SingleCard(row.vehicle_id, row.card_code, row.price)
+            return SingleCard(row.id, row.card_code, row.price)
+        except Exception as e:
+            print("Error in get_by_id:", e)
 
     def get_by_code(self, card_code: str) -> SingleCard | None:
         conn = self._db.connect()
@@ -50,19 +53,23 @@ class SingleCardDAO:
         )
 
     def get_all(self) -> list[SingleCard]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-              SELECT id, card_code, price
-              FROM cards
-              WHERE is_active = 1 
-              """
+            sql = """
+                  SELECT id, card_code, price
+                  FROM cards
+                  WHERE is_active = 1 
+                  """
 
-        rows = cursor.execute(sql).fetchall()
-        conn.close()
+            rows = cursor.execute(sql).fetchall()
+            conn.close()
 
-        return [SingleCard(r.vehicle_id, r.card_code, r.price) for r in rows]
+            return [SingleCard(r.id, r.card_code, r.price) for r in rows]
+        except Exception as e:
+            print("Error in get_all:", e)
+
 
     # ---------- CREATE ----------
     def create(self, card_code: str, price: int, created_by: int):
@@ -100,8 +107,10 @@ class SingleCardDAO:
 
         sql = "UPDATE cards SET is_active = 0 WHERE id = ?"
         cursor.execute(sql, card_id)
+        result = cursor.rowcount
         conn.commit()
         conn.close()
+        return result > 0
 
 if __name__ == '__main__':
     dao = SingleCardDAO()

@@ -1,4 +1,4 @@
--- DROP DATABASE SmartParkingLotSystem;
+--DROP DATABASE SmartParkingLotSystem;
 CREATE DATABASE SmartParkingLotSystem;
 
 USE SmartParkingLotSystem;
@@ -12,7 +12,6 @@ CREATE TABLE [cameras] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [vehicles] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -21,7 +20,6 @@ CREATE TABLE [vehicles] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [alpr_logs] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -30,7 +28,6 @@ CREATE TABLE [alpr_logs] (
   [detected_at] datetime NOT NULL DEFAULT GETDATE(),
   [image_path] varchar(255) NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [monthly_cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -45,7 +42,6 @@ CREATE TABLE [monthly_cards] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [customers] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -55,7 +51,6 @@ CREATE TABLE [customers] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -66,7 +61,7 @@ CREATE TABLE [cards] (
   [is_active] bit NOT NULL DEFAULT 1,
   [created_by] bigint
 )
-GO
+
 
 CREATE TABLE card_logs (
   id BIGINT PRIMARY KEY IDENTITY,
@@ -86,7 +81,6 @@ CREATE TABLE [vehicle_cards] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [staffs] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -98,7 +92,6 @@ CREATE TABLE [staffs] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 CREATE TABLE [payments] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
@@ -111,28 +104,20 @@ CREATE TABLE [payments] (
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
-GO
 
 ALTER TABLE [cards] ADD FOREIGN KEY ([created_by]) REFERENCES [staffs] ([id])
-GO
 
 ALTER TABLE [payments] ADD FOREIGN KEY ([processed_by]) REFERENCES [staffs] ([id])
-GO
 
 ALTER TABLE [alpr_logs] ADD FOREIGN KEY ([camera_id]) REFERENCES [cameras] ([id])
-GO
 
 ALTER TABLE [alpr_logs] ADD FOREIGN KEY ([vehicle_id]) REFERENCES [vehicles] ([id])
-GO
 
 ALTER TABLE [monthly_cards] ADD FOREIGN KEY ([customer_id]) REFERENCES [customers] ([id])
-GO
 
 ALTER TABLE [monthly_cards] ADD FOREIGN KEY ([vehicle_id]) REFERENCES [vehicles] ([id])
-GO
 
 ALTER TABLE [payments] ADD FOREIGN KEY ([monthly_card_id]) REFERENCES [monthly_cards] ([id])
-GO
 
 ALTER TABLE [card_logs] ADD FOREIGN KEY ([vehicle_id]) REFERENCES [vehicles] ([id])
 GO
@@ -141,4 +126,3 @@ ALTER TABLE [card_logs] ADD FOREIGN KEY ([card_id]) REFERENCES [cards] ([id])
 GO
 
 ALTER TABLE [payments] ADD FOREIGN KEY ([card_id]) REFERENCES [cards] ([id])
-GO

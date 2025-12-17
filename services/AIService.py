@@ -1,69 +1,58 @@
 import os
-import torch
-from modelAI.function import utils_rotate as utils_rotate
-from modelAI.function import helper as helper
+import re
+import time
+
+from modelAI import LicensePlateRecognizer
+
 
 class AIService:
     def __init__(self):
         self._load_models()
+        self._recent_plates = {}
+        self._cooldown_seconds = 3
 
     def _load_models(self):
         try:
-            current_dir = os.path.dirname(os.path.abspath(__file__))  # services folder
-            project_root = os.path.dirname(current_dir)  # go up to project root
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.dirname(current_dir)
             model_dir = os.path.join(project_root, 'modelAI')
 
             lp_detector_path = os.path.join(model_dir, 'LP_detector_nano_61.pt')
             lp_ocr_path = os.path.join(model_dir, 'LP_ocr_nano_62.pt')
-
-            self.yolo_LP_detect = torch.hub.load('ultralytics/yolov5', 'custom',
-                                                 path=lp_detector_path, force_reload=True)
-            self.yolo_license_plate = torch.hub.load('ultralytics/yolov5', 'custom',
-                                                     path=lp_ocr_path, force_reload=True)
-            self.yolo_license_plate.conf = 0.6
+            self.__lp_recognizer = LicensePlateRecognizer(detector_weights=lp_detector_path,
+                                                          ocr_weights=lp_ocr_path)
         except Exception as e:
             print(f"Error loading models: {e}")
-            self.yolo_LP_detect = None
-            self.yolo_license_plate = None
+            self.__lp_recognizer = None
 
-    def get_vehicle(self, frame):
-        if frame is None or self.yolo_LP_detect is None:
-            return None
+    def process_frame(self, frame):
+        if frame is None or self.__lp_recognizer is None:
+            return None, []
 
-        results = self.yolo_LP_detect(frame)
-        detected_plates = []
+        frame, list_read_plates = self.__lp_recognizer.process_frame(frame)
 
-        for det in results.xyxy[0]:
-            x1, y1, x2, y2, conf, cls = det
-            x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
+        current_time = time.time()
+        new_plates = []
 
-            crop_img = frame[y1:y2, x1:x2]
+        for plate in list_read_plates:
+            if not self._recent_plates.__contains__(plate) and self.valid_plate(plate):
+                last_seen = self._recent_plates.get(plate, 0)
+                if current_time - last_seen > self._cooldown_seconds:
+                    new_plates.append(plate)
+                    self._recent_plates[plate] = current_time
 
-            license_plate = self._read_license_plate(crop_img)
+        self._cleanup_old_plates(current_time)
 
-            if license_plate != "unknown":
-                vehicle_data = {
-                    'license_plate': license_plate,
-                    'bbox': (x1, y1, x2, y2),
-                    'confidence': float(conf),
-                    'crop_image': crop_img
-                }
-                detected_plates.append(vehicle_data)
+        return frame, new_plates
 
-        return detected_plates[0] if detected_plates else None
+    def valid_plate(self, plate) -> bool:
+        if len(plate) == 10:
+            pattern = r'^[0-9]{2}[A-Z]{1,2}[0-9]-[0-9]{4,5}$'
+            return re.match(pattern, plate) is not None
+        return False
 
-    def _read_license_plate(self, crop_img):
-        if self.yolo_license_plate is None:
-            return "unknown"
-
-        for cc in range(0, 2):
-            for ct in range(0, 2):
-                try:
-                    processed_img = utils_rotate.deskew(crop_img, cc, ct)
-                    license_plate = helper.read_plate(self.yolo_license_plate, processed_img)
-                    if license_plate != "unknown":
-                        return license_plate
-                except Exception as e:
-                    continue
-
-        return "unknown"
+    def _cleanup_old_plates(self, current_time):
+        remove_list = [plate for plate, timestamp in self._recent_plates.items()
+                       if current_time - timestamp > 60]
+        for plate in remove_list:
+            del self._recent_plates[plate]

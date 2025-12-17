@@ -10,11 +10,12 @@ from PyQt6.QtGui import QFont, QImage, QPixmap
 from PyQt6.QtCore import Qt, QTimer
 import cv2
 
-from controllers.AIController import AIController
+from controllers.StaffController import StaffController
+from model.Card import Card
 
 
 class RightPanel(QWidget):
-    def __init__(self, controller: AIController, parent=None):
+    def __init__(self, controller: StaffController, parent=None):
         super().__init__(parent)
         self.__controller = controller
         controller.add_view('right', self)
@@ -100,13 +101,13 @@ class RightPanel(QWidget):
         vLayout.addWidget(titleHistoryLabel)
 
         # Bảng
-        historyTable = QTableWidget()
-        historyTable.setRowCount(10)
-        historyTable.setColumnCount(4)
-        historyTable.setHorizontalHeaderLabels(["Biển số", "TG Vào", "TG Ra", "Trạng thái"])
+        self.__historyTable = QTableWidget()
+        self.__historyTable.setRowCount(10)
+        self.__historyTable.setColumnCount(4)
+        self.__historyTable.setHorizontalHeaderLabels(["Biển số", "TG Vào", "TG Ra", "Trạng thái"])
 
         # Sử dụng Style đã tối ưu (đảm bảo QTableWidget style được áp dụng đúng)
-        historyTable.setStyleSheet("""
+        self.__historyTable.setStyleSheet("""
             QTableWidget {
                 gridline-color: #34495e;
                 background-color: #2c3e50;
@@ -121,8 +122,8 @@ class RightPanel(QWidget):
             }
         """)
 
-        historyTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        historyTable.verticalHeader().setVisible(False)
+        self.__historyTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.__historyTable.verticalHeader().setVisible(False)
 
         data_rows = [
             ("20A-123.45", "17:00", "17:05", "Đã ra"),
@@ -132,9 +133,9 @@ class RightPanel(QWidget):
 
         for row, row_data in enumerate(data_rows):
             for col, item in enumerate(row_data):
-                historyTable.setItem(row, col, QTableWidgetItem(item))
+                self.__historyTable.setItem(row, col, QTableWidgetItem(item))
 
-        vLayout.addWidget(historyTable)
+        vLayout.addWidget(self.__historyTable)
 
         # Logo
         vdiLogoLabel = QLabel("VDI")
@@ -168,7 +169,7 @@ class RightPanel(QWidget):
 
         # Process frame through controller if needed
         try:
-            self.__controller.process_entry('right', frame)
+            self.__controller.process_entry(frame)
         except Exception:
             pass
 
@@ -348,3 +349,21 @@ class RightPanel(QWidget):
             self.exit_timer.stop()
             self.exit_camera.release()
         super().closeEvent(event)
+
+    def update_view(self, card: Card):
+        plate = card.vehicle.plate_number if card.vehicle else "---"
+        time_entry = card.time_entry.strftime("%H:%M") if card.time_entry else "---"
+        time_exit = card.time_exit.strftime("%H:%M") if card.time_exit else "---"
+        status = "Đã ra" if card.time_exit else "Đang đỗ"
+
+        row_count = self.__historyTable.rowCount()
+        col_count = self.__historyTable.columnCount()
+        for r in range(row_count - 1, 0, -1):
+            for c in range(col_count):
+                src = self.__historyTable.item(r - 1, c)
+                self.__historyTable.setItem(r, c, QTableWidgetItem(src.text() if src else ""))
+
+        self.__historyTable.setItem(0, 0, QTableWidgetItem(plate))
+        self.__historyTable.setItem(0, 1, QTableWidgetItem(time_entry))
+        self.__historyTable.setItem(0, 2, QTableWidgetItem(time_exit))
+        self.__historyTable.setItem(0, 3, QTableWidgetItem(status))

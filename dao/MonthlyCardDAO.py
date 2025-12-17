@@ -6,8 +6,6 @@ from dao.VehicleDAO import VehicleDAO
 from db.database import Database
 from dto.dtos import MonthlyCardDTO
 from model.MonthlyCard import MonthlyCard
-from model.Vehicle import Vehicle
-from model.Customer import Customer
 
 
 class MonthlyCardDAO:
@@ -18,23 +16,26 @@ class MonthlyCardDAO:
 
     # ---------- READ ----------
     def get_by_id(self, card_id: int) -> MonthlyCard | None:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-              SELECT *
-              FROM monthly_cards
-              WHERE id = ?
-                AND is_active = 1 \
-              """
+            sql = """
+                  SELECT *
+                  FROM monthly_cards
+                  WHERE id = ?
+                    AND is_active = 1 \
+                  """
 
-        row = cursor.execute(sql, card_id).fetchone()
-        conn.close()
+            row = cursor.execute(sql, card_id).fetchone()
+            conn.close()
 
-        if not row:
-            return None
+            if not row:
+                return None
 
-        return self._map_row_to_monthly_card(row)
+            return self._map_row_to_monthly_card(row)
+        except Exception as e:
+            print(f"Lỗi DB MonthlyCardDAO.get_by_id: {e}")
 
     def get_by_code(self, card_code: str) -> MonthlyCard | None:
         conn = self._db.connect()
@@ -56,14 +57,18 @@ class MonthlyCardDAO:
         return self._map_row_to_monthly_card(row)
 
     def get_all(self) -> list[MonthlyCard]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = "SELECT * FROM monthly_cards WHERE is_active = 1"
-        rows = cursor.execute(sql).fetchall()
-        conn.close()
+            sql = "SELECT * FROM monthly_cards WHERE is_active = 1"
+            rows = cursor.execute(sql).fetchall()
+            conn.close()
 
-        return [self._map_row_to_monthly_card(r) for r in rows]
+            return [self._map_row_to_monthly_card(r) for r in rows]
+        except Exception as e:
+            print(f"Lỗi DB MonthlyCardDAO.get_all: {e}")
+
 
     def save(self, card_dto: MonthlyCardDTO) -> bool:
 
@@ -111,6 +116,23 @@ class MonthlyCardDAO:
               """
 
         cursor.execute(sql, is_paid, card_id)
+        conn.commit()
+        conn.close()
+
+    def update(self, card: MonthlyCard):
+        conn = self._db.connect()
+        cursor = conn.cursor()
+
+        sql = """
+              UPDATE monthly_cards
+              SET 
+                  monthly_fee = ?,
+                  is_paid     = ?,
+                  updated_at  = GETDATE()
+              WHERE id = ? \
+              """
+
+        cursor.execute(sql, card.monthly_fee, card.is_paid, card.card_id)
         conn.commit()
         conn.close()
 
