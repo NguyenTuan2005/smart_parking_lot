@@ -1,6 +1,6 @@
 class User:
-    def __init__(self, user_id: int | None, fullname: str, phone_number: str):
-        self._id = user_id
+    def __init__(self, id: int | None, fullname: str, phone_number: str):
+        self._id = id
         self._fullname = fullname
         self._phone_number = phone_number
 

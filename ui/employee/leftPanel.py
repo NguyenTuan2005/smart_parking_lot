@@ -6,6 +6,7 @@ from PyQt6.QtCore import Qt
 
 from controllers.StaffController import StaffController
 from model.Card import Card
+from model.MonthlyCard import MonthlyCard
 
 
 class LeftPanel(QWidget):
@@ -177,19 +178,27 @@ class LeftPanel(QWidget):
                                           QSizePolicy.Policy.Expanding))
 
     def update_view(self, card: Card):
-        self.__bsVaoLabel.setText(card.vehicle.plate_number)
-        self.__bsRaLabel.setText("" if card.time_exit is None else str(card.time_exit))
-        self.__durationValue.setText(str(card.duration()))
-        self.__fee_label.setText(f"{card.calculate_fee()} VNĐ")
-        self.__card_info_labels["BIỂN SỐ ĐK"].setText(card.vehicle.plate_number)
-        self.__card_info_labels["MÃ THẺ"].setText(card.card_code)
-        self.__card_info_labels["T/G XE VÀO"].setText(str(card.time_entry))
-        self.__card_info_labels["T/G XE RA"].setText("" if card.time_exit is None else str(card.time_exit))
-        self.__card_info_labels["SỐ THẺ"].setText(str(card.card_id))
 
         if card.is_month_card():
-            self.__card_info_labels["CHỦ XE"].setText(str(card.customer.fullname))
+            monthly: MonthlyCard = card
+            self.__bsVaoLabel.setText(monthly.vehicle.plate_number)
+            self.__card_info_labels["BIỂN SỐ ĐK"].setText(monthly.vehicle.plate_number)
+            self.__card_info_labels["MÃ THẺ"].setText(monthly.card_code)
+            self.__card_info_labels["SỐ THẺ"].setText(str(monthly.card_id))
+            self.__card_info_labels["CHỦ XE"].setText(str(monthly.customer.fullname))
             self.__statusLabel1.setText("KHÁCH HÀNG CÓ THẺ THÁNG")
         else:
+            self.__bsVaoLabel.setText(card.card_log.vehicle.plate_number)
+            self.__bsRaLabel.setText("" if card.card_log.exit_at is None else str(card.card_log.exit_at))
+            self.__durationValue.setText(str(card.duration()))
+            self.__fee_label.setText(f"{card.calculate_fee()} VNĐ")
+            self.__card_info_labels["BIỂN SỐ ĐK"].setText(card.card_log.vehicle.plate_number)
+            self.__card_info_labels["MÃ THẺ"].setText(card.card_code)
+            self.__card_info_labels["T/G XE VÀO"].setText(str(card.card_log.entry_at))
+            self.__card_info_labels["T/G XE RA"].setText("" if card.card_log.exit_at is None else str(card.card_log.exit_at))
+            self.__card_info_labels["SỐ THẺ"].setText(str(card.card_id))
             self.__card_info_labels["CHỦ XE"].setText("KHÁCH VÃNG LAI")
             self.__statusLabel1.setText("THẺ LẺ")
+
+    def set_status(self, message: str):
+        self.__statusLabel1.setText(message)

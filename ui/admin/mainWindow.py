@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTabWidget, QMenu
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QAction
 
+from controllers.CardController import MonthlyCardController
 from services.Session import Session
 from ui.admin.tabs.cardsTab import CardTab
 from ui.admin.tabs.customersTab import CustomerTab
@@ -18,6 +19,13 @@ class ParkingManagementApp(QMainWindow):
     
     def __init__(self):
         super().__init__()
+        self.tabs = QTabWidget()
+        self.card_tab =CardTab()
+        self.customer_tab = CustomerTab()
+        self.vehicle_tab = VehicleTab()
+        self.stats_tab = StatsTab()
+        self.parking_config_tab = ParkingConfigTab()
+
         self.setWindowTitle("Hệ thống quản lý bãi xe - Admin")
         self.setGeometry(200, 100, 1200, 600)
         
@@ -26,6 +34,7 @@ class ParkingManagementApp(QMainWindow):
         
         self._create_menu_bar()
         self.initUI()
+        self._init_controllers()
 
     def _create_menu_bar(self):
         """Tạo menu bar với nút đăng xuất"""
@@ -51,7 +60,7 @@ class ParkingManagementApp(QMainWindow):
             self.close()
 
     def _on_logout(self):
-        """Callback khi đăng xuất"""
+
         pass
 
     def initUI(self):
@@ -60,18 +69,15 @@ class ParkingManagementApp(QMainWindow):
         
         layout = QVBoxLayout()
 
-        self.tabs = QTabWidget()
-        self.tabs.addTab(CardTab(), "Quản lý thẻ")
-        self.tabs.addTab(CustomerTab(), "Quản lý khách hàng")
-        self.tabs.addTab(VehicleTab(), "Quản lý phương tiện")
-        self.tabs.addTab(StatsTab(), "Thống kê")
-        self.tabs.addTab(ParkingConfigTab(), "Cấu hình bãi xe")
+        self.tabs.addTab(self.card_tab, "Quản lý thẻ")
+        self.tabs.addTab(self.customer_tab, "Quản lý khách hàng")
+        self.tabs.addTab(self.vehicle_tab, "Quản lý phương tiện")
+        self.tabs.addTab(self.stats_tab, "Thống kê")
+        self.tabs.addTab(self.parking_config_tab, "Cấu hình bãi xe")
 
         layout.addWidget(self.tabs)
         central_widget.setLayout(layout)
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = ParkingManagementApp()
-    window.show()
-    sys.exit(app.exec())
+    def _init_controllers(self):
+        self.card_controller = MonthlyCardController(
+            view=self.card_tab.monthly_card_tab)

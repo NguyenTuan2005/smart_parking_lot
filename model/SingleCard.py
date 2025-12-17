@@ -1,23 +1,33 @@
-from datetime import datetime
+import math
 
 from model.Card import Card
-from model.Vehicle import Vehicle
+from services.Session import Session
 
 
 class SingleCard(Card):
-    def __init__(self, card_id: str, card_code: str, time_entry: datetime, time_exit: datetime, vehicle: Vehicle,
-                 fee: int = 0):
-        super().__init__(
-            card_id=card_id,
-            card_code= card_code,
-            time_entry=time_entry,
-            time_exit=time_exit,
-            fee=fee,
-            vehicle=vehicle
+    def __init__(self, card_id: int, card_code: str, price: int):
+        super().__init__(card_id, card_code)
+        self._price = price
+
+    @property
+    def price(self) -> int:
+        return self._price
+
+    def calculate_price(self, minutes: int) -> int:
+        hours = math.ceil(minutes / 60)
+        return hours * self._price
+
+    def __repr__(self) -> str:
+        return (
+            f"SingleCard("
+            f"id={self.card_id}, "
+            f"code='{self.card_code}', "
+            f"price={self._price}"
+            f")"
         )
 
     def check_in(self, plate: str):
         super().check_in(plate)
 
         from dao.SingleCardDAO import SingleCardDAO
-        SingleCardDAO().save(self,1)
+        SingleCardDAO().create(self._card_code, self._price, Session.get_user().id)

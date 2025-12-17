@@ -1,5 +1,6 @@
 from typing import List, Optional
 from db.database import Database
+from dto.dtos import CustomerDTO
 from model.Customer import Customer
 
 class CustomerDAO:
@@ -40,20 +41,47 @@ class CustomerDAO:
             return Customer(row[0], row[1], row[2], row[3])
         return None
 
-    def save(self, customer: Customer) -> bool:
+    def get_by_phone(self, phone_number) -> Optional[Customer]:
         conn = self._db.connect()
         cursor = conn.cursor()
 
         cursor.execute("""
-            INSERT INTO customers (full_name, phone_number, email)
-            VALUES (?, ?, ?)
-        """, (customer.fullname, customer.phone_number, customer.email))
+            SELECT id, full_name, phone_number, email
+            FROM customers
+            WHERE phone_number = ?
+        """, phone_number)
 
-        conn.commit()
-        result = cursor.rowcount
+        row = cursor.fetchone()
         cursor.close()
         conn.close()
-        return result > 0
+
+        if row:
+            return Customer(row[0], row[1], row[2], row[3])
+        return None
+
+    def save(self, customer_dto: CustomerDTO) -> int | None:
+        conn = self._db.connect()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("""
+                           INSERT INTO customers (full_name, phone_number, email)
+                           OUTPUT INSERTED.id
+                           VALUES (?, ?, ?)
+                           """, (customer_dto.fullname, customer_dto.phone_number, customer_dto.email))
+
+            last_id = cursor.fetchone()[0]
+            conn.commit()
+
+            return last_id
+
+        except Exception as e:
+            print(f"Lỗi DB CustomerDAO.create: {e}")
+            conn.rollback()
+            return None
+        finally:
+            cursor.close()
+            conn.close()
 
     def update(self, customer: Customer) -> bool:
         conn = self._db.connect()
@@ -88,5 +116,6 @@ class CustomerDAO:
 
 
 if __name__ == '__main__':
-    customer_dao = CustomerDAO()
-    print(customer_dao.get_all())
+    dao = CustomerDAO()
+    dto = CustomerDTO("HHHAA","11123", "hehe@gmail.com")
+    print(dao.save(dto))

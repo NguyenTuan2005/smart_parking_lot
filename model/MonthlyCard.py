@@ -6,46 +6,73 @@ from model.Vehicle import Vehicle
 
 
 class MonthlyCard(Card):
-    def __init__(self, card_id: str, card_code: str, fee: int, start_date: date, expiry_date: date, customer: Customer,
-                 vehicle: Vehicle, is_paid: bool):
-        super().__init__(card_id=card_id, card_code=card_code, fee=fee,vehicle=vehicle)
-        self.__start_date = start_date
-        self.__expiry_date = expiry_date
-        self.__customer = customer
-        self.__is_paid = is_paid
-
-    def __repr__(self):
-        return (
-                super().__repr__() +
-                f", start date: {self.__start_date.strftime('%d/%m/%Y')}, "
-                f"expiry date: {self.__expiry_date.strftime('%d/%m/%Y')}"
-                f"customer: {self.__customer}"
-        )
-
-    @property
-    def expiry_date(self):
-        return self.__expiry_date
-
-    @property
-    def customer(self):
-        return self.__customer
-
-    @property
-    def start_date(self):
-        return self.__start_date
-
-    @property
-    def is_paid(self):
-        return self.__is_paid
+    def __init__(
+        self,
+        card_id: int,
+        card_code: str,
+        customer: Customer,
+        vehicle: Vehicle,
+        monthly_fee: int,
+        start_date: date,
+        expiry_date: date,
+        is_paid: bool
+    ):
+        super().__init__(card_id, card_code)
+        self._customer = customer
+        self._vehicle = vehicle
+        self._monthly_fee = monthly_fee
+        self._start_date = start_date
+        self._expiry_date = expiry_date
+        self._is_paid = is_paid
 
     def is_valid(self) -> bool:
-        return date.today() <= self.__expiry_date
+        return self._is_paid and date.today() <= self._expiry_date
+
+    @property
+    def monthly_fee(self) -> int:
+        return self._monthly_fee
+
+    @property
+    def start_date(self) -> date:
+        return self._start_date
+
+    @property
+    def expiry_date(self) -> date:
+        return self._expiry_date
+
+    @property
+    def customer(self) -> Customer:
+        return self._customer
+
+    @property
+    def vehicle(self) -> Vehicle:
+        return self._vehicle
+
+    @property
+    def is_paid(self) -> bool:
+        return self._is_paid
 
     def check_in(self, plate: str):
-        super().check_in(plate)
-
-        from dao.MonthlyCardDAO import MonthlyCardDAO
-        MonthlyCardDAO().update(self)
+        today =date.today()
+        if today > self._expiry_date or not self._is_paid:
+            raise Exception("Monthly card is not valid for check-in.")
+        return self
 
     def is_month_card(self):
         return True
+
+    def __repr__(self) -> str:
+        return (
+            f"MonthlyCard("
+            f"id={self.card_id}, "
+            f"code='{self.card_code}', "
+            f"customer={self._customer}, "
+            f"vehicle={self._vehicle}, "
+            f"monthly_fee={self._monthly_fee}, "
+            f"start_date={self._start_date}, "
+            f"expiry_date={self._expiry_date}, "
+            f"is_paid={self._is_paid}"
+            f")\n"
+        )
+
+

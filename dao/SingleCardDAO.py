@@ -8,118 +8,112 @@ class SingleCardDAO:
     def __init__(self):
         self._db = Database()
 
-    def get_all(self) -> List[SingleCard]:
+    def get_by_id(self, card_id: int) -> SingleCard | None:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+
+            sql = """
+                  SELECT id, card_code, price
+                  FROM cards
+                  WHERE id = ? \
+                    AND is_active = 1 \
+                  """
+
+            row = cursor.execute(sql, card_id).fetchone()
+            conn.close()
+
+            if not row:
+                return None
+
+            return SingleCard(row.id, row.card_code, row.price)
+        except Exception as e:
+            print("Error in get_by_id:", e)
+
+    def get_by_code(self, card_code: str) -> SingleCard | None:
         conn = self._db.connect()
         cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT c.id, c.card_code, c.entry_at, c.exit_at, c.fee,
-                   v.id, v.plate_number, v.vehicle_type
-            FROM cards c
-            JOIN vehicles v ON c.vehicle_id = v.id
-            WHERE c.card_type = 'SINGLE'
-        """)
+        sql = """
+        SELECT id, card_code, price
+        FROM cards
+        WHERE card_code = ? AND is_active = 1
+        """
 
-        rows = cursor.fetchall()
-
-        cards = [
-            SingleCard(
-                card_id=row[0],
-                card_code= row[1],
-                time_entry=row[2],
-                time_exit=row[3],
-                fee=row[4],
-                vehicle=Vehicle(row[5], row[6], row[7])
-            )
-            for row in rows
-        ]
-
-        cursor.close()
-        conn.close()
-        return cards
-
-    def get_by_id(self, card_id: int) -> Optional[SingleCard]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
-
-        cursor.execute("""
-            SELECT c.id, c.card_code, c.entry_at, c.exit_at, c.fee,
-                   v.id, v.plate_number, v.vehicle_type
-            FROM cards c
-            JOIN vehicles v ON c.vehicle_id = v.id
-            WHERE c.id = ? AND c.card_type = 'SINGLE'
-        """, (card_id,))
-
-        row = cursor.fetchone()
-
-        cursor.close()
+        row = cursor.execute(sql, card_code).fetchone()
         conn.close()
 
-        if row:
-            return SingleCard(
-                card_id=row[0],
-                card_code= row[1],
-                time_entry=row[2],
-                time_exit=row[3],
-                fee=row[4],
-                vehicle=Vehicle(row[5], row[6], row[7])
-            )
-        return None
+        if not row:
+            return None
 
-    def save(self, card: SingleCard, created_by: int) -> bool:
+        return SingleCard(
+            card_id=row.vehicle_id,
+            card_code=row.card_code,
+            price=row.price
+        )
+
+    def get_all(self) -> list[SingleCard]:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+
+            sql = """
+                  SELECT id, card_code, price
+                  FROM cards
+                  WHERE is_active = 1 
+                  """
+
+            rows = cursor.execute(sql).fetchall()
+            conn.close()
+
+            return [SingleCard(r.id, r.card_code, r.price) for r in rows]
+        except Exception as e:
+            print("Error in get_all:", e)
+
+
+    # ---------- CREATE ----------
+    def create(self, card_code: str, price: int, created_by: int):
         conn = self._db.connect()
         cursor = conn.cursor()
 
-        cursor.execute("""
-            INSERT INTO cards (card_code, vehicle_id, card_type, entry_at, exit_at, fee, created_by)
-            VALUES (?,?, 'SINGLE', ?, ?, ?, ?)
-        """, (
-            card.card_code,
-            card.vehicle.vehicle_id,
-            card.time_entry,
-            card.time_exit,
-            card.fee,
-            created_by
-        ))
+        sql = """
+              INSERT INTO cards (card_code, price, created_by)
+              VALUES (?, ?, ?) \
+              """
 
+        cursor.execute(sql, card_code, price, created_by)
         conn.commit()
-        result = cursor.rowcount
+        conn.close()
 
-        cursor.close()
+    # ---------- UPDATE ----------
+    def update_price(self, card_id: int, price: int):
+        conn = self._db.connect()
+        cursor = conn.cursor()
+
+        sql = """
+              UPDATE cards
+              SET price      = ?, updated_at = GETDATE()
+              WHERE id = ? 
+              """
+
+        cursor.execute(sql, price, card_id)
+        conn.commit()
+        conn.close()
+
+    # ---------- DELETE (soft) ----------
+    def delete(self, card_id: int):
+        conn = self._db.connect()
+        cursor = conn.cursor()
+
+        sql = "UPDATE cards SET is_active = 0 WHERE id = ?"
+        cursor.execute(sql, card_id)
+        result = cursor.rowcount
+        conn.commit()
         conn.close()
         return result > 0
 
-    def update_exit_and_fee(self, card: SingleCard, closed_by: int) -> bool:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+if __name__ == '__main__':
+    dao = SingleCardDAO()
 
-        cursor.execute("""
-            UPDATE cards
-            SET exit_at = ?, fee = ?, closed_by = ?, updated_at = GETDATE()
-            WHERE id = ?
-        """, (
-            card.time_exit,
-            card.fee,
-            closed_by,
-            card.card_id
-        ))
-
-        conn.commit()
-        result = cursor.rowcount
-
-        cursor.close()
-        conn.close()
-        return result > 0
-
-    def delete(self, card_id: int) -> bool:
-        conn = self._db.connect()
-        cursor = conn.cursor()
-
-        cursor.execute("DELETE FROM cards WHERE id = ?", (card_id,))
-        conn.commit()
-
-        result = cursor.rowcount
-        cursor.close()
-        conn.close()
-
-        return result > 0
+    print(dao.update_price(1,5000))
+    print(dao.get_by_code("C0001"))
