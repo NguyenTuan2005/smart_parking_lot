@@ -93,9 +93,9 @@ class VehicleDAO:
 
         cursor.execute("""
             UPDATE vehicles
-            SET plate_number = ?, updated_at = GETDATE()
+            SET vehicle_type = ?, plate_number = ?, updated_at = GETDATE()
             WHERE id = ?
-        """, (vehicle.plate_number, vehicle.vehicle_id))
+        """, (vehicle.vehicle_type ,vehicle.plate_number, vehicle.vehicle_id))
 
         conn.commit()
         result = cursor.rowcount

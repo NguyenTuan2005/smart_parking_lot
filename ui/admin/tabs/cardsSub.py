@@ -2,7 +2,7 @@ from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QTableWidget, QTableWidgetItem, QFrame, QHeaderView, QCheckBox, QDialog, QDateEdit, QMessageBox,
-    QComboBox, QSpinBox
+    QComboBox, QSpinBox, QAbstractItemView, QSizePolicy
 )
 from PyQt6.QtCore import Qt, QSize, pyqtSignal, QDate
 from datetime import datetime, timedelta
@@ -265,6 +265,22 @@ class MonthlyCardLogTab(QWidget):
         table_layout.setSpacing(0)
 
         self.tblCardLogs = QTableWidget()
+        self.tblCardLogs.setEditTriggers(
+            QAbstractItemView.EditTrigger.NoEditTriggers
+        )
+
+        self.tblCardLogs.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
+
+        self.tblCardLogs.setSelectionMode(
+            QAbstractItemView.SelectionMode.SingleSelection
+        )
+
+        self.tblCardLogs.setFocusPolicy(
+            Qt.FocusPolicy.NoFocus
+        )
+
         self.tblCardLogs.verticalHeader().setDefaultSectionSize(55)
         self.tblCardLogs.setColumnCount(9)
         self.tblCardLogs.setHorizontalHeaderLabels([
@@ -327,7 +343,6 @@ class MonthlyCardLogTab(QWidget):
         self.tblCardLogs.setMinimumHeight(500)
         self.tblCardLogs.verticalHeader().setVisible(False)
 
-
         table_layout.addWidget(self.tblCardLogs)
         table_frame.setLayout(table_layout)
         content_layout.addWidget(table_frame)
@@ -380,7 +395,6 @@ class MonthlyCardLogTab(QWidget):
             layout.setContentsMargins(0, 0, 0, 0)
             layout.setSpacing(2)
 
-
             btn_edit = QPushButton()
             btn_edit.setIcon(QIcon("assets/icons/edit.svg"))
             btn_edit.setIconSize(QSize(16, 16))
@@ -393,35 +407,104 @@ class MonthlyCardLogTab(QWidget):
 
             btn_delete.clicked.connect(lambda checked, c=card: self.on_delete_button_clicked(c))
 
+            print(card)
+
+            try:
+                # set_table_data
+                btn_edit.clicked.connect(lambda checked, c=card: self.show_edit_card_dialog({
+                    'card_id': c.card_id,
+                    'customer_id': c.customer.id,
+                    'vehicle_id': c.vehicle.vehicle_id,
+
+                    'card_code': c.card_code,
+                    'customer_name': c.customer.fullname,
+                    'phone_number': getattr(c.customer, 'phone_number', ''),
+                    'customer_email': getattr(c.customer, 'email', ''),
+                    'plate_number': c.vehicle.plate_number,
+                    'vehicle_type': getattr(c.vehicle, 'type', 'Xe máy'),
+                    'start_date': c.start_date,
+                    'expiry_date': c.expiry_date,
+                    'months': (c.expiry_date - c.start_date).days // 30,
+                    'monthly_fee': c.monthly_fee,
+                    'is_paid': c.is_paid
+                }))
+            except Exception as e:
+                print(f"Error accessing card data: {e}")
+
             layout.addWidget(btn_edit)
             layout.addWidget(btn_delete)
 
-
             self.tblCardLogs.setCellWidget(row, 8, action_widget)
-
-            # btn_edit.clicked.connect(lambda checked, c=card: self.edit_card(c))
 
     # add
     def show_add_card_dialog(self):
-
-        if hasattr(self, "_current_dialog") and self._current_dialog is not None:
+        if self._current_dialog:
             self._current_dialog.raise_()
             self._current_dialog.activateWindow()
             return
-
         self._current_dialog = AddMonthlyCardDialog(self)
-        # Gắn signal về tab
         self._current_dialog.cardAdded.connect(self.on_card_added)
         self._current_dialog.finished.connect(self._clear_dialog_reference)
-
         self._current_dialog.show()
 
-    def _clear_dialog_reference(self):
-        self._current_dialog = None
+    def on_card_added(self, card_data):
+        """
+        Nhận dữ liệu thẻ mới từ dialog, thêm vào bảng và emit signal ra ngoài.
+        """
+        # Thêm một dòng mới
+        row = self.tblCardLogs.rowCount()
+        self.tblCardLogs.insertRow(row)
 
-    def on_card_added(self, card_data: dict):
-        print("Card data received:", card_data)
+        # Điền dữ liệu vào các cột
+        self.tblCardLogs.setItem(row, 0, QTableWidgetItem(card_data['card_code']))
+        self.tblCardLogs.setItem(row, 1, QTableWidgetItem(card_data['customer_name']))
+        self.tblCardLogs.setItem(row, 2, QTableWidgetItem(card_data['plate_number']))
+        self.tblCardLogs.setItem(row, 3, QTableWidgetItem(card_data['start_date'].strftime("%d/%m/%Y")))
+        self.tblCardLogs.setItem(row, 4, QTableWidgetItem(card_data['expiry_date'].strftime("%d/%m/%Y")))
+        self.tblCardLogs.setItem(row, 5, QTableWidgetItem(str(card_data['months'])))
+        self.tblCardLogs.setItem(row, 6, QTableWidgetItem(f"{card_data['monthly_fee']:,}"))
+        paid_text = "Đã thanh toán" if card_data['is_paid'] else "Chưa thanh toán"
+        self.tblCardLogs.setItem(row, 7, QTableWidgetItem(paid_text))
+
+        # Tạo cell chứa các nút hành động (edit/delete)
+        action_widget = QWidget()
+        layout = QHBoxLayout(action_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(2)
+
+        btn_edit = QPushButton()
+        btn_edit.setIcon(QIcon("assets/icons/edit.svg"))
+        btn_edit.setIconSize(QSize(16, 16))
+        btn_edit.setToolTip("Chỉnh sửa")
+        btn_edit.clicked.connect(lambda _, c=card_data: self.show_edit_card_dialog(c))
+
+        btn_delete = QPushButton()
+        btn_delete.setIcon(QIcon("assets/icons/delete.svg"))
+        btn_delete.setIconSize(QSize(16, 16))
+        btn_delete.setToolTip("Xóa")
+        btn_delete.clicked.connect(lambda _, c=card_data: self.on_delete_button_clicked(c))
+
+        layout.addWidget(btn_edit)
+        layout.addWidget(btn_delete)
+
+        self.tblCardLogs.setCellWidget(row, 8, action_widget)
+
         self.cardAdded.emit(card_data)
+
+    # Sửa
+    def show_edit_card_dialog(self, card_data):
+        if self._current_dialog:
+            self._current_dialog.raise_()
+            self._current_dialog.activateWindow()
+            return
+        self._current_dialog = AddMonthlyCardDialog(self, card_data)
+        self._current_dialog.cardUpdated.connect(self.on_card_updated)
+        self._current_dialog.finished.connect(self._clear_dialog_reference)
+        self._current_dialog.show()
+
+    def on_card_updated(self, card_data):
+        print("Card updated:", card_data)
+        self.editRequested.emit(card_data)
 
     # delete
     def show_confirmation_dialog(self, title: str, message: str) -> bool:
@@ -450,32 +533,39 @@ class MonthlyCardLogTab(QWidget):
 
         self.deleteRequested.emit(data_to_delete)
 
+    def _clear_dialog_reference(self):
+        self._current_dialog = None
 
 
 class AddMonthlyCardDialog(QDialog):
     cardAdded = pyqtSignal(dict)
+    cardUpdated = pyqtSignal(dict)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, card_data=None):
         super().__init__(parent)
-        self.setWindowTitle("Thêm thẻ tháng mới")
+        self.btnCancel = None
+        self.btnSave = None
         self.setModal(True)
         self.setMinimumWidth(600)
+        self._editing_card = card_data
+        self.setWindowTitle("Chỉnh sửa thẻ tháng" if card_data else "Thêm thẻ tháng mới")
         self.init_ui()
+        if card_data:
+            self.load_card_data(card_data)
 
     def init_ui(self):
         layout = QVBoxLayout()
         layout.setSpacing(15)
         layout.setContentsMargins(20, 20, 20, 20)
 
-        # Title
-        title = QLabel("THÊM THẺ THÁNG MỚI")
-        title.setStyleSheet("""
-            font-size: 20px;
-            font-weight: bold;
-            color: #2E86C1;
-            padding-bottom: 10px;
-        """)
-        layout.addWidget(title)
+        self.title_label = QLabel()
+        self.title_label.setStyleSheet("""
+                font-size: 20px;
+                font-weight: bold;
+                color: #2E86C1;
+                padding-bottom: 10px;
+            """)
+        layout.addWidget(self.title_label)
 
         # Divider
         divider = QFrame()
@@ -483,138 +573,169 @@ class AddMonthlyCardDialog(QDialog):
         divider.setStyleSheet("background-color: #e0e0e0;")
         layout.addWidget(divider)
 
-        # Mã thẻ
+        # form
         self.txtCardCode = self._create_form_row("Mã thẻ:", QLineEdit(), layout)
-        self.txtCardCode.setPlaceholderText("Ví dụ: MC001")
-
-        # Tên khách hàng
         self.txtCustomerName = self._create_form_row("Tên khách hàng:", QLineEdit(), layout)
-        self.txtCustomerName.setPlaceholderText("Nhập tên đầy đủ")
-
         self.txtPhoneNumber = self._create_form_row("Số điện thoại:", QLineEdit(), layout)
-        self.txtPhoneNumber.setPlaceholderText("Nhập số điện thoại")
-
         self.txtCustomerEmail = self._create_form_row("Email:", QLineEdit(), layout)
-        self.txtCustomerEmail.setPlaceholderText("Ví dụ: tuan123@gmail.com")
-
-        # Biển số xe
         self.txtPlateNumber = self._create_form_row("Biển số xe:", QLineEdit(), layout)
-        self.txtPlateNumber.setPlaceholderText("Ví dụ: 30A-12345")
-
-        # Loại xe
         self.cboVehicleType = self._create_form_row("Loại xe:", QComboBox(), layout)
-        self.cboVehicleType.addItems(["Xe máy","Xe máy điện", "Xe đạp điện"])
-
-        # Ngày bắt đầu
+        self.cboVehicleType.addItems(["Xe máy", "Xe máy điện", "Xe đạp điện"])
         self.dateStart = self._create_form_row("Ngày bắt đầu:", QDateEdit(), layout)
-        self.dateStart.setDate(QDate.currentDate())
         self.dateStart.setCalendarPopup(True)
         self.dateStart.setDisplayFormat("dd/MM/yyyy")
         self.dateStart.dateChanged.connect(self.update_expiry_date)
 
-        # Số tháng
         self.spinMonths = self._create_form_row("Số tháng:", QSpinBox(), layout)
         self.spinMonths.setMinimum(1)
         self.spinMonths.setMaximum(12)
-        self.spinMonths.setValue(1)
         self.spinMonths.valueChanged.connect(self.update_expiry_date)
 
-        # Ngày hết hạn (tự động tính)
         self.dateExpiry = self._create_form_row("Ngày hết hạn:", QDateEdit(), layout)
-        self.dateExpiry.setDate(QDate.currentDate().addMonths(1))
         self.dateExpiry.setCalendarPopup(True)
         self.dateExpiry.setDisplayFormat("dd/MM/yyyy")
         self.dateExpiry.setReadOnly(True)
 
-        # Phí tháng
         self.txtMonthlyFee = self._create_form_row("Phí tháng (VND):", QLineEdit(), layout)
-        self.txtMonthlyFee.setPlaceholderText("Ví dụ: 200000")
 
-        # Đã thanh toán
+        chk_container = QWidget()
+        chk_layout = QHBoxLayout(chk_container)
+        chk_layout.setContentsMargins(0, 0, 0, 0)
+
         self.chkIsPaid = QCheckBox("Đã thanh toán")
-        self.chkIsPaid.setStyleSheet("font-size: 14px; padding: 5px;")
-        layout.addWidget(self.chkIsPaid)
+        self.chkIsPaid.setCheckable(True)
+        self.chkIsPaid.setChecked(False)
+        self.chkIsPaid.setStyleSheet("""
+            QCheckBox {
+                font-size: 14px;
+                spacing: 8px;
+            }
+
+            QCheckBox::indicator {
+                width: 18px;
+            height: 18px;
+            border: 2px solid #2E86C1;
+            border-radius: 3px;
+            background: white;
+            }
+
+            QCheckBox::indicator:checked {
+                background: #2E86C1;
+            }
+
+            QCheckBox::indicator:checked::after {
+                content: "";
+                position: absolute;
+                left: 5px;
+                top: 1px;
+                width: 5px;
+                height: 10px;
+                border: solid white;
+                border-width: 0 2px 2px 0;
+                transform: rotate(45deg);
+            }
+        """)
+
+        chk_layout.addWidget(self.chkIsPaid)
+        chk_layout.addStretch()
+
+        layout.addWidget(chk_container)
 
         # Buttons
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
-        btnCancel = QPushButton("Hủy")
-        btnCancel.setIcon(QIcon("assets/icons/close.svg"))
-        btnCancel.clicked.connect(self.reject)
-        btnCancel.setStyleSheet("""
-            QPushButton {
-                background-color: #95a5a6;
-                color: white;
-                border: none;
-                padding: 10px 30px;
-                font-size: 14px;
-                font-weight: 600;
-                border-radius: 6px;
-                min-width: 100px;
-            }
-            QPushButton:hover {
-                background-color: #7f8c8d;
-            }
-        """)
+        self.btnCancel = QPushButton("Hủy")
+        self.btnCancel.setStyleSheet("""
+                   QPushButton {
+                       background-color: #95a5a6;
+                       color: white;
+                       border: none;
+                       padding: 10px 30px;
+                       font-size: 14px;
+                       font-weight: 600;
+                       border-radius: 6px;
+                       min-width: 100px;
+                   }
+                   QPushButton:hover {
+                       background-color: #7f8c8d;
+                   }
+               """)
+        self.btnCancel.clicked.connect(self.reject)
 
-        btnSave = QPushButton("Lưu")
-        btnSave.setIcon(QIcon("assets/icons/save.svg"))
-        btnSave.clicked.connect(self.save_card)
-        btnSave.setStyleSheet("""
-            QPushButton {
-                background-color: #2E86C1;
-                color: white;
-                border: none;
-                padding: 10px 30px;
-                font-size: 14px;
-                font-weight: 600;
-                border-radius: 6px;
-                min-width: 100px;
-            }
-            QPushButton:hover {
-                background-color: #154360;
-            }
-        """)
+        self.btnSave = QPushButton("Lưu")
+        self.btnSave.setStyleSheet("""
+                  QPushButton {
+                      background-color: #2E86C1;
+                      color: white;
+                      border: none;
+                      padding: 10px 30px;
+                      font-size: 14px;
+                      font-weight: 600;
+                      border-radius: 6px;
+                      min-width: 100px;
+                  }
+                  QPushButton:hover {
+                      background-color: #154360;
+                  }
+              """)
+        self.btnSave.clicked.connect(self.save_card)
 
-        btn_layout.addWidget(btnCancel)
-        btn_layout.addWidget(btnSave)
+        btn_layout.addWidget(self.btnCancel)
+        btn_layout.addWidget(self.btnSave)
         layout.addLayout(btn_layout)
 
         self.setLayout(layout)
-
-        # Styling
         self.setStyleSheet("""
-            QDialog {
-                background-color: white;
-            }
-            QLineEdit, QComboBox, QSpinBox, QDateEdit {
-                padding: 8px;
-                border: 1px solid #dcdcdc;
-                border-radius: 4px;
-                font-size: 14px;
-                background-color: white;
-            }
-            QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDateEdit:focus {
-                border: 2px solid #2E86C1;
-            }
-            QLabel {
-                font-size: 14px;
-                color: #2c3e50;
-            }
-        """)
+                    QLineEdit, QComboBox, QSpinBox, QDateEdit {
+                        padding: 8px;
+                        border: 1px solid #dcdcdc;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        background-color: white;
+                    }
+                    QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDateEdit:focus {
+                        border: 2px solid #2E86C1;
+                    }
+                    QLabel {
+                        font-size: 14px;
+ 
+                    }
+                """)
+
+        self.update_title()
+
+    def update_title(self):
+        if self._editing_card:
+            self.title_label.setText("CHỈNH SỬA THẺ THÁNG")
+        else:
+            self.title_label.setText("THÊM THẺ THÁNG MỚI")
+
+    def load_card_data(self, card_data):
+        """Điền dữ liệu vào dialog khi edit"""
+        self.txtCardCode.setText(card_data.get('card_code', ''))
+        self.txtCustomerName.setText(card_data.get('customer_name', ''))
+        self.txtPhoneNumber.setText(card_data.get('phone_number', ''))
+        self.txtCustomerEmail.setText(card_data.get('customer_email', ''))
+        self.txtPlateNumber.setText(card_data.get('plate_number', ''))
+        vehicle_type = card_data.get('vehicle_type', 'Xe máy')
+        idx = self.cboVehicleType.findText(vehicle_type)
+        if idx >= 0:
+            self.cboVehicleType.setCurrentIndex(idx)
+        start_date = card_data.get('start_date', QDate.currentDate().toPyDate())
+        self.dateStart.setDate(QDate(start_date.year, start_date.month, start_date.day))
+        months = card_data.get('months', 1)
+        self.spinMonths.setValue(months)
+        self.update_expiry_date()
+        self.txtMonthlyFee.setText(str(card_data.get('monthly_fee', 0)))
+        self.chkIsPaid.setChecked(card_data.get('is_paid', False))
 
     def _create_form_row(self, label_text, widget, parent_layout):
         row_layout = QHBoxLayout()
-        row_layout.setSpacing(10)
-
         label = QLabel(label_text)
         label.setMinimumWidth(150)
-        label.setStyleSheet("font-weight: 500;")
-
         row_layout.addWidget(label)
         row_layout.addWidget(widget, 1)
-
         parent_layout.addLayout(row_layout)
         return widget
 
@@ -625,34 +746,28 @@ class AddMonthlyCardDialog(QDialog):
         self.dateExpiry.setDate(expiry_date)
 
     def save_card(self):
-        # Validate
+        # Validate dữ liệu
         if not self.txtCardCode.text().strip():
             QMessageBox.warning(self, "Lỗi", "Vui lòng nhập mã thẻ!")
             return
-
         if not self.txtCustomerName.text().strip():
             QMessageBox.warning(self, "Lỗi", "Vui lòng nhập tên khách hàng!")
             return
-
         if not self.txtPhoneNumber.text().strip():
             QMessageBox.warning(self, "Lỗi", "Vui lòng nhập số điện thoại khách hàng!")
             return
-
         if not self.txtPlateNumber.text().strip():
             QMessageBox.warning(self, "Lỗi", "Vui lòng nhập biển số xe!")
             return
-
         if not self.txtMonthlyFee.text().strip():
             QMessageBox.warning(self, "Lỗi", "Vui lòng nhập phí tháng!")
             return
-
         try:
             monthly_fee = int(self.txtMonthlyFee.text().strip())
         except ValueError:
             QMessageBox.warning(self, "Lỗi", "Phí tháng phải là số nguyên!")
             return
 
-        # Tạo dictionary chứa dữ liệu
         card_data = {
             'card_code': self.txtCardCode.text().strip(),
             'customer_name': self.txtCustomerName.text().strip(),
@@ -667,8 +782,11 @@ class AddMonthlyCardDialog(QDialog):
             'is_paid': self.chkIsPaid.isChecked()
         }
 
-        # Emit signal
-        self.cardAdded.emit(card_data)
-
-        # Đóng dialog
+        if self._editing_card:
+            card_data['card_id'] = self._editing_card.get('card_id')
+            card_data['customer_id'] = self._editing_card.get('customer_id')
+            card_data['vehicle_id'] = self._editing_card.get('vehicle_id')
+            self.cardUpdated.emit(card_data)
+        else:
+            self.cardAdded.emit(card_data)
         self.accept()

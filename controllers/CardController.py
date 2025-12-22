@@ -1,3 +1,5 @@
+from PyQt6.QtWidgets import QMessageBox
+
 from dao.CustomerDAO import CustomerDAO
 from dao.MonthlyCardDAO import MonthlyCardDAO
 from dao.VehicleDAO import VehicleDAO
@@ -11,7 +13,7 @@ class MonthlyCardController:
 
         self.view.cardAdded.connect(self.create_monthly_card)
         self.view.deleteRequested.connect(self.handle_delete_card)
-
+        self.view.editRequested.connect(self.update_card)
         self.load_data()
 
     def load_data(self):
@@ -21,11 +23,9 @@ class MonthlyCardController:
         except Exception as e:
             print(f"Lỗi khi load dữ liệu: {e}")
 
-
     def create_monthly_card(self, card_data: dict):
         self.monthly_card_service.create_monthly_card(card_data)
         self.load_data()
-
 
     def handle_delete_card(self, delete_data: dict):
         card_code = delete_data.get('card_code')
@@ -49,3 +49,21 @@ class MonthlyCardController:
 
         except Exception as e:
             print(f"Lỗi hệ thống khi xóa thẻ: {e}")
+
+    def update_card(self, card_data: dict):
+        try:
+            self.monthly_card_service.update_card(card_data)
+            QMessageBox.information(
+                self.view,
+                "Thành công",
+                "Cập nhật thẻ tháng thành công"
+            )
+
+        except Exception as e:
+            QMessageBox.critical(
+                self.view,
+                "Lỗi",
+                str(e)
+            )
+
+        self.load_data()

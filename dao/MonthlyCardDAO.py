@@ -119,22 +119,39 @@ class MonthlyCardDAO:
         conn.commit()
         conn.close()
 
-    def update(self, card: MonthlyCard):
-        conn = self._db.connect()
-        cursor = conn.cursor()
-
+    def update(self, card: MonthlyCard) -> None:
         sql = """
               UPDATE monthly_cards
-              SET 
+              SET card_code   = ?,
+                  customer_id = ?,
+                  vehicle_id  = ?,
                   monthly_fee = ?,
+                  start_date  = ?,
+                  expiry_date = ?,
                   is_paid     = ?,
                   updated_at  = GETDATE()
               WHERE id = ? \
               """
 
-        cursor.execute(sql, card.monthly_fee, card.is_paid, card.card_id)
-        conn.commit()
-        conn.close()
+        conn = self._db.connect()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                sql,(card.card_code,
+                    card.customer.id,
+                    card.vehicle.vehicle_id,
+                    card.monthly_fee,
+                    card.start_date,
+                    card.expiry_date,
+                    card.is_paid,
+                    card.card_id,)
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
     def extend_expiry(self, card_id: int, new_expiry):
         conn = self._db.connect()
@@ -168,7 +185,7 @@ class MonthlyCardDAO:
         vehicle = self._vehicle_dao.get_by_id(row.vehicle_id)
 
         return MonthlyCard(
-            card_id=row.vehicle_id,
+            card_id=row.id,
             card_code=row.card_code,
             customer=customer,
             vehicle=vehicle,
@@ -177,5 +194,4 @@ class MonthlyCardDAO:
             expiry_date=row.expiry_date,
             is_paid=row.is_paid
         )
-
 

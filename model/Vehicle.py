@@ -9,6 +9,10 @@ class Vehicle:
         return self._vehicle_id
 
     @property
+    def vehicle_type(self):
+        return self._vehicle_type
+
+    @property
     def plate_number(self):
         return self._plate_number
 
