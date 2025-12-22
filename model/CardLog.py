@@ -3,6 +3,7 @@ from datetime import datetime
 from dao.VehicleDAO import VehicleDAO
 from dto.dtos import VehicleDTO
 from model.Vehicle import Vehicle
+from services.Session import Session
 
 
 class CardLog:
@@ -43,14 +44,14 @@ class CardLog:
             return int(( self._exit_at - self._entry_at).total_seconds() / 60)
         return 0
 
-
-    def check_in(self, plate: str):
+    def check_in(self, plate: str, card_id: int):
         self._entry_at = datetime.now()
         self._exit_at = None
         self._fee = 0
         vehicle = VehicleDAO().get_by_plate(plate)
-        print(vehicle)
         if vehicle is None:
             VehicleDAO().save(VehicleDTO("xe may", plate))
         self._vehicle = VehicleDAO().get_by_plate(plate)
-        print("vehicle after check in", self._vehicle)
+
+        from dao.CardLogDAO import CardLogDAO
+        CardLogDAO().create_entry(card_id, self.vehicle.vehicle_id, Session.get_user().id)

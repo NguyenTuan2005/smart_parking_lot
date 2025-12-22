@@ -7,6 +7,7 @@ from PyQt6.QtCore import Qt
 from controllers.StaffController import StaffController
 from model.Card import Card
 from model.MonthlyCard import MonthlyCard
+from model.SingleCard import SingleCard
 
 
 class LeftPanel(QWidget):
@@ -42,7 +43,7 @@ class LeftPanel(QWidget):
         statusFrame.setStyleSheet("background-color: #2c3e50;")
         statusVLayout = QVBoxLayout(statusFrame)
 
-        self.__statusLabel1 = QLabel("KHÁCH HÀNG CÓ THẺ THÁNG")
+        self.__statusLabel1 = QLabel("")
         self.__statusLabel1.setFont(QFont('Arial', 16, weight=QFont.Weight.Bold))  # Giảm font
         self.__statusLabel1.setStyleSheet("color: white;")
         statusVLayout.addWidget(self.__statusLabel1, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -71,7 +72,7 @@ class LeftPanel(QWidget):
             }
         """)
         bsVaoVLayout = QVBoxLayout(bsVaoFrame)
-        bsVaoVLayout.setContentsMargins(8, 3, 8, 3)  # Giảm margin
+        bsVaoVLayout.setContentsMargins(0, 3, 0, 3)  # Giảm margin
 
         self.__bsVaoLabel = QLabel("Trống")
         self.__bsVaoLabel.setFont(QFont('Arial', 30, weight=QFont.Weight.Bold))  # Giảm font
@@ -97,7 +98,7 @@ class LeftPanel(QWidget):
             }
         """)
         bsRaVLayout = QVBoxLayout(bsRaFrame)
-        bsRaVLayout.setContentsMargins(8, 3, 8, 3)
+        bsRaVLayout.setContentsMargins(0, 3, 0, 3)
 
         self.__bsRaLabel = QLabel("Trống")
         self.__bsRaLabel.setFont(QFont('Arial', 30, weight=QFont.Weight.Bold))  # Giảm font
@@ -111,7 +112,7 @@ class LeftPanel(QWidget):
         durationLabel.setStyleSheet("color: #95a5a6; font-size: 14px;")  # Giảm font
         infoLayout.addWidget(durationLabel, 4, 0)
 
-        self.__durationValue = QLabel("1 NGÀY 08 GIỜ")
+        self.__durationValue = QLabel("")
         self.__durationValue.setFont(QFont('Arial', 16, weight=QFont.Weight.Bold))  # Giảm font
         self.__durationValue.setStyleSheet("color: #f1c40f;")
         infoLayout.addWidget(self.__durationValue, 5, 0, alignment=Qt.AlignmentFlag.AlignHCenter)
@@ -149,12 +150,12 @@ class LeftPanel(QWidget):
         cardGridLayout.setSpacing(4)  # Giảm spacing
 
         cardData = [
-            ("CHỦ XE", "Nguyễn Minh Trí"),
-            ("BIỂN SỐ ĐK", "20B1-073.64"),
+            ("CHỦ XE", ""),
+            ("BIỂN SỐ ĐK", ""),
             ("MÃ THẺ", ""),
-            ("T/G XE VÀO", "24/10/2019 - 08:12:06"),
-            ("T/G XE RA", "24/10/2019 - 16:17:51"),
-            ("SỐ THẺ", "20739369"),
+            ("T/G XE VÀO", ""),
+            ("T/G XE RA", ""),
+            ("SỐ THẺ", ""),
         ]
 
         self.__card_info_labels = {}
@@ -188,16 +189,17 @@ class LeftPanel(QWidget):
             self.__card_info_labels["CHỦ XE"].setText(str(monthly.customer.fullname))
             self.__statusLabel1.setText("KHÁCH HÀNG CÓ THẺ THÁNG")
         else:
-            self.__bsVaoLabel.setText(card.card_log.vehicle.plate_number)
-            self.__bsRaLabel.setText("" if card.card_log.exit_at is None else str(card.card_log.exit_at))
-            self.__durationValue.setText(str(card.duration()))
-            self.__fee_label.setText(f"{card.calculate_fee()} VNĐ")
-            self.__card_info_labels["BIỂN SỐ ĐK"].setText(card.card_log.vehicle.plate_number)
-            self.__card_info_labels["MÃ THẺ"].setText(card.card_code)
-            self.__card_info_labels["T/G XE VÀO"].setText(str(card.card_log.entry_at))
-            self.__card_info_labels["T/G XE RA"].setText("" if card.card_log.exit_at is None else str(card.card_log.exit_at))
-            self.__card_info_labels["SỐ THẺ"].setText(str(card.card_id))
-            self.__card_info_labels["CHỦ XE"].setText("KHÁCH VÃNG LAI")
+            singleCard: SingleCard = card
+            self.__bsVaoLabel.setText(singleCard.card_log.vehicle.plate_number)
+            self.__bsRaLabel.setText("" if singleCard.card_log.exit_at is None else str(singleCard.card_log.exit_at))
+            self.__durationValue.setText(str(singleCard.duration()))
+            self.__fee_label.setText(f"{singleCard.calculate_price(singleCard.duration())} VNĐ")
+            self.__card_info_labels["BIỂN SỐ ĐK"].setText(singleCard.card_log.vehicle.plate_number)
+            self.__card_info_labels["MÃ THẺ"].setText(singleCard.card_code)
+            self.__card_info_labels["T/G XE VÀO"].setText(str(singleCard.card_log.entry_at))
+            self.__card_info_labels["T/G XE RA"].setText("" if singleCard.card_log.exit_at is None else str(singleCard.card_log.exit_at))
+            self.__card_info_labels["SỐ THẺ"].setText(str(singleCard.card_id))
+            self.__card_info_labels["CHỦ XE"].setText("khách vãng lai")
             self.__statusLabel1.setText("THẺ LẺ")
 
     def set_status(self, message: str):

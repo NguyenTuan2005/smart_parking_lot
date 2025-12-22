@@ -16,15 +16,18 @@ class StaffController:
 
         if new_plates:
             for plate in new_plates:
+                print(f"StaffController: {plate}")
                 left_view = self.__views["left"]
                 try:
                     card = self.__application.check_in(None, plate)
-                    print("Checked in card:", card)
-                    right_view = self.__views["right"]
-                    right_view.update_view(card)
-                    left_view.update_view(card)
-                    if frame is not None:
-                        center_view = self.__views["center"]
-                        center_view.set_frame(frame)
+                    if card is None:
+                        left_view.set_status("Không tìm thấy thẻ")
+                    else:
+                        right_view = self.__views["right"]
+                        right_view.update_view(card)
+                        left_view.update_view(card)
+                        if frame is not None:
+                            center_view = self.__views["center"]
+                            center_view.set_frame(frame)
                 except Exception as e:
-                    left_view.set_status(e)
+                    left_view.set_status(str(e))
