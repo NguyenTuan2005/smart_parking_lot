@@ -5,9 +5,9 @@ INSERT INTO staffs (id, username, password, fullname, phone_number, role) VALUES
 (1, 'admin', '123', 'Nguyen Van A', '0901000001', 1),
 (2, 'employee', '123', 'Nguyen Van B', '0901000002', 2),
 (3, 'tuan', '123', 'Nguyen Vo Quoc Tuan', '0901000002', 1),
-(4, 'chi', '123', 'Chi', '0901000003', 1),
+(4, 'chi', '123', 'Do Thi Kim Chi', '0901000003', 1),
 (5, 'hoang', '123', 'Phan Ba Huy Hoang', '0901000003', 2),
-(6, 'tri', '123', 'Trí', '0901000003', 2);
+(6, 'tri', '123', 'Nguyen Minh Tri', '0901000003', 2);
 SET IDENTITY_INSERT staffs OFF;
 
 
@@ -37,7 +37,10 @@ INSERT INTO customers (id, full_name, phone_number, email) VALUES
 (7,N'Đặng Minh Phương','0911111117','dmph7@gmail.com'),
 (8,N'Ngô Minh Quân','0911111118','nmq8@gmail.com'),
 (9,N'Bùi Minh Đức','0911111119','bmd9@gmail.com'),
-(10,N'Đỗ Minh Sang','0911111120','dms10@gmail.com');
+(10,N'Nguyễn Võ Quốc Tuấn','0911111120','23130370@st.hcmuaf.edu.vn'),
+(11,N'Huy Hoàng','0911111121','23130117@st.hcmuaf.edu.vn'),
+(12,N'Kim Chi','0911111122','23130030@st.hcmuaf.edu.vn'),
+(13,N'Minh Trí','0911111123','23130346@st.hcmuaf.edu.vn');
 SET IDENTITY_INSERT customers OFF;
 
 
@@ -49,10 +52,10 @@ INSERT INTO monthly_cards (id, card_code, customer_id, vehicle_id, monthly_fee, 
 (4,'CM0004',4,4,150000,'2025-01-01','2025-01-31',1),
 (5,'CM0005',5,5,150000,'2025-01-01','2025-01-31',1),
 (6,'CM0006',6,6,150000,'2025-01-01','2025-01-31',0),
-(7,'CM0007',7,7,150000,'2025-01-01','2025-01-31',1),
-(8,'CM0008',8,8,150000,'2025-01-01','2025-01-31',1),
-(9,'CM0009',9,9,150000,'2025-01-01','2025-01-31',1),
-(10,'CM0010',10,10,150000,'2025-01-01','2025-01-31',1);
+(10,'CM0010',10,7,150000,'2025-11-28','2025-12-28',1),
+(11,'CM0011',11,8,150000,'2025-11-25','2025-12-25',1),
+(12,'CM0012',12,9,150000,'2025-12-25','2025-01-25',1),
+(13,'CM0013',13,10,150000,'2025-12-25','2025-01-25',1);
 SET IDENTITY_INSERT monthly_cards OFF;
 
 

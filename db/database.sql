@@ -48,6 +48,7 @@ CREATE TABLE [customers] (
   [full_name] nvarchar(100),
   [phone_number] varchar(20) UNIQUE,
   [email] varchar(50),
+  [notified] BIT NOT NULL DEFAULT 0,
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
