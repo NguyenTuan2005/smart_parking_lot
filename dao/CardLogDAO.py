@@ -73,21 +73,25 @@ class CardLogDAO:
         )
         return  card_log
 
-    def create_entry(self, card_id: int, vehicle_id: int, created_by: int) -> CardLog:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+    def create_entry(self, card_id: int, vehicle_id: int, created_by: int) -> CardLog | None:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-              INSERT INTO card_logs (card_id, vehicle_id, created_by)
-              OUTPUT INSERTED.*
-              VALUES (?, ?, ?) \
-              """
+            sql = """
+                  INSERT INTO card_logs (card_id, vehicle_id, created_by)
+                  OUTPUT INSERTED.*
+                  VALUES (?, ?, ?) \
+                  """
 
-        row = cursor.execute(sql, card_id, vehicle_id, created_by).fetchone()
-        conn.commit()
-        conn.close()
+            row = cursor.execute(sql, card_id, vehicle_id, created_by).fetchone()
+            conn.commit()
+            conn.close()
 
-        return self._map_row_to_card_log(row)
+            return self._map_row_to_card_log(row)
+        except Exception as e:
+            print(f'CardLogDao (Error): {e}')
+            return None
 
     def close_log(self, log: CardLog, exit_time: datetime, fee: int, closed_by: int):
         conn = self._db.connect()

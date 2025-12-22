@@ -41,9 +41,5 @@ class SingleCard(Card):
         )
 
     def check_in(self, plate: str):
-        self._card_log.check_in(plate)
-
-        from dao.SingleCardDAO import SingleCardDAO
-        SingleCardDAO().create(self._card_code, self._price)
-
+        self._card_log.check_in(plate, self.card_id)
         return self

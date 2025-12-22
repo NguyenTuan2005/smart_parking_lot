@@ -12,6 +12,8 @@ import cv2
 
 from controllers.StaffController import StaffController
 from model.Card import Card
+from model.MonthlyCard import MonthlyCard
+from model.SingleCard import SingleCard
 
 
 class RightPanel(QWidget):
@@ -125,16 +127,6 @@ class RightPanel(QWidget):
         self.__historyTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.__historyTable.verticalHeader().setVisible(False)
 
-        data_rows = [
-            ("20A-123.45", "17:00", "17:05", "Đã ra"),
-            ("30B-678.90", "17:01", "---", "Đang đỗ"),
-            ("51C-111.22", "17:05", "17:06", "Đã ra"),
-        ]
-
-        for row, row_data in enumerate(data_rows):
-            for col, item in enumerate(row_data):
-                self.__historyTable.setItem(row, col, QTableWidgetItem(item))
-
         vLayout.addWidget(self.__historyTable)
 
         # Logo
@@ -150,14 +142,14 @@ class RightPanel(QWidget):
         self.entry_timer.timeout.connect(self._updateEntryFrame)
         # Chỉ khởi động timer nếu camera mở thành công
         if self.entry_camera.isOpened():
-            self.entry_timer.start(30)  # 30ms ~ 33 FPS
+            self.entry_timer.start(100)  # 100ms ~ 10 FPS
 
         # --- Camera ra (index 1 hoặc 2) ---
         self.exit_camera = cv2.VideoCapture(1)  # Đặt index 1 (hoặc 2 nếu index 1 không có)
         self.exit_timer = QTimer()
         self.exit_timer.timeout.connect(self._updateExitFrame)
         if self.exit_camera.isOpened():
-            self.exit_timer.start(30)
+            self.exit_timer.start(100)
 
     def _updateEntryFrame(self):
         if not self.entry_camera or not self.entry_camera.isOpened():
@@ -351,10 +343,18 @@ class RightPanel(QWidget):
         super().closeEvent(event)
 
     def update_view(self, card: Card):
-        plate = card.vehicle.plate_number if card.vehicle else "---"
-        time_entry = card.time_entry.strftime("%H:%M") if card.time_entry else "---"
-        time_exit = card.time_exit.strftime("%H:%M") if card.time_exit else "---"
-        status = "Đã ra" if card.time_exit else "Đang đỗ"
+        if card.is_single_card():
+            singleCard: SingleCard = card
+            plate = singleCard.card_log.vehicle.plate_number if singleCard.card_log.vehicle else "---"
+            time_entry = singleCard.card_log.entry_at.strftime("%H:%M") if singleCard.card_log.entry_at else "---"
+            time_exit = singleCard.card_log.exit_at.strftime("%H:%M") if singleCard.card_log.exit_at else "---"
+            status = "Đã ra" if singleCard.card_log.exit_at else "Đang đỗ"
+        else:
+            monthCard: MonthlyCard = card
+            plate = monthCard.vehicle.plate_number if monthCard.vehicle else "---"
+            time_entry = "---"
+            time_exit =  "---"
+            status = "Còn hiệu lực" if monthCard.is_paid == True else "Hết hạn"
 
         row_count = self.__historyTable.rowCount()
         col_count = self.__historyTable.columnCount()
