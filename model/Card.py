@@ -21,3 +21,6 @@ class Card(ABC):
 
     def is_month_card(self):
         return False
+
+    def is_single_card(self):
+        return False

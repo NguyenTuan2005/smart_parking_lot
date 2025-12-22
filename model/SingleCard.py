@@ -2,7 +2,6 @@ import math
 
 from model.Card import Card
 from model.CardLog import CardLog
-from services.Session import Session
 
 
 class SingleCard(Card):
@@ -29,6 +28,9 @@ class SingleCard(Card):
         hours = math.ceil(minutes / 60)
         return hours * self._price
 
+    def is_single_card(self):
+        return True
+
     def __repr__(self) -> str:
         return (
             f"SingleCard("
@@ -42,6 +44,6 @@ class SingleCard(Card):
         self._card_log.check_in(plate)
 
         from dao.SingleCardDAO import SingleCardDAO
-        SingleCardDAO().create(self._card_code, self._price, Session.get_user().id)
+        SingleCardDAO().create(self._card_code, self._price)
 
         return self
