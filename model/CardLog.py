@@ -6,7 +6,7 @@ from model.Vehicle import Vehicle
 
 
 class CardLog:
-    def __init__(self, id: int, vehicle: Vehicle, entry_at: datetime, exit_at: datetime | None = None,
+    def __init__(self, id: int = -1, vehicle: Vehicle = None, entry_at: datetime | None = None, exit_at: datetime | None = None,
                  fee: int = 0):
         self._id = id
         self._vehicle = vehicle
@@ -17,6 +17,10 @@ class CardLog:
     def close(self, exit_time: datetime, fee: int):
         self._exit_at = exit_time
         self._fee = fee
+
+    @property
+    def id(self):
+        return self._id
 
     @property
     def entry_at(self):
@@ -33,7 +37,6 @@ class CardLog:
     @property
     def vehicle(self):
         return self._vehicle
-
 
     def duration(self):
         if  self._entry_at and self._exit_at:
