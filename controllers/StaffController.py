@@ -13,7 +13,6 @@ class StaffController:
 
     def process_entry(self, frame):
         frame, new_plates = self.__ai_service.process_frame(frame)
-        print("Detected plates:", new_plates)
 
         if new_plates:
             for plate in new_plates:

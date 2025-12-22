@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore", message=".*torch.cuda.amp.autocast.*", category=FutureWarning)
 import os
 import re
 import time

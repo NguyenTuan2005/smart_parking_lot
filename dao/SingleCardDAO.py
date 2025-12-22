@@ -1,7 +1,5 @@
-from typing import List, Optional
 from db.database import Database
 from model.SingleCard import SingleCard
-from model.Vehicle import Vehicle
 
 
 class SingleCardDAO:

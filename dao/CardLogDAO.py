@@ -55,7 +55,7 @@ class CardLogDAO:
             exit_at=row.exit_at,
             fee=row.fee if row.fee else 0
         )
-        card.setCardLog(card_log)
+        card.set_card_log(card_log)
         return  card_log
 
     def create_entry(self, card_id: int, vehicle_id: int, created_by: int) -> CardLog:

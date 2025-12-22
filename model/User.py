@@ -1,4 +1,6 @@
-class User:
+from abc import ABC
+
+class User(ABC):
     def __init__(self, id: int | None, fullname: str, phone_number: str):
         self._id = id
         self._fullname = fullname
