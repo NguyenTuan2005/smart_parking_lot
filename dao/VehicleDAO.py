@@ -1,5 +1,5 @@
-from typing import List, Optional
-from db.database import Database
+from typing import Optional
+from database.database import Database
 from dto.dtos import VehicleDTO
 from model.Vehicle import Vehicle
 
@@ -8,22 +8,39 @@ class VehicleDAO:
     def __init__(self):
         self._db = Database()
 
-    def get_all(self) -> List[Vehicle]:
+    # =============================
+    # LOAD TẤT CẢ PHƯƠNG TIỆN (XE MÁY)
+    # =============================
+    def get_all(self):
         conn = self._db.connect()
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT id, plate_number
-            FROM vehicles
+            SELECT * from staffs
         """)
+
         rows = cursor.fetchall()
-
-        vehicles = [Vehicle(row[0], 'xe máy', row[1]) for row in rows]
-
         cursor.close()
         conn.close()
-        return vehicles
+        return rows
 
+# tìm kiếm nhân viên
+    def search_by_name(self, keyword: str):
+        conn = self._db.connect()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+             SELECT *
+        FROM  staffs 
+        WHERE staffs.fullname LIKE ?
+    """, (f"%{keyword}%",))
+
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return rows
+
+    # =============================
     def get_by_id(self, vehicle_id: int) -> Optional[Vehicle]:
         conn = self._db.connect()
         cursor = conn.cursor()
@@ -42,51 +59,50 @@ class VehicleDAO:
             return Vehicle(row[0], row[1], row[2])
         return None
 
+    # =============================
     def get_by_plate(self, plate_number) -> Optional[Vehicle]:
-        try:
-            conn = self._db.connect()
-            cursor = conn.cursor()
+        conn = self._db.connect()
+        cursor = conn.cursor()
 
-            cursor.execute("""
-                SELECT id, vehicle_type, plate_number
-                FROM vehicles
-                WHERE plate_number = ?
-            """, plate_number)
+        cursor.execute("""
+            SELECT id, vehicle_type, plate_number
+            FROM vehicles
+            WHERE plate_number = ?
+        """, (plate_number,))
 
-            row = cursor.fetchone()
-            cursor.close()
-            conn.close()
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
 
-            if row:
-                return Vehicle(row[0], row[1], row[2])
-            return None
-        except Exception as e:
-            print(f"Lỗi DB VehicleDAO.get_by_plate: {e}")
-            return None
+        if row:
+            return Vehicle(row[0], row[1], row[2])
+        return None
 
+    # =============================
     def save(self, vehicle_dto: VehicleDTO) -> int | None:
         conn = self._db.connect()
         cursor = conn.cursor()
 
         try:
             cursor.execute("""
-                           INSERT INTO vehicles (plate_number, vehicle_type)
-                           OUTPUT INSERTED.id
-                           VALUES (?, ?)
-                           """, (vehicle_dto.plate_number, vehicle_dto.vehicle_type))
+                INSERT INTO vehicles (plate_number, vehicle_type)
+                OUTPUT INSERTED.id
+                VALUES (?, ?)
+            """, (vehicle_dto.plate_number, vehicle_dto.vehicle_type))
 
             last_id = cursor.fetchone()[0]
             conn.commit()
             return last_id
 
         except Exception as e:
-            print(f"Lỗi DB VehicleDAO.create: {e}")
+            print(f"Lỗi DB VehicleDAO.save: {e}")
             conn.rollback()
             return None
         finally:
             cursor.close()
             conn.close()
 
+    # =============================
     def update(self, vehicle: Vehicle) -> bool:
         conn = self._db.connect()
         cursor = conn.cursor()
@@ -103,17 +119,71 @@ class VehicleDAO:
         conn.close()
         return result > 0
 
-    def delete(self, vehicle_id: int) -> bool:
+    # =============================
+    def delete_staff(self, staff_id: int) -> bool:
         conn = self._db.connect()
         cursor = conn.cursor()
 
-        cursor.execute("""
-            DELETE FROM vehicles WHERE id = ?
-        """, (vehicle_id,))
+        try:
+            cursor.execute("DELETE FROM staffs WHERE id = ?", (staff_id,))
+            conn.commit()
+            return cursor.rowcount > 0
+        except Exception as e:
+            print("Lỗi xóa nhân viên:", e)
+            conn.rollback()
+            return False
+        finally:
+            cursor.close()
+            conn.close()
 
-        conn.commit()
-        result = cursor.rowcount
-        cursor.close()
-        conn.close()
-        return result > 0
+    def insert_staff(self, fullname, phone_number, username, password, role):
+        conn = self._db.connect()
+        cursor = conn.cursor()
 
+        try:
+            cursor.execute("""
+                INSERT INTO staffs (fullname, phone_number, username, password, role)
+                VALUES (?, ?, ?, ?, ?)
+            """, (fullname, phone_number, username, password, role))
+
+            conn.commit()
+            return True
+
+        except Exception as e:
+            print("Lỗi thêm nhân viên:", e)
+            conn.rollback()
+            return False
+
+        finally:
+            cursor.close()
+            conn.close()
+
+    def update_staff(self, staff_id, fullname, phone, username, password, role):
+        conn = self._db.connect()
+        cursor = conn.cursor()
+
+        try:
+            if password:
+                cursor.execute("""
+                    UPDATE staffs
+                    SET fullname = ?, phone_number = ?, username = ?, password = ?, role = ?
+                    WHERE id = ?
+                """, (fullname, phone, username, password, role, staff_id))
+            else:  # không đổi mật khẩu
+                cursor.execute("""
+                    UPDATE staffs
+                    SET fullname = ?, phone_number = ?, username = ?, role = ?
+                    WHERE id = ?
+                """, (fullname, phone, username, role, staff_id))
+
+            conn.commit()
+            return cursor.rowcount > 0
+
+        except Exception as e:
+            print("Lỗi cập nhật nhân viên:", e)
+            conn.rollback()
+            return False
+
+        finally:
+            cursor.close()
+            conn.close()
