@@ -1,8 +1,49 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout,
-    QPushButton, QTableWidget, QTableWidgetItem, QHeaderView
+    QPushButton, QTableWidget, QTableWidgetItem,
+    QHeaderView, QComboBox
 )
 from PyQt6.QtCore import Qt
+
+# ===== STYLE =====
+BTN_BLUE = """
+QPushButton {
+    background-color: #3498DB;
+    color: white;
+    border-radius: 6px;
+    font-size: 14px;
+}
+QPushButton:hover {
+    background-color: #2980B9;
+}
+"""
+
+SEARCH_BAR_STYLE = """
+QLineEdit {
+    height: 30px;
+    font-size: 13px;
+    padding: 4px 10px;
+    border: 1px solid #3498DB;
+    border-radius: 6px;
+}
+
+QLineEdit:focus {
+    border: 1px solid #2980B9;
+}
+
+QPushButton {
+    height: 30px;
+    min-width: 85px;
+    font-size: 13px;
+    color: white;
+    background-color: #3498DB;
+    border-radius: 6px;
+}
+
+QPushButton:hover {
+    background-color: #2980B9;
+}
+"""
 
 
 class VehicleTab(QWidget):
@@ -11,90 +52,89 @@ class VehicleTab(QWidget):
         self.initUI()
 
     def initUI(self):
-        layout = QVBoxLayout()
-        layout.setContentsMargins(15, 15, 15, 15)
-        layout.setSpacing(12)
+        # ===== MAIN LAYOUT =====
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(15, 15, 15, 15)
+        main_layout.setSpacing(12)
 
-        # =========================
-        #        TIÊU ĐỀ
-        # =========================
-        title = QLabel("QUẢN LÝ PHƯƠNG TIỆN")
+        # ===== TITLE =====
+        title = QLabel("QUẢN LÝ NHÂN VIÊN")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("""
             font-size:22px;
             font-weight:bold;
             color:#2E86C1;
         """)
-        layout.addWidget(title)
+        main_layout.addWidget(title)
 
-        # =========================
-        #      THANH TÌM KIẾM
-        # =========================
-        search = QHBoxLayout()
+        # ===== SEARCH BAR =====
+        search_layout = QHBoxLayout()
 
-        box = QLineEdit()
-        box.setPlaceholderText("Nhập biển số phương tiện...")
-        box.setStyleSheet("padding: 6px; font-size: 14px;")
-        search.addWidget(box)
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Tìm kiếm theo tên nhân viên...")
+        self.search_input.setStyleSheet(SEARCH_BAR_STYLE)
 
-        for t in ["Tìm kiếm", "Làm mới"]:
-            btn = QPushButton(t)
-            btn.setStyleSheet("padding: 6px 12px; font-size: 14px;")
-            search.addWidget(btn)
+        self.search_btn = QPushButton("Tìm kiếm")
+        self.search_btn.setStyleSheet(SEARCH_BAR_STYLE)
 
-        layout.addLayout(search)
+        self.refresh_btn = QPushButton("Làm mới")
+        self.refresh_btn.setStyleSheet(SEARCH_BAR_STYLE)
 
-        # =========================
-        #       BẢNG DỮ LIỆU
-        # =========================
-        table = QTableWidget()
-        table.setColumnCount(3)
+        search_layout.addWidget(self.search_input)
+        search_layout.addWidget(self.search_btn)
+        search_layout.addWidget(self.refresh_btn)
 
-        table.setHorizontalHeaderLabels([
-            "Tên khách hàng",
-            "Biển số",
-            "Loại phương tiện",
-            "Ghi chú"
+        main_layout.addLayout(search_layout)
+
+        # ===== TABLE =====
+        self.table = QTableWidget()
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderLabels([
+            "ID",
+            "Tên đầy đủ",
+            "Số điện thoại",
+            "Username",
+            "Vai trò"
         ])
 
-        # Căn cột tự giãn
-        header = table.horizontalHeader()
+        # Ẩn cột ID
+        self.table.setColumnHidden(0, True)
+
+        header = self.table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
-        layout.addWidget(table)
+        main_layout.addWidget(self.table, stretch=1)
 
-        # =========================
-        #       DỮ LIỆU MẪU
-        # =========================
-        data = [
-            ("Nguyen Văn Hồ","70-F1 666.66", "Xe máy",
-              ""),
+        # ===== BUTTON BAR =====
+        button_layout = QHBoxLayout()
 
-            ("Hồ Văn Bao","30B-678.90", "Xe máy", "")
-        ]
+        self.btn_add = QPushButton("Thêm nhân viên")
+        self.btn_edit = QPushButton("Chỉnh sửa")
+        self.btn_delete = QPushButton("Xóa nhân viên")
+        self.btn_detail = QPushButton("Xem chi tiết")
 
-        table.setRowCount(len(data))
-        for r, row in enumerate(data):
-            for c, val in enumerate(row):
-                table.setItem(r, c, QTableWidgetItem(str(val)))
+        for btn in [
+            self.btn_add,
+            self.btn_edit,
+            self.btn_delete,
+            self.btn_detail
+        ]:
+            btn.setStyleSheet(BTN_BLUE)
+            btn.setFixedHeight(40)
+            button_layout.addWidget(btn)
 
-        # =========================
-        #      NÚT CHỨC NĂNG
-        # =========================
-        btns = QHBoxLayout()
-        btns.setSpacing(10)
+        main_layout.addLayout(button_layout)
 
-        for t in ["Thêm phương tiện", "Chỉnh sửa", "Xóa phương tiện", "Xem chi tiết"]:
-            b = QPushButton(t)
-            b.setStyleSheet("""
-                padding: 8px 14px;
-                background-color: #3498DB;
-                color: white;
-                border-radius: 4px;
-                font-size: 14px;
-            """)
-            btns.addWidget(b)
+    def set_table_data(self, rows):
+        self.table.setRowCount(len(rows))
 
-        layout.addLayout(btns)
+        for r, row in enumerate(rows):
+            # row[0] = id
+            self.table.setItem(r, 0, QTableWidgetItem(str(row[0])))
+            self.table.setItem(r, 1, QTableWidgetItem(str(row[1])))
+            self.table.setItem(r, 2, QTableWidgetItem(str(row[2])))
+            self.table.setItem(r, 3, QTableWidgetItem(str(row[3])))
 
-        self.setLayout(layout)
+            role_text = "Admin" if row[5] == 1 else "Nhân viên"
+            self.table.setItem(r, 4, QTableWidgetItem(role_text))
+

@@ -1,3 +1,4 @@
+
 from typing import List, Optional
 from db.database import Database
 from dto.dtos import VehicleDTO
@@ -116,4 +117,3 @@ class VehicleDAO:
         cursor.close()
         conn.close()
         return result > 0
-
