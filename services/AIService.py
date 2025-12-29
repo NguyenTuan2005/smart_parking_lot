@@ -55,6 +55,6 @@ class AIService:
 
     def _cleanup_old_plates(self, current_time):
         remove_list = [plate for plate, timestamp in self._recent_plates.items()
-                       if current_time - timestamp > 60]
+                       if current_time - timestamp > 10]
         for plate in remove_list:
             del self._recent_plates[plate]

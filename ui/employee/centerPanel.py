@@ -91,7 +91,7 @@ class CenterPanel(QWidget):
                 frameVLayout.addWidget(imgLabel)
                 self.__gridLayout.addWidget(videoFrame, i, j)
 
-    def set_frame(self, frame):
+    def set_frame(self, frame, start: int = 0, stop: int = 2):
         if frame is None:
             return
 
@@ -106,7 +106,7 @@ class CenterPanel(QWidget):
         if pixmap.isNull():
             return
 
-        for idx in range(2):
+        for idx in range(start, stop):
             imgLabel = self.imgLabels[idx]
             imgLabel.original_pixmap = pixmap
             imgLabel.setPixmap(pixmap.scaled(

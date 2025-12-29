@@ -49,6 +49,6 @@ class StaffController:
                         left_view.update_view(card)
                         if frame is not None:
                             center_view = self.__views["center"]
-                            center_view.set_frame(frame)
+                            center_view.set_frame(frame, start=2, stop=4)
                 except Exception as e:
                     left_view.set_status(str(e))

@@ -46,7 +46,7 @@ class CardLog:
         return 0
 
     def has_check_out(self):
-        return self._entry_at is not None and self._exit_at is not None and self._fee != 0
+        return self._exit_at is not None and self._fee != 0
 
     def check_in(self, plate: str, card: Card):
         self._entry_at = datetime.now()

@@ -334,14 +334,49 @@ class RightPanel(QWidget):
         pixmap = QPixmap.fromImage(qImg).scaled(self.exitCameraLabel.size(), Qt.AspectRatioMode.KeepAspectRatio)
         self.exitCameraLabel.setPixmap(pixmap)
 
-    def closeEvent(self, event):
+    def close(self):
         if self.entry_camera:
-            self.entry_timer.stop()
-            self.entry_camera.release()
+            try:
+                self.entry_timer.stop()
+            except Exception:
+                pass
+            try:
+                self.entry_camera.release()
+            except Exception:
+                pass
+
         if self.exit_camera:
-            self.exit_timer.stop()
-            self.exit_camera.release()
-        super().closeEvent(event)
+            try:
+                self.exit_timer.stop()
+            except Exception:
+                pass
+            try:
+                self.exit_camera.release()
+            except Exception:
+                pass
+
+        if getattr(self, 'upload_timer', None):
+            try:
+                self.upload_timer.stop()
+            except Exception:
+                pass
+        if getattr(self, 'upload_capture', None):
+            try:
+                self.upload_capture.release()
+            except Exception:
+                pass
+
+        if getattr(self, 'upload_timer_exit', None):
+            try:
+                self.upload_timer_exit.stop()
+            except Exception:
+                pass
+        if getattr(self, 'upload_capture_exit', None):
+            try:
+                self.upload_capture_exit.release()
+            except Exception:
+                pass
+        super().close()
 
     def update_view(self, card: Card):
         if card.is_single_card():
