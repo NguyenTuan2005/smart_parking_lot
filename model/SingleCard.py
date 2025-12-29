@@ -31,6 +31,25 @@ class SingleCard(Card):
     def is_single_card(self):
         return True
 
+    def has_check_in(self):
+        return self._card_log.has_check_in()
+
+    def has_check_out(self):
+        return self._card_log.has_check_out()
+
+    def check_in(self, plate: str):
+        self._card_log.check_in(plate, self)
+        return self
+
+    def check_out(self, plate):
+        if not self.has_check_in():
+            return None
+        self._card_log.check_out(plate, self)
+        return self
+
+    def is_same_plate(self, plate: str) -> bool:
+        return self._card_log.is_same_plate(plate)
+
     def __repr__(self) -> str:
         return (
             f"SingleCard("
@@ -39,7 +58,3 @@ class SingleCard(Card):
             f"price={self._price}"
             f")"
         )
-
-    def check_in(self, plate: str):
-        self._card_log.check_in(plate, self.card_id)
-        return self

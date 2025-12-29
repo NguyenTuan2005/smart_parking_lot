@@ -94,21 +94,24 @@ class CardLogDAO:
             return None
 
     def close_log(self, log: CardLog, exit_time: datetime, fee: int, closed_by: int):
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-        UPDATE card_logs
-        SET exit_at = ?, fee = ?, closed_by = ?
-        WHERE id = ?
-        """
+            sql = """
+            UPDATE card_logs
+            SET exit_at = ?, fee = ?, closed_by = ?
+            WHERE id = ?
+            """
 
-        cursor.execute(sql, exit_time, fee, closed_by, log.id)
-        conn.commit()
-        conn.close()
+            cursor.execute(sql, exit_time, fee, closed_by, log.id)
+            conn.commit()
+            conn.close()
 
-        # cập nhật object trong memory
-        log.close(exit_time, fee)
+            # cập nhật object trong memory
+            log.close(exit_time, fee)
+        except Exception as e:
+            print(f"CardLogDao: Error close log {e}")
 
 
     def get_open_log_by_card(self, card_id: int) -> CardLog | None:

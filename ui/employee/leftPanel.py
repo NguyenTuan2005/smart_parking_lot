@@ -183,6 +183,7 @@ class LeftPanel(QWidget):
         if card.is_month_card():
             monthly: MonthlyCard = card
             self.__bsVaoLabel.setText(monthly.vehicle.plate_number)
+            self.__bsRaLabel.setText("")
             self.__card_info_labels["BIỂN SỐ ĐK"].setText(monthly.vehicle.plate_number)
             self.__card_info_labels["MÃ THẺ"].setText(monthly.card_code)
             self.__card_info_labels["SỐ THẺ"].setText(str(monthly.card_id))
@@ -191,7 +192,7 @@ class LeftPanel(QWidget):
         else:
             singleCard: SingleCard = card
             self.__bsVaoLabel.setText(singleCard.card_log.vehicle.plate_number)
-            self.__bsRaLabel.setText("" if singleCard.card_log.exit_at is None else str(singleCard.card_log.exit_at))
+            self.__bsRaLabel.setText("" if singleCard.card_log.exit_at is None else singleCard.card_log.vehicle.plate_number)
             self.__durationValue.setText(str(singleCard.duration()))
             self.__fee_label.setText(f"{singleCard.calculate_price(singleCard.duration())} VNĐ")
             self.__card_info_labels["BIỂN SỐ ĐK"].setText(singleCard.card_log.vehicle.plate_number)

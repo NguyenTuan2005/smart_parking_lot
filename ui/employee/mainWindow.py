@@ -61,6 +61,7 @@ class EmployeeMainWindow(QMainWindow):
     def _request_logout(self):
         """Xử lý yêu cầu đăng xuất"""
         if self.logout_handler.confirm_logout(self):
+            self._rightPane.close()
             self.logout_requested.emit()
             self.close()
 
@@ -88,5 +89,5 @@ class EmployeeMainWindow(QMainWindow):
         mainLayout.addWidget(centerPane, 4)  # Tỉ lệ 4 (cột rộng nhất)
 
         # 3. Cột Phải (Right Pane) - Sử dụng lớp RightPanel
-        rightPane = RightPanel(self.__controller)
-        mainLayout.addWidget(rightPane, 2)  # Tỉ lệ 2 (cột trung bình)
+        self._rightPane = RightPanel(self.__controller)
+        mainLayout.addWidget(self._rightPane, 2)  # Tỉ lệ 2 (cột trung bình)
