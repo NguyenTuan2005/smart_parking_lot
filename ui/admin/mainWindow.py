@@ -6,7 +6,7 @@ from PyQt6.QtGui import QAction
 
 from controllers.CardController import MonthlyCardController, SingleCardLogController, SingleCardManagementController
 from services.Session import Session
-from ui.admin.tabs.cardsTab import CardTab
+from ui.admin.tabs.CardTab import CardTab
 from ui.admin.tabs.customersTab import CustomerTab
 from ui.admin.tabs.vehiclesTab import VehicleTab
 from ui.admin.tabs.statsTab import StatsTab
