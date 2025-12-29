@@ -96,7 +96,7 @@ class CenterPanel(QWidget):
             return
 
         height, width, channel = frame.shape
-        bytes_per_line = 3 * width
+        bytes_per_line = frame.strides[0]
 
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 

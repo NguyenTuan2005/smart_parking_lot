@@ -159,11 +159,7 @@ class RightPanel(QWidget):
         if not ret:
             return
 
-        # Process frame through controller if needed
-        try:
-            self.__controller.process_entry(frame)
-        except Exception:
-            pass
+        self.__controller.process_entry(frame)
 
         # Convert color and show
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -188,6 +184,8 @@ class RightPanel(QWidget):
         if not ret:
             return
 
+        self.__controller.process_entry(frame)
+
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         qImg = QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0],
                       QImage.Format.Format_RGB888)
@@ -209,6 +207,8 @@ class RightPanel(QWidget):
 
         if not ret:
             return
+
+        self.__controller.process_exit(frame)
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         qImg = QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0],
@@ -240,7 +240,7 @@ class RightPanel(QWidget):
                 return
             self.upload_timer_exit = QTimer()
             self.upload_timer_exit.timeout.connect(self._updateUploadFrameExit)
-            self.upload_timer_exit.start(30)
+            self.upload_timer_exit.start(100)
             self.mode_exit = 'upload'
             self.modeButtonExit.setText('Dùng RA')
         else:
@@ -260,7 +260,7 @@ class RightPanel(QWidget):
             self.exit_camera = cv2.VideoCapture(1)
             if self.exit_camera.isOpened():
                 try:
-                    self.exit_timer.start(30)
+                    self.exit_timer.start(100)
                 except Exception:
                     pass
             self.mode_exit = 'camera'
@@ -290,7 +290,7 @@ class RightPanel(QWidget):
                 return
             self.upload_timer = QTimer()
             self.upload_timer.timeout.connect(self._updateUploadFrame)
-            self.upload_timer.start(30)
+            self.upload_timer.start(100)
             self.mode = 'upload'
             self.modeButtonEntry.setText('Dùng VÀO')
         else:
@@ -310,7 +310,8 @@ class RightPanel(QWidget):
             self.entry_camera = cv2.VideoCapture(0)
             if self.entry_camera.isOpened():
                 try:
-                    self.entry_timer.start(30)
+                    self.entry_timer.timeout.connect(self._updateEntryFrame)
+                    self.entry_timer.start(100)
                 except Exception:
                     pass
             self.mode = 'camera'
