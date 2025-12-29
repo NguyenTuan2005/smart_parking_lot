@@ -369,8 +369,6 @@ class MonthlyCardLogTab(QWidget):
 
     def set_table_data(self, cards: list):
         self.tblCardLogs.setRowCount(0)  # Xóa dữ liệu cũ
-        print(cards)
-        print(len(cards))
         for card in cards:
             row = self.tblCardLogs.rowCount()
             self.tblCardLogs.insertRow(row)

@@ -65,14 +65,14 @@ CREATE TABLE [cards] (
 
 
 CREATE TABLE card_logs (
-  id BIGINT PRIMARY KEY IDENTITY,
-  card_id BIGINT NOT NULL,
-  vehicle_id BIGINT NOT NULL,
-  entry_at DATETIME NOT NULL DEFAULT GETDATE(),
-  exit_at DATETIME,
-  fee INT,
-  created_by BIGINT,
-  closed_by BIGINT,
+  [id] BIGINT PRIMARY KEY NOT NULL IDENTITY(1,1),
+  [card_id] BIGINT NOT NULL,
+  [vehicle_id] BIGINT NOT NULL,
+  [entry_at] DATETIME NOT NULL DEFAULT GETDATE(),
+  [exit_at] DATETIME,
+  [fee] INT,
+  [created_by] BIGINT,
+  [closed_by] BIGINT,
 );
 
 CREATE TABLE [vehicle_cards] (
@@ -121,9 +121,7 @@ ALTER TABLE [monthly_cards] ADD FOREIGN KEY ([vehicle_id]) REFERENCES [vehicles]
 ALTER TABLE [payments] ADD FOREIGN KEY ([monthly_card_id]) REFERENCES [monthly_cards] ([id])
 
 ALTER TABLE [card_logs] ADD FOREIGN KEY ([vehicle_id]) REFERENCES [vehicles] ([id])
-GO
 
 ALTER TABLE [card_logs] ADD FOREIGN KEY ([card_id]) REFERENCES [cards] ([id])
-GO
 
 ALTER TABLE [payments] ADD FOREIGN KEY ([card_id]) REFERENCES [cards] ([id])

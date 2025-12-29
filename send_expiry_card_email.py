@@ -12,7 +12,7 @@ def log(msg):
 def main():
     log("START sending expiry card email")
     service = CardExpiryService(CustomerDAO())
-    service.notify_customers_expiring_card(days=9)
+    service.notify_customers_expiring_card(days=3) # ngày trước khi hết hạn
     log("END sending expiry card email")
 
 if __name__ == "__main__":

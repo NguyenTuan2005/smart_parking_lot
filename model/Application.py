@@ -29,7 +29,10 @@ class Application:
     def check_in(self, card: Card, plate: str) -> Card:
         if card is None:
             card = random.choice(list(self._cards))
-        card.check_in(plate)
+        try:
+            card.check_in(plate)
+        except Exception as e:
+            raise Exception(e) from e
         return card
 
     def check_out(self, card_id: str) -> None:

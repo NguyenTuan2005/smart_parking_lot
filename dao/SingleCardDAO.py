@@ -1,12 +1,13 @@
-from typing import List, Optional
+from dao.CardLogDAO import CardLogDAO
 from db.database import Database
+from model.CardLog import CardLog
 from model.SingleCard import SingleCard
-from model.Vehicle import Vehicle
 
 
 class SingleCardDAO:
     def __init__(self):
         self._db = Database()
+        self._card_log_dao = CardLogDAO()
 
     def get_by_id(self, card_id: int) -> SingleCard | None:
         try:
@@ -26,7 +27,11 @@ class SingleCardDAO:
             if not row:
                 return None
 
-            return SingleCard(row.id, row.card_code, row.price)
+            card_log = self._card_log_dao.get_by_card_id(row.id)
+            if card_log is None:
+                card_log = CardLog()
+
+            return SingleCard(row.id, row.card_code, row.price, card_log= card_log)
         except Exception as e:
             print("Error in get_by_id:", e)
 
@@ -46,10 +51,15 @@ class SingleCardDAO:
         if not row:
             return None
 
+        card_log = self._card_log_dao.get_by_card_id(row.id)
+        if card_log is None:
+            card_log = CardLog()
+
         return SingleCard(
             card_id=row.vehicle_id,
             card_code=row.card_code,
-            price=row.price
+            price=row.price,
+            card_log=card_log
         )
 
     def get_all(self) -> list[SingleCard]:
@@ -66,22 +76,29 @@ class SingleCardDAO:
             rows = cursor.execute(sql).fetchall()
             conn.close()
 
-            return [SingleCard(r.id, r.card_code, r.price) for r in rows]
+            cards: list[SingleCard] = []
+            for r in rows:
+                card_log = self._card_log_dao.get_by_card_id(r.id)
+                if card_log is None:
+                    card_log = CardLog()
+                cards.append(SingleCard(r.id, r.card_code, r.price, card_log=card_log))
+
+            return cards
         except Exception as e:
             print("Error in get_all:", e)
 
 
     # ---------- CREATE ----------
-    def create(self, card_code: str, price: int, created_by: int):
+    def create(self, card_code: str, price: int):
         conn = self._db.connect()
         cursor = conn.cursor()
 
         sql = """
-              INSERT INTO cards (card_code, price, created_by)
+              INSERT INTO cards (card_code, price)
               VALUES (?, ?, ?) \
               """
 
-        cursor.execute(sql, card_code, price, created_by)
+        cursor.execute(sql, card_code, price)
         conn.commit()
         conn.close()
 
@@ -111,9 +128,3 @@ class SingleCardDAO:
         conn.commit()
         conn.close()
         return result > 0
-
-if __name__ == '__main__':
-    dao = SingleCardDAO()
-
-    print(dao.update_price(1,5000))
-    print(dao.get_by_code("C0001"))
