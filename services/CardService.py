@@ -1,12 +1,42 @@
 from datetime import date
 
+from dao.CardLogDAO import CardLogDAO
 from dao.CustomerDAO import CustomerDAO
 from dao.MonthlyCardDAO import MonthlyCardDAO
+from dao.SingleCardDAO import SingleCardDAO
 from dao.VehicleDAO import VehicleDAO
 from dto.dtos import CustomerDTO, VehicleDTO, MonthlyCardDTO
 from model.Customer import Customer
 from model.MonthlyCard import MonthlyCard
 from model.Vehicle import Vehicle
+
+class SingleCardService:
+    def __init__(self):
+        self.card_log_dao = CardLogDAO()
+        self.single_card_dao = SingleCardDAO()
+        self.customer_dao = CustomerDAO()
+        self.vehicle_dao = VehicleDAO()
+
+    def get_all_logs(self):
+        return self.card_log_dao.get_all_with_details()
+
+    def search_logs(self, keyword):
+        return self.card_log_dao.search_logs(keyword)
+
+    def get_all_cards(self):
+        return self.single_card_dao.get_all()
+
+    def search_single_cards(self, keyword):
+        return self.single_card_dao.search_cards(keyword)
+
+    def create_card(self, card_code, price):
+        return self.single_card_dao.create(card_code, price)
+
+    def update_card(self, card_id, price):
+        return self.single_card_dao.update_price(card_id, price)
+
+    def delete_card(self, card_id):
+        return self.single_card_dao.delete(card_id)
 
 
 class MonthlyCardService:
@@ -17,6 +47,9 @@ class MonthlyCardService:
 
     def get_all_cards(self):
         return self.monthly_card_dao.get_all()
+
+    def search_monthly_cards(self, keyword):
+        return self.monthly_card_dao.search_cards(keyword)
 
     def validate_customer(self, data: dict) -> int:
 
@@ -93,3 +126,5 @@ class MonthlyCardService:
 
         except Exception as e:
             print(f"Service: Lỗi DB khi cập nhật thẻ: {e}")
+
+

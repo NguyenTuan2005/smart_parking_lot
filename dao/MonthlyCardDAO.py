@@ -69,6 +69,26 @@ class MonthlyCardDAO:
         except Exception as e:
             print(f"Lỗi DB MonthlyCardDAO.get_all: {e}")
 
+    def search_cards(self, keyword: str) -> list[MonthlyCard]:
+        conn = self._db.connect()
+        cursor = conn.cursor()
+        
+        sql = """
+            SELECT mc.*
+            FROM monthly_cards mc
+            LEFT JOIN customers c ON mc.customer_id = c.id
+            LEFT JOIN vehicles v ON mc.vehicle_id = v.id
+            WHERE mc.is_active = 1
+              AND (mc.card_code LIKE ?
+                   OR c.full_name LIKE ?
+                   OR v.plate_number LIKE ?)
+        """
+        wildcard_keyword = f"%{keyword}%"
+        rows = cursor.execute(sql, (wildcard_keyword, wildcard_keyword, wildcard_keyword)).fetchall()
+        conn.close()
+        
+        return [self._map_row_to_monthly_card(r) for r in rows]
+
 
     def save(self, card_dto: MonthlyCardDTO) -> bool:
 

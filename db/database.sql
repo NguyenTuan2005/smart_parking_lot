@@ -15,7 +15,7 @@ CREATE TABLE [cameras] (
 
 CREATE TABLE [vehicles] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
-  [vehicle_type] varchar(100),
+  [vehicle_type] nvarchar(100),
   [plate_number] varchar(20),
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
@@ -34,7 +34,7 @@ CREATE TABLE [monthly_cards] (
   [card_code] varchar(10) NOT NULL,
   [customer_id] bigint,
   [vehicle_id] bigint NOT NULL,
-  [monthly_fee] int,
+  [monthly_fee] bigint,
   [start_date] date,
   [expiry_date] date,
   [is_paid] bit,
@@ -56,7 +56,7 @@ CREATE TABLE [customers] (
 CREATE TABLE [cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
   [card_code] varchar(10) NOT NULL,
-  [price] INT,
+  [price] BIGINT,
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE(),
   [is_active] bit NOT NULL DEFAULT 1,
@@ -72,7 +72,7 @@ CREATE TABLE card_logs (
   [exit_at] DATETIME,
   [fee] INT,
   [created_by] BIGINT,
-  [closed_by] BIGINT,
+  [closed_by] BIGINT
 );
 
 CREATE TABLE [vehicle_cards] (

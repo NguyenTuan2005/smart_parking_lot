@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTabWidget, QMenu
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QAction
 
-from controllers.CardController import MonthlyCardController
+from controllers.CardController import MonthlyCardController, SingleCardLogController, SingleCardManagementController
 from services.Session import Session
 from ui.admin.tabs.cardsTab import CardTab
 from ui.admin.tabs.customersTab import CustomerTab
@@ -81,3 +81,7 @@ class ParkingManagementApp(QMainWindow):
     def _init_controllers(self):
         self.card_controller = MonthlyCardController(
             view=self.card_tab.monthly_card_tab)
+        self.single_card_controller = SingleCardLogController(
+            view=self.card_tab.single_card_tab)
+        self.single_card_management_controller = SingleCardManagementController(
+            view=self.card_tab.single_card_management_tab)

@@ -1,11 +1,11 @@
 from PyQt6.QtGui import QIcon, QAction
+from datetime import datetime
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QTableWidget, QTableWidgetItem, QFrame, QHeaderView, QCheckBox, QDialog, QDateEdit, QMessageBox,
     QComboBox, QSpinBox, QAbstractItemView, QSizePolicy
 )
 from PyQt6.QtCore import Qt, QSize, pyqtSignal, QDate
-from datetime import datetime, timedelta
 
 
 class SingleCardLogTab(QWidget):
@@ -14,137 +14,218 @@ class SingleCardLogTab(QWidget):
         self.init_ui()
 
     def init_ui(self):
+        main_layout = QVBoxLayout(self)
+        main_layout.setSpacing(0)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Use the same background as MonthlyCardLogTab
         self.setStyleSheet("""
             QWidget {
-                background-color: #F4F6F9;
-                font-family: Segoe UI;
-                font-size: 13px;
-            }
-            QLabel#Title {
-                font-size: 22px;
-                font-weight: 600;
-                color: #1F2937;
-            }
-            QLineEdit {
-                padding: 8px 10px;
-                border-radius: 6px;
-                border: 1px solid #D1D5DB;
-                background: white;
-            }
-            QLineEdit:focus {
-                border: 1px solid #2563EB;
-            }
-            QPushButton {
-                padding: 8px 14px;
-                border-radius: 6px;
-                background-color: #E5E7EB;
-            }
-            QPushButton:hover {
-                background-color: #D1D5DB;
-            }
-            QPushButton#Primary {
-                background-color: #2563EB;
-                color: white;
-            }
-            QPushButton#Primary:hover {
-                background-color: #1D4ED8;
-            }
-            QPushButton#Danger {
-                background-color: #DC2626;
-                color: white;
-            }
-            QPushButton#Danger:hover {
-                background-color: #B91C1C;
-            }
-            QTableWidget {
-                background: white;
-                border: none;
-                border-radius: 8px;
-            }
-            QHeaderView::section {
-                background-color: #F3F4F6;
-                padding: 8px;
-                border: none;
-                font-weight: 600;
-            }
-            QTableWidget::item {
-                padding: 6px;
+                background-color: #f8f9fa;
+                font-family: 'Segoe UI', Arial, sans-serif;
             }
         """)
 
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(16)
-
-        # ===== Header =====
-        lbl_title = QLabel("QUẢN LÝ LƯỢT GỬI XE – THẺ LƯỢT")
-        lbl_title.setObjectName("Title")
-        main_layout.addWidget(lbl_title)
-
-        # ===== Search Card =====
-        search_card = QFrame()
-        search_card.setStyleSheet("""
+        # ===== Header Section =====
+        header_frame = QFrame()
+        header_frame.setStyleSheet("""
             QFrame {
-                background: white;
-                border-radius: 10px;
+                background-color: white;
+                border-bottom: 1px solid #e0e0e0;
+                padding: 10px;
             }
         """)
-        search_layout = QHBoxLayout(search_card)
-        search_layout.setContentsMargins(16, 16, 16, 16)
+        header_layout = QVBoxLayout(header_frame)
+        header_layout.setContentsMargins(0, 0, 0, 0)
 
+        lbl_title = QLabel("Quản lý lượt gửi xe")
+        lbl_title.setObjectName("Title")
+        lbl_title.setStyleSheet("""
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #2c3e50;
+        """)
+        header_layout.addWidget(lbl_title)
+        
+        main_layout.addWidget(header_frame)
+
+        # ===== Content Section =====
+        content_frame = QFrame()
+        content_frame.setStyleSheet("background-color: #f8f9fa;")
+        content_layout = QVBoxLayout(content_frame)
+        content_layout.setContentsMargins(20, 20, 20, 20)
+        content_layout.setSpacing(15)
+
+        # --- Top Controls: Search & Top Actions ---
+        top_row = QHBoxLayout()
+        top_row.setSpacing(15)
+
+        # Search Bar
         self.txtSearchCardCode = QLineEdit()
         self.txtSearchCardCode.setPlaceholderText("Nhập mã thẻ hoặc biển số...")
+        search_action = QAction(QIcon("assets/icons/search.svg"), "", self.txtSearchCardCode)
+        self.txtSearchCardCode.addAction(search_action, QLineEdit.ActionPosition.LeadingPosition)
+        
+        self.txtSearchCardCode.setStyleSheet("""
+            QLineEdit {
+                padding: 10px;
+                padding-left: 10px;
+                font-size: 14px;
+                border: 1px solid #dcdcdc;
+                border-radius: 6px;
+                background-color: white;
+            }
+            QLineEdit:focus {
+                border: 1px solid #2196F3;
+            }
+        """)
+        self.txtSearchCardCode.setMinimumWidth(350)
+        self.txtSearchCardCode.setMaximumHeight(45)
 
+        # Search Button
         self.btnSearch = QPushButton("Tìm kiếm")
-        self.btnSearch.setObjectName("Primary")
+        self.btnSearch.setStyleSheet("""
+            QPushButton {
+                background-color: #2E86C1;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 6px;
+                font-weight: 600;
+            }
+            QPushButton:hover { background-color: #154360; }
+        """)
 
+        # Refresh Button
         self.btnRefresh = QPushButton("Làm mới")
+        self.btnRefresh.setStyleSheet("""
+            QPushButton {
+                background-color: #ffffff;
+                color: #333;
+                border: 1px solid #dcdcdc;
+                padding: 10px 20px;
+                border-radius: 6px;
+                font-weight: 600;
+            }
+            QPushButton:hover { background-color: #f0f0f0; }
+        """)
 
-        search_layout.addWidget(self.txtSearchCardCode, 1)
-        search_layout.addWidget(self.btnSearch)
-        search_layout.addWidget(self.btnRefresh)
+        top_row.addWidget(self.txtSearchCardCode)
+        top_row.addWidget(self.btnSearch)
+        top_row.addWidget(self.btnRefresh)
+        top_row.addStretch()
 
-        main_layout.addWidget(search_card)
+        content_layout.addLayout(top_row)
 
-        # ===== Table =====
+        # --- Table Section ---
+        table_frame = QFrame()
+        table_frame.setStyleSheet("""
+            QFrame {
+                background-color: white;
+                border-radius: 8px;
+                border: 1px solid #e0e0e0;
+            }
+        """)
+        table_layout = QVBoxLayout(table_frame)
+        table_layout.setContentsMargins(0, 0, 0, 0)
+
         self.tblCardLogs = QTableWidget()
-        self.tblCardLogs.verticalHeader().setDefaultSectionSize(45)
-        self.tblCardLogs.setColumnCount(10)
+        self.tblCardLogs.verticalHeader().setDefaultSectionSize(55)
+        self.tblCardLogs.setColumnCount(9)
+        self.tblCardLogs.setSortingEnabled(True)
         self.tblCardLogs.setHorizontalHeaderLabels([
-            "Mã thẻ", "Biển số", "Khách hàng",
-            "Thời gian vào",
-            "Thời gian ra",
-            "Thời gian gửi", "Phí",
-            "Trạng thái",
-            "Nhân viên", "Ghi chú"
+            "MÃ THẺ", "BIỂN SỐ", "KHÁCH HÀNG",
+            "THỜI GIAN VÀO", "THỜI GIAN RA",
+            "THỜI GIAN GỬI", "PHÍ",
+            "TRẠNG THÁI", "NHÂN VIÊN"
         ])
+        
+        # Style match MonthlyCardLogTab
+        self.tblCardLogs.setStyleSheet("""
+            QTableWidget {
+                background-color: white;
+                alternate-background-color: #F2F7FF;
+                border: none;
+                gridline-color: #f0f0f0;
+                selection-background-color: #e3f2fd;
+            }
+            QTableWidget::item {
+                padding: 12px 8px;
+                border-bottom: 1px solid #f0f0f0;
+                color: #2c3e50;
+            }
+            QTableWidget::item:selected {
+                background-color: #e3f2fd;
+                color: #2c3e50;
+            }
+            QHeaderView::section {
+                background-color: #2E86C1;
+                color: white;
+                padding: 14px 8px;
+                border: none;
+                font-weight: bold;
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            QHeaderView::section:hover { background-color: #154360; }
+        """)
+
         self.tblCardLogs.horizontalHeader().setStretchLastSection(True)
         self.tblCardLogs.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.tblCardLogs.setAlternatingRowColors(True)
         self.tblCardLogs.setShowGrid(False)
         self.tblCardLogs.verticalHeader().setVisible(False)
+        self.tblCardLogs.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.tblCardLogs.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.tblCardLogs.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
-        main_layout.addWidget(self.tblCardLogs, 1)
+        table_layout.addWidget(self.tblCardLogs)
+        content_layout.addWidget(table_frame)
 
-        # ===== Action buttons =====
-        action_layout = QHBoxLayout()
-        action_layout.addStretch()
+        main_layout.addWidget(content_frame)
 
-        self.btnAddLog = QPushButton("Xe vào bãi")
-        self.btnAddLog.setObjectName("Primary")
+    def set_table_data(self, logs: list):
+        self.tblCardLogs.setRowCount(0)
+        for log in logs:
+            row = self.tblCardLogs.rowCount()
+            self.tblCardLogs.insertRow(row)
 
-        self.btnEditLog = QPushButton("Chỉnh sửa")
-        self.btnDeleteLog = QPushButton("Xóa")
-        self.btnDeleteLog.setObjectName("Danger")
+            self.tblCardLogs.setItem(row, 0, QTableWidgetItem(str(log.get('card_code') or '')))
+            self.tblCardLogs.setItem(row, 1, QTableWidgetItem(str(log.get('plate_number') or '')))
+            self.tblCardLogs.setItem(row, 2, QTableWidgetItem("Khách vãng lai"))
+            
+            entry_at = log.get('entry_at')
+            entry_str = entry_at.strftime("%d/%m/%Y %H:%M") if entry_at else ""
+            self.tblCardLogs.setItem(row, 3, QTableWidgetItem(entry_str))
 
-        self.btnViewDetail = QPushButton("Chi tiết")
+            exit_at = log.get('exit_at')
+            exit_str = exit_at.strftime("%d/%m/%Y %H:%M") if exit_at else ""
+            self.tblCardLogs.setItem(row, 4, QTableWidgetItem(exit_str))
 
-        action_layout.addWidget(self.btnAddLog)
-        action_layout.addWidget(self.btnEditLog)
-        action_layout.addWidget(self.btnDeleteLog)
-        action_layout.addWidget(self.btnViewDetail)
+            # Duration
+            duration_str = ""
+            if entry_at:
+                end_time = exit_at if exit_at else datetime.now()
+                duration_minutes = int((end_time - entry_at).total_seconds() / 60)
+                hours = duration_minutes // 60
+                minutes = duration_minutes % 60
+                duration_str = f"{hours}h {minutes}p"
+            self.tblCardLogs.setItem(row, 5, QTableWidgetItem(duration_str))
 
-        main_layout.addLayout(action_layout)
+            fee = log.get('fee', 0)
+            self.tblCardLogs.setItem(row, 6, QTableWidgetItem(f"{fee:,}"))
+            
+            status = log.get('status', '') or ''
+            self.tblCardLogs.setItem(row, 7, QTableWidgetItem(status))
+            
+            # Status styling
+            if status == "Đã rời đi":
+                self.tblCardLogs.item(row, 7).setForeground(Qt.GlobalColor.darkGreen)
+            else:
+                self.tblCardLogs.item(row, 7).setForeground(Qt.GlobalColor.darkBlue)
+
+            self.tblCardLogs.setItem(row, 8, QTableWidgetItem(str(log.get('staff_name') or '')))
 
 
 class MonthlyCardLogTab(QWidget):
@@ -199,15 +280,16 @@ class MonthlyCardLogTab(QWidget):
         top_row.setSpacing(15)
 
         # Search Box
-        txtSearchCardCode = QLineEdit()
-        txtSearchCardCode.setPlaceholderText("Tìm theo tên khách hàng...")
+        self.txtSearchCardCode = QLineEdit()
+        self.txtSearchCardCode.setPlaceholderText("Tìm theo tên, mã thẻ, biển số...")
 
-        search_action = QAction(QIcon("assets/icons/search.svg"), "", txtSearchCardCode)
-        txtSearchCardCode.addAction(search_action, QLineEdit.ActionPosition.LeadingPosition)
+        search_action = QAction(QIcon("assets/icons/search.svg"), "", self.txtSearchCardCode)
+        self.txtSearchCardCode.addAction(search_action, QLineEdit.ActionPosition.LeadingPosition)
 
-        txtSearchCardCode.setStyleSheet("""
+        self.txtSearchCardCode.setStyleSheet("""
             QLineEdit {
                 padding: 10px;
+                padding-left: 10px;
                 font-size: 14px;
                 border: 1px solid #dcdcdc;
                 border-radius: 6px;
@@ -218,19 +300,49 @@ class MonthlyCardLogTab(QWidget):
             }
         """)
 
-        txtSearchCardCode.setMinimumWidth(350)
-        txtSearchCardCode.setMaximumHeight(45)
+        self.txtSearchCardCode.setMinimumWidth(350)
+        self.txtSearchCardCode.setMaximumHeight(45)
 
-        top_row.addWidget(txtSearchCardCode)
+        # Search Button
+        self.btnSearch = QPushButton("Tìm kiếm")
+        self.btnSearch.setStyleSheet("""
+            QPushButton {
+                 background-color: #2E86C1;
+                 color: white;
+                 border: none;
+                 padding: 10px 20px;
+                 border-radius: 6px;
+                 font-weight: 600;
+             }
+             QPushButton:hover { background-color: #154360; }
+        """)
+
+        # Refresh Button
+        self.btnRefresh = QPushButton("Làm mới")
+        self.btnRefresh.setStyleSheet("""
+             QPushButton {
+                 background-color: #ffffff;
+                 color: #333;
+                 border: 1px solid #dcdcdc;
+                 padding: 10px 20px;
+                 border-radius: 6px;
+                 font-weight: 600;
+             }
+             QPushButton:hover { background-color: #f0f0f0; }
+        """)
+
+        top_row.addWidget(self.txtSearchCardCode)
+        top_row.addWidget(self.btnSearch)
+        top_row.addWidget(self.btnRefresh)
         top_row.addStretch()
 
         # Add Button
-        btnAddCard = QPushButton("Thêm thẻ tháng")
-        btnAddCard.setIcon(QIcon("assets/icons/plus.svg"))
-        btnAddCard.setIconSize(QSize(16, 16))
-        btnAddCard.setStyleSheet("""
+        self.btnAddCard = QPushButton("Thêm thẻ tháng")
+        self.btnAddCard.setIcon(QIcon("assets/icons/plus.svg"))
+        self.btnAddCard.setIconSize(QSize(16, 16))
+        self.btnAddCard.setStyleSheet("""
             QPushButton {
-                background-color: #2E86C1;
+                background-color: #27ae60;
                 color: white;
                 border: none;
                 padding: 12px 24px;
@@ -245,9 +357,9 @@ class MonthlyCardLogTab(QWidget):
                 background-color: #0e3449;
             }
         """)
-        btnAddCard.setMaximumHeight(45)
-        btnAddCard.clicked.connect(self.show_add_card_dialog)
-        top_row.addWidget(btnAddCard)
+        self.btnAddCard.setMaximumHeight(45)
+        self.btnAddCard.clicked.connect(self.show_add_card_dialog)
+        top_row.addWidget(self.btnAddCard)
 
         content_layout.addLayout(top_row)
 
@@ -290,10 +402,12 @@ class MonthlyCardLogTab(QWidget):
 
         # Enable sorting
         self.tblCardLogs.setSortingEnabled(True)
+        self.tblCardLogs.setAlternatingRowColors(True)
 
         self.tblCardLogs.setStyleSheet("""
             QTableWidget {
                 background-color: white;
+                alternate-background-color: #F2F7FF;
                 border: none;
                 gridline-color: #f0f0f0;
                 selection-background-color: #e3f2fd;
@@ -391,7 +505,8 @@ class MonthlyCardLogTab(QWidget):
             action_widget = QWidget()
             layout = QHBoxLayout(action_widget)
             layout.setContentsMargins(0, 0, 0, 0)
-            layout.setSpacing(2)
+            layout.setSpacing(20)
+            layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             btn_edit = QPushButton()
             btn_edit.setIcon(QIcon("assets/icons/edit.svg"))
@@ -404,8 +519,6 @@ class MonthlyCardLogTab(QWidget):
             btn_delete.setToolTip("Xóa")
 
             btn_delete.clicked.connect(lambda checked, c=card: self.on_delete_button_clicked(c))
-
-            print(card)
 
             try:
                 # set_table_data
@@ -468,7 +581,8 @@ class MonthlyCardLogTab(QWidget):
         action_widget = QWidget()
         layout = QHBoxLayout(action_widget)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(2)
+        layout.setSpacing(20)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         btn_edit = QPushButton()
         btn_edit.setIcon(QIcon("assets/icons/edit.svg"))
@@ -501,7 +615,6 @@ class MonthlyCardLogTab(QWidget):
         self._current_dialog.show()
 
     def on_card_updated(self, card_data):
-        print("Card updated:", card_data)
         self.editRequested.emit(card_data)
 
     # delete
@@ -788,3 +901,310 @@ class AddMonthlyCardDialog(QDialog):
         else:
             self.cardAdded.emit(card_data)
         self.accept()
+
+
+class SingleCardManagementTab(QWidget):
+    createRequested = pyqtSignal(dict)
+    updateRequested = pyqtSignal(dict)
+    deleteRequested = pyqtSignal(int)
+
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        main_layout = QVBoxLayout(self)
+        main_layout.setSpacing(0)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Header
+        header_frame = QFrame()
+        header_frame.setStyleSheet("background-color: white; border-bottom: 1px solid #e0e0e0; padding: 10px;")
+        header_layout = QVBoxLayout(header_frame)
+        lbl_title = QLabel("Quản lý thẻ lượt")
+        lbl_title.setStyleSheet("font-size: 28px; font-weight: bold; color: #2c3e50;")
+        header_layout.addWidget(lbl_title)
+        main_layout.addWidget(header_frame)
+
+        # Content
+        content_frame = QFrame()
+        content_frame.setStyleSheet("background-color: #f8f9fa;")
+        content_layout = QVBoxLayout(content_frame)
+        content_layout.setContentsMargins(20, 20, 20, 20)
+        
+        # Top Controls
+        top_row = QHBoxLayout()
+        top_row.setSpacing(15)
+
+        # Search Bar
+        self.txtSearch = QLineEdit()
+        self.txtSearch.setPlaceholderText("Tìm theo mã thẻ, giá vé...")
+        
+        search_action = QAction(QIcon("assets/icons/search.svg"), "", self.txtSearch)
+        self.txtSearch.addAction(search_action, QLineEdit.ActionPosition.LeadingPosition)
+
+        self.txtSearch.setStyleSheet("""
+            QLineEdit {
+                padding: 10px;
+                padding-left: 10px;
+                font-size: 14px;
+                border: 1px solid #dcdcdc;
+                border-radius: 6px;
+                background-color: white;
+            }
+            QLineEdit:focus {
+                border: 1px solid #2196F3;
+            }
+        """)
+        self.txtSearch.setMinimumWidth(350)
+        self.txtSearch.setMaximumHeight(45)
+
+        # Search Button
+        self.btnSearch = QPushButton("Tìm kiếm")
+        self.btnSearch.setStyleSheet("""
+            QPushButton {
+                 background-color: #2E86C1;
+                 color: white;
+                 border: none;
+                 padding: 10px 20px;
+                 border-radius: 6px;
+                 font-weight: 600;
+             }
+             QPushButton:hover { background-color: #154360; }
+        """)
+
+        # Refresh Button
+        self.btnRefresh = QPushButton("Làm mới")
+        self.btnRefresh.setStyleSheet("""
+             QPushButton {
+                 background-color: #ffffff;
+                 color: #333;
+                 border: 1px solid #dcdcdc;
+                 padding: 10px 20px;
+                 border-radius: 6px;
+                 font-weight: 600;
+             }
+             QPushButton:hover { background-color: #f0f0f0; }
+        """)
+
+        top_row.addWidget(self.txtSearch)
+        top_row.addWidget(self.btnSearch)
+        top_row.addWidget(self.btnRefresh)
+        top_row.addStretch()
+
+        # Add Button (moved to right)
+        self.btnAdd = QPushButton("Thêm thẻ lượt")
+        self.btnAdd.setIcon(QIcon("assets/icons/plus.svg"))
+        self.btnAdd.setIconSize(QSize(16, 16))
+        self.btnAdd.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 600;
+                border-radius: 6px;
+            }
+            QPushButton:hover {
+                background-color: #154360;
+            }
+            QPushButton:pressed {
+                background-color: #0e3449;
+            }
+        """)
+        self.btnAdd.setMaximumHeight(45)
+        self.btnAdd.clicked.connect(self.show_add_dialog)
+        top_row.addWidget(self.btnAdd)
+
+        content_layout.addLayout(top_row)
+
+        # Table
+        self.table = QTableWidget()
+        self.table.verticalHeader().setDefaultSectionSize(55)
+        self.table.setColumnCount(4)
+        self.table.setSortingEnabled(True)
+        self.table.setAlternatingRowColors(True)
+        self.table.setHorizontalHeaderLabels(["MÃ THẺ", "GIÁ VÉ", "TRẠNG THÁI", "HÀNH ĐỘNG"])
+        
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
+        self.table.setColumnWidth(3, 100)
+
+        self.table.verticalHeader().setVisible(False)
+        self.table.setStyleSheet("""
+            QTableWidget {
+                background-color: white;
+                alternate-background-color: #F2F7FF;
+                border: none;
+                gridline-color: #f0f0f0;
+                selection-background-color: #e3f2fd;
+            }
+            QTableWidget::item {
+                padding: 12px 8px;
+                border-bottom: 1px solid #f0f0f0;
+                color: #2c3e50;
+            }
+            QTableWidget::item:selected {
+                background-color: #e3f2fd;
+                color: #2c3e50;
+            }
+            QHeaderView::section {
+                background-color: #2E86C1;
+                color: white;
+                padding: 14px 8px;
+                border: none;
+                font-weight: bold;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            QHeaderView::section:hover {
+                background-color: #154360;
+            }
+            QTableWidget::item:hover {
+                background-color: #f8f9fa;
+            }
+            QTableCornerButton::section {
+                background-color: #2E86C1;
+                border: none;
+            }
+        """)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        content_layout.addWidget(self.table)
+
+        main_layout.addWidget(content_frame)
+
+    def set_table_data(self, cards):
+        self.table.setRowCount(0)
+        for card in cards:
+            row = self.table.rowCount()
+            self.table.insertRow(row)
+            self.table.setItem(row, 0, QTableWidgetItem(card.card_code))
+            self.table.setItem(row, 1, QTableWidgetItem(f"{card.price:,}"))
+            self.table.setItem(row, 2, QTableWidgetItem("Hoạt động"))
+            
+            container = QWidget()
+            layout = QHBoxLayout(container)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(20)
+            layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            
+            btn_edit = QPushButton()
+            btn_edit.setIcon(QIcon("assets/icons/edit.svg"))
+            btn_edit.setIconSize(QSize(16, 16))
+            btn_edit.setToolTip("Chỉnh sửa")
+            btn_edit.clicked.connect(lambda _, c=card: self.show_edit_dialog(c))
+            
+            btn_delete = QPushButton()
+            btn_delete.setIcon(QIcon("assets/icons/delete.svg"))
+            btn_delete.setIconSize(QSize(16, 16))
+            btn_delete.setToolTip("Xóa")
+            btn_delete.clicked.connect(lambda _, c_id=card.card_id: self.deleteRequested.emit(c_id))
+            
+            layout.addWidget(btn_edit)
+            layout.addWidget(btn_delete)
+            self.table.setCellWidget(row, 3, container)
+
+    def show_add_dialog(self):
+        dlg = SingleCardDialog(self)
+        if dlg.exec():
+            self.createRequested.emit(dlg.get_data())
+
+    def show_edit_dialog(self, card):
+        dlg = SingleCardDialog(self, card)
+        if dlg.exec():
+            data = dlg.get_data()
+            data['card_id'] = card.card_id
+            self.updateRequested.emit(data)
+
+
+class SingleCardDialog(QDialog):
+    def __init__(self, parent=None, card=None):
+        super().__init__(parent)
+        self.setWindowTitle("Thêm thẻ lượt" if not card else "Sửa thẻ lượt")
+        self.setMinimumWidth(500)
+        self._card = card
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setSpacing(15)
+        layout.setContentsMargins(20, 20, 20, 20)
+        
+        # Title
+        title_label = QLabel("THÊM THẺ LƯỢT" if not self._card else "SỬA THẺ LƯỢT")
+        title_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #2E86C1; padding-bottom: 10px;")
+        layout.addWidget(title_label)
+
+        # Divider
+        divider = QFrame()
+        divider.setFrameShape(QFrame.Shape.HLine)
+        divider.setStyleSheet("background-color: #e0e0e0;")
+        layout.addWidget(divider)
+
+        # Form
+        self.txtCode = self._create_form_row("Mã thẻ:", QLineEdit(), layout)
+        self.txtCode.setPlaceholderText("Nhập mã thẻ")
+        
+        self.txtPrice = self._create_form_row("Giá vé (VND):", QLineEdit(), layout)
+        self.txtPrice.setPlaceholderText("Nhập giá vé")
+        
+        if self._card:
+            self.txtCode.setText(self._card.card_code)
+            self.txtCode.setReadOnly(True)
+            self.txtPrice.setText(str(self._card.price))
+
+        # Buttons
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+
+        self.btnCancel = QPushButton("Hủy")
+        self.btnCancel.setStyleSheet("""
+            QPushButton {
+                background-color: #95a5a6; color: white; border: none; 
+                padding: 10px 30px; font-size: 14px; font-weight: 600; 
+                border-radius: 6px; min-width: 100px;
+            }
+            QPushButton:hover { background-color: #7f8c8d; }
+        """)
+        self.btnCancel.clicked.connect(self.reject)
+
+        self.btnSave = QPushButton("Lưu")
+        self.btnSave.setStyleSheet("""
+            QPushButton {
+                background-color: #2E86C1; color: white; border: none; 
+                padding: 10px 30px; font-size: 14px; font-weight: 600; 
+                border-radius: 6px; min-width: 100px;
+            }
+            QPushButton:hover { background-color: #154360; }
+        """)
+        self.btnSave.clicked.connect(self.accept)
+
+        btn_layout.addWidget(self.btnCancel)
+        btn_layout.addWidget(self.btnSave)
+        layout.addLayout(btn_layout)
+        
+        # Global Styles
+        self.setStyleSheet("""
+            QLineEdit { padding: 8px; border: 1px solid #dcdcdc; border-radius: 4px; font-size: 14px; background-color: white; }
+            QLineEdit:focus { border: 2px solid #2E86C1; }
+            QLabel { font-size: 14px; }
+        """)
+
+    def _create_form_row(self, label_text, widget, parent_layout):
+        row_layout = QHBoxLayout()
+        label = QLabel(label_text)
+        label.setMinimumWidth(150)
+        row_layout.addWidget(label)
+        row_layout.addWidget(widget, 1)
+        parent_layout.addLayout(row_layout)
+        return widget
+
+    def get_data(self):
+        return {
+            'card_code': self.txtCode.text(),
+            'price': int(self.txtPrice.text() or 0)
+        }
