@@ -1,9 +1,42 @@
 from datetime import date
 
+from dao.CardLogDAO import CardLogDAO
 from dao.CustomerDAO import CustomerDAO
 from dao.MonthlyCardDAO import MonthlyCardDAO
+from dao.SingleCardDAO import SingleCardDAO
 from dao.VehicleDAO import VehicleDAO
 from dto.dtos import CustomerDTO, VehicleDTO, MonthlyCardDTO
+from model.Customer import Customer
+from model.MonthlyCard import MonthlyCard
+from model.Vehicle import Vehicle
+
+class SingleCardService:
+    def __init__(self):
+        self.card_log_dao = CardLogDAO()
+        self.single_card_dao = SingleCardDAO()
+        self.customer_dao = CustomerDAO()
+        self.vehicle_dao = VehicleDAO()
+
+    def get_all_logs(self):
+        return self.card_log_dao.get_all_with_details()
+
+    def search_logs(self, keyword):
+        return self.card_log_dao.search_logs(keyword)
+
+    def get_all_cards(self):
+        return self.single_card_dao.get_all()
+
+    def search_single_cards(self, keyword):
+        return self.single_card_dao.search_cards(keyword)
+
+    def create_card(self, card_code, price):
+        return self.single_card_dao.create(card_code, price)
+
+    def update_card(self, card_id, price):
+        return self.single_card_dao.update_price(card_id, price)
+
+    def delete_card(self, card_id):
+        return self.single_card_dao.delete(card_id)
 
 
 class MonthlyCardService:
@@ -15,6 +48,8 @@ class MonthlyCardService:
     def get_all_cards(self):
         return self.monthly_card_dao.get_all()
 
+    def search_monthly_cards(self, keyword):
+        return self.monthly_card_dao.search_cards(keyword)
 
     def validate_customer(self, data: dict) -> int:
 
@@ -25,11 +60,10 @@ class MonthlyCardService:
         if customer:
             return customer.id
         else:
-            customerDTO = CustomerDTO(data['customer_name'],phone, data['customer_email'])
+            customerDTO = CustomerDTO(data['customer_name'], phone, data['customer_email'])
             new_customer_id = self.customer_dao.save(customerDTO)
 
             return new_customer_id
-
 
     def validate_vehicle(self, data: dict, customer_id: int) -> int:
 
@@ -45,14 +79,14 @@ class MonthlyCardService:
 
             return new_vehicle_id
 
-
     def create_monthly_card(self, card_data: dict) -> bool:
 
         customer_id = self.validate_customer(card_data)
 
         vehicle_id = self.validate_vehicle(card_data, customer_id)
 
-        card_dto = MonthlyCardDTO(card_data['card_code'], customer_id, vehicle_id, card_data['monthly_fee'], card_data['start_date'], card_data['expiry_date'], card_data['is_paid'])
+        card_dto = MonthlyCardDTO(card_data['card_code'], customer_id, vehicle_id, card_data['monthly_fee'],
+                                  card_data['start_date'], card_data['expiry_date'], card_data['is_paid'])
 
         try:
             success = self.monthly_card_dao.save(card_dto)
@@ -61,6 +95,36 @@ class MonthlyCardService:
             print(f"Service: Lỗi DB khi lưu thẻ: {e}")
             return False
 
-
     def delete_card(self, card_code: str) -> bool:
         return self.monthly_card_dao.delete(card_code)
+
+    def update_card(self, card_data: dict):
+        # Validate
+
+        customer_to_update = Customer(card_data['customer_id'],
+                                     card_data['customer_name'],
+                                     card_data['phone_number'],
+                                     card_data['customer_email'])
+
+        vehicle_to_update = Vehicle(card_data['vehicle_id'],
+                                   card_data['vehicle_type'],
+                                   card_data['plate_number'])
+
+        monthly_card_to_update = MonthlyCard(card_data['card_id'],
+                                            card_data['card_code'],
+                                            customer_to_update,
+                                            vehicle_to_update,
+                                            card_data['monthly_fee'],
+                                            card_data['start_date'],
+                                            card_data['expiry_date'],
+                                            card_data['is_paid'])
+
+        try:
+            self.customer_dao.update(customer_to_update)
+            self.vehicle_dao.update(vehicle_to_update)
+            self.monthly_card_dao.update(monthly_card_to_update)
+
+        except Exception as e:
+            print(f"Service: Lỗi DB khi cập nhật thẻ: {e}")
+
+

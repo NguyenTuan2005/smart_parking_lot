@@ -1,0 +1,14 @@
+[2025-12-22 15:32:32.548314] START sending expiry card email
+[2025-12-22 15:32:32.603933] END sending expiry card email
+[2025-12-22 15:34:35.039843] START sending expiry card email
+[2025-12-22 15:34:40.434587] END sending expiry card email
+[2025-12-22 15:52:59.858059] START sending expiry card email
+[2025-12-22 15:53:05.055515] END sending expiry card email
+[2025-12-22 15:55:01.901101] START sending expiry card email
+[2025-12-22 15:55:07.619476] END sending expiry card email
+[2025-12-22 15:59:15.121033] START sending expiry card email
+[2025-12-22 15:59:20.420300] END sending expiry card email
+[2025-12-22 16:11:00.828365] START sending expiry card email
+[2025-12-22 16:11:06.334913] END sending expiry card email
+[2025-12-22 16:14:31.502706] START sending expiry card email
+[2025-12-22 16:14:36.590141] END sending expiry card email

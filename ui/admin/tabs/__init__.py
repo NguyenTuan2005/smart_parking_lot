@@ -1,5 +1,5 @@
 """Init file cho admin tabs package"""
-from .cardsTab import CardTab
+from .CardTab import CardTab
 from .customersTab import CustomerTab
 from .vehiclesTab import VehicleTab
 from .statsTab import StatsTab

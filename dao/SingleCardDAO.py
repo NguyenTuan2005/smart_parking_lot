@@ -86,6 +86,34 @@ class SingleCardDAO:
             return cards
         except Exception as e:
             print("Error in get_all:", e)
+            return []
+
+    def search_cards(self, keyword: str) -> list[SingleCard]:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+
+            sql = """
+                  SELECT id, card_code, price
+                  FROM cards
+                  WHERE is_active = 1 
+                    AND (card_code LIKE ? OR CAST(price AS NVARCHAR) LIKE ?)
+                  """
+            kw = f"%{keyword}%"
+            rows = cursor.execute(sql, kw, kw).fetchall()
+            conn.close()
+
+            cards: list[SingleCard] = []
+            for r in rows:
+                card_log = self._card_log_dao.get_by_card_id(r.id)
+                if card_log is None:
+                    card_log = CardLog()
+                cards.append(SingleCard(r.id, r.card_code, r.price, card_log=card_log))
+
+            return cards
+        except Exception as e:
+            print("Error in search_cards:", e)
+            return []
 
 
     # ---------- CREATE ----------
@@ -95,7 +123,7 @@ class SingleCardDAO:
 
         sql = """
               INSERT INTO cards (card_code, price)
-              VALUES (?, ?, ?) \
+              VALUES (?, ?) \
               """
 
         cursor.execute(sql, card_code, price)

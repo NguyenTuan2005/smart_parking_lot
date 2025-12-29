@@ -28,3 +28,15 @@ class MonthlyCardDTO:
         self.start_date = start_date
         self.expiry_date = expiry_date
         self.is_paid = is_paid
+
+
+class ExpiringCardDTO:
+    def __init__(self, customer_id, fullname, email, card_code, expiry_date):
+        self.customer_id = customer_id
+        self.fullname = fullname
+        self.email = email
+        self.card_code = card_code
+        self.expiry_date = expiry_date
+
+    def  __repr__(self):
+        return f'ExpiringCardDTO({self.customer_id}, {self.fullname}, {self.email}, {self.card_code}, {self.expiry_date})\n'
