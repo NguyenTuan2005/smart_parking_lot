@@ -1,4 +1,5 @@
-from PyQt6.QtGui import QIcon, QAction
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
+from PyQt6.QtGui import QIcon, QAction, QColor
 from datetime import datetime
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
@@ -6,6 +7,67 @@ from PyQt6.QtWidgets import (
     QComboBox, QSpinBox, QAbstractItemView, QSizePolicy
 )
 from PyQt6.QtCore import Qt, QSize, pyqtSignal, QDate
+
+def create_status_widget(text, is_success):
+    widget = QWidget()
+    widget.setStyleSheet("background-color: transparent;")
+    layout = QHBoxLayout(widget)
+    layout.setContentsMargins(0, 0, 0, 0)
+    layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+    label = QLabel(text)
+    label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    
+    if is_success:
+        bg_color = "#e8f5e9" # light green
+        text_color = "#2A9B5A" 
+        border_color = "#c8e6c9"
+    else:
+        bg_color = "#ffebee" # light red
+        text_color = "#c62828" # Dark red
+        border_color = "#ffcdd2"
+
+    label.setStyleSheet(f"""
+        QLabel {{
+            background-color: {bg_color};
+            color: {text_color};
+            border: 1px solid {border_color};
+            border-radius: 12px;
+            padding: 4px 12px;
+            font-weight: 600;
+            font-size: 12px;
+        }}
+    """)
+    layout.addWidget(label)
+    return widget
+
+class StatusItem(QTableWidgetItem):
+    def __init__(self, text):
+        super().__init__("")
+        self.sort_key = text
+
+    def __lt__(self, other):
+        other_key = getattr(other, 'sort_key', other.text())
+        return self.sort_key < other_key
+
+class CardTab(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.card_tabs = QTabWidget()
+
+        self.single_card_tab = SingleCardLogTab()
+        self.single_card_management_tab = SingleCardManagementTab()
+        self.monthly_card_tab = MonthlyCardLogTab()
+        self.initUI()
+
+    def initUI(self):
+        layout = QVBoxLayout()
+        self.card_tabs.addTab(self.single_card_tab, "Nhật ký thẻ lượt")
+        self.card_tabs.addTab(self.single_card_management_tab, "Quản lý thẻ lượt")
+        self.card_tabs.addTab(self.monthly_card_tab, "Thẻ tháng")
+
+        layout.addWidget(self.card_tabs)
+        self.setLayout(layout)
 
 
 class SingleCardLogTab(QWidget):
@@ -18,7 +80,6 @@ class SingleCardLogTab(QWidget):
         main_layout.setSpacing(0)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Use the same background as MonthlyCardLogTab
         self.setStyleSheet("""
             QWidget {
                 background-color: #f8f9fa;
@@ -26,7 +87,6 @@ class SingleCardLogTab(QWidget):
             }
         """)
 
-        # ===== Header Section =====
         header_frame = QFrame()
         header_frame.setStyleSheet("""
             QFrame {
@@ -49,14 +109,13 @@ class SingleCardLogTab(QWidget):
         
         main_layout.addWidget(header_frame)
 
-        # ===== Content Section =====
+        # Content Section 
         content_frame = QFrame()
         content_frame.setStyleSheet("background-color: #f8f9fa;")
         content_layout = QVBoxLayout(content_frame)
         content_layout.setContentsMargins(20, 20, 20, 20)
         content_layout.setSpacing(15)
 
-        # --- Top Controls: Search & Top Actions ---
         top_row = QHBoxLayout()
         top_row.setSpacing(15)
 
@@ -139,8 +198,7 @@ class SingleCardLogTab(QWidget):
             "THỜI GIAN GỬI", "PHÍ",
             "TRẠNG THÁI", "NHÂN VIÊN"
         ])
-        
-        # Style match MonthlyCardLogTab
+   
         self.tblCardLogs.setStyleSheet("""
             QTableWidget {
                 background-color: white;
@@ -176,6 +234,9 @@ class SingleCardLogTab(QWidget):
         self.tblCardLogs.setAlternatingRowColors(True)
         self.tblCardLogs.setShowGrid(False)
         self.tblCardLogs.verticalHeader().setVisible(False)
+        self.tblCardLogs.setEditTriggers(
+            QAbstractItemView.EditTrigger.NoEditTriggers
+        )
         self.tblCardLogs.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.tblCardLogs.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.tblCardLogs.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -217,13 +278,13 @@ class SingleCardLogTab(QWidget):
             self.tblCardLogs.setItem(row, 6, QTableWidgetItem(f"{fee:,}"))
             
             status = log.get('status', '') or ''
-            self.tblCardLogs.setItem(row, 7, QTableWidgetItem(status))
+            item = StatusItem(status)
+            self.tblCardLogs.setItem(row, 7, item)
             
-            # Status styling
-            if status == "Đã rời đi":
-                self.tblCardLogs.item(row, 7).setForeground(Qt.GlobalColor.darkGreen)
-            else:
-                self.tblCardLogs.item(row, 7).setForeground(Qt.GlobalColor.darkBlue)
+            # Status styling with widget
+            is_success_status = (status == "Đã rời đi")
+            status_widget = create_status_widget(status, is_success_status)
+            self.tblCardLogs.setCellWidget(row, 7, status_widget)
 
             self.tblCardLogs.setItem(row, 8, QTableWidgetItem(str(log.get('staff_name') or '')))
 
@@ -500,7 +561,12 @@ class MonthlyCardLogTab(QWidget):
             self.tblCardLogs.setItem(row, 6, QTableWidgetItem(f"{card.monthly_fee:,}"))
 
             paid_text = "Đã thanh toán" if card.is_paid else "Chưa thanh toán"
-            self.tblCardLogs.setItem(row, 7, QTableWidgetItem(paid_text))
+            item = StatusItem(paid_text)
+            self.tblCardLogs.setItem(row, 7, item)
+
+            is_paid_success = card.is_paid
+            status_widget = create_status_widget(paid_text, is_paid_success)
+            self.tblCardLogs.setCellWidget(row, 7, status_widget)
 
             action_widget = QWidget()
             layout = QHBoxLayout(action_widget)
@@ -509,7 +575,7 @@ class MonthlyCardLogTab(QWidget):
             layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             btn_edit = QPushButton()
-            btn_edit.setIcon(QIcon("assets/icons/edit.svg"))
+            btn_edit.setIcon(QIcon("assets/icons/edit.png"))
             btn_edit.setIconSize(QSize(16, 16))
             btn_edit.setToolTip("Chỉnh sửa")
 
@@ -575,7 +641,12 @@ class MonthlyCardLogTab(QWidget):
         self.tblCardLogs.setItem(row, 5, QTableWidgetItem(str(card_data['months'])))
         self.tblCardLogs.setItem(row, 6, QTableWidgetItem(f"{card_data['monthly_fee']:,}"))
         paid_text = "Đã thanh toán" if card_data['is_paid'] else "Chưa thanh toán"
-        self.tblCardLogs.setItem(row, 7, QTableWidgetItem(paid_text))
+        item = StatusItem(paid_text)
+        self.tblCardLogs.setItem(row, 7, item)
+
+        is_paid_success = card_data['is_paid']
+        status_widget = create_status_widget(paid_text, is_paid_success)
+        self.tblCardLogs.setCellWidget(row, 7, status_widget)
 
         # Tạo cell chứa các nút hành động (edit/delete)
         action_widget = QWidget()
@@ -585,7 +656,7 @@ class MonthlyCardLogTab(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         btn_edit = QPushButton()
-        btn_edit.setIcon(QIcon("assets/icons/edit.svg"))
+        btn_edit.setIcon(QIcon("assets/icons/edit.png"))
         btn_edit.setIconSize(QSize(16, 16))
         btn_edit.setToolTip("Chỉnh sửa")
         btn_edit.clicked.connect(lambda _, c=card_data: self.show_edit_card_dialog(c))
@@ -719,31 +790,30 @@ class AddMonthlyCardDialog(QDialog):
         self.chkIsPaid.setStyleSheet("""
             QCheckBox {
                 font-size: 14px;
-                spacing: 8px;
+                font-weight: 600;
+                color: #2c3e50;
+                spacing: 10px;
             }
-
             QCheckBox::indicator {
-                width: 18px;
-            height: 18px;
-            border: 2px solid #2E86C1;
-            border-radius: 3px;
-            background: white;
+                width: 22px;
+                height: 22px;
+                border: 2px solid #bdc3c7;
+                border-radius: 6px;
+                background: white;
+                margin-top: 1px;
             }
-
+            QCheckBox::indicator:hover {
+                border-color: #2E86C1;
+                background-color: #f4f6f7;
+            }
             QCheckBox::indicator:checked {
-                background: #2E86C1;
+                background-color: #2E86C1;
+                border-color: #2E86C1;
+                image: url(assets/icons/checkbox-tick.png);
             }
-
-            QCheckBox::indicator:checked::after {
-                content: "";
-                position: absolute;
-                left: 5px;
-                top: 1px;
-                width: 5px;
-                height: 10px;
-                border: solid white;
-                border-width: 0 2px 2px 0;
-                transform: rotate(45deg);
+            QCheckBox::indicator:checked:hover {
+                background-color: #2573a7;
+                border-color: #2573a7;
             }
         """)
 
@@ -1093,7 +1163,7 @@ class SingleCardManagementTab(QWidget):
             layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
             
             btn_edit = QPushButton()
-            btn_edit.setIcon(QIcon("assets/icons/edit.svg"))
+            btn_edit.setIcon(QIcon("assets/icons/edit.png"))
             btn_edit.setIconSize(QSize(16, 16))
             btn_edit.setToolTip("Chỉnh sửa")
             btn_edit.clicked.connect(lambda _, c=card: self.show_edit_dialog(c))
@@ -1102,11 +1172,23 @@ class SingleCardManagementTab(QWidget):
             btn_delete.setIcon(QIcon("assets/icons/delete.svg"))
             btn_delete.setIconSize(QSize(16, 16))
             btn_delete.setToolTip("Xóa")
-            btn_delete.clicked.connect(lambda _, c_id=card.card_id: self.deleteRequested.emit(c_id))
+            btn_delete.clicked.connect(lambda _, c_id=card.card_id: self.on_delete_clicked(c_id))
             
             layout.addWidget(btn_edit)
             layout.addWidget(btn_delete)
             self.table.setCellWidget(row, 3, container)
+
+    def on_delete_clicked(self, card_id):
+        reply = QMessageBox.question(
+            self, 
+            'Xác nhận xóa', 
+            'Bạn có chắc chắn muốn xóa thẻ này không?',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, 
+            QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            self.deleteRequested.emit(card_id)
 
     def show_add_dialog(self):
         dlg = SingleCardDialog(self)
