@@ -2,8 +2,8 @@
 Base classes cho tất cả main windows.
 Tập trung style, title, và common functionality.
 """
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout
-from PyQt5.QtCore import Qt
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout
+from PyQt6.QtCore import Qt
 from ui.styles import getGlobalStyle
 
 
