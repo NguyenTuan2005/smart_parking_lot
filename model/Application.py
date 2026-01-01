@@ -1,5 +1,5 @@
 import random
-from typing import Set
+from typing import Set, Any
 
 from dao.CustomerDAO import CustomerDAO
 from dao.MonthlyCardDAO import MonthlyCardDAO
@@ -26,17 +26,29 @@ class Application:
     def statistic_revenue_by_month(self):
         pass
 
-    def check_in(self, card: Card, plate: str) -> Card:
+    def check_in(self, card: Card, plate: str) -> Card | None:
         if card is None:
-            card = random.choice(list(self._cards))
+            cards = [c for c in self._cards if c.has_check_out()]
+            if len([c for c in cards if c.is_single_card()]) == 0:
+                return None
+            card = random.choice(cards)
         try:
             card.check_in(plate)
         except Exception as e:
             raise Exception(e) from e
         return card
 
-    def check_out(self, card_id: str) -> None:
-        pass
+    def check_out(self, card: Card, plate: str) -> Card | None:
+        if card is None:
+            cards = [c for c in self._cards if c.has_check_in()]
+            card = next((c for c in cards if c.is_same_plate(plate)), None)
+            if card is None:
+                return card
+        try:
+            card.check_out(plate)
+        except Exception as e:
+            raise Exception(e) from e
+        return card
 
     def detect_plate(self, card: Card) -> None:
         pass

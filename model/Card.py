@@ -19,8 +19,23 @@ class Card(ABC):
     def check_in(self, plate: str):
         pass
 
+    def check_out(self, plate: str):
+        pass
+
+    def has_check_out(self):
+        return True
+
     def is_month_card(self):
         return False
 
     def is_single_card(self):
         return False
+
+    def has_check_in(self):
+        return True
+
+    def is_same_plate(self, plate: str) -> bool:
+        pass
+
+    def calculate_price(self, minutes: int) -> int:
+        pass

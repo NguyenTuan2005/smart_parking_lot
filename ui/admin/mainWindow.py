@@ -3,12 +3,12 @@ import sys
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTabWidget, QMenuBar, QApplication
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QAction
-
-from controllers.CardController import MonthlyCardController
+from controllers.StaffCL import StaffCL
+from controllers.CardController import MonthlyCardController, SingleCardLogController, SingleCardManagementController
 from services.Session import Session
-from ui.admin.tabs.cardsTab import CardTab
+from ui.admin.tabs.CardTab import CardTab
 from ui.admin.tabs.customersTab import CustomerTab
-from ui.admin.tabs.vehiclesTab import VehicleTab
+from ui.admin.tabs.StaffTab import StaffTab
 from ui.admin.tabs.statsTab import StatsTab
 from ui.admin.tabs.parkingConfigTab import ParkingConfigTab
 from ui.common import LogoutHandler
@@ -22,7 +22,7 @@ class ParkingManagementApp(QMainWindow):
         self.tabs = QTabWidget()
         self.card_tab =CardTab()
         self.customer_tab = CustomerTab()
-        self.vehicle_tab = VehicleTab()
+        self.Staff_tab = StaffTab()
         self.stats_tab = StatsTab()
         self.parking_config_tab = ParkingConfigTab()
 
@@ -71,7 +71,7 @@ class ParkingManagementApp(QMainWindow):
 
         self.tabs.addTab(self.card_tab, "Quản lý thẻ")
         self.tabs.addTab(self.customer_tab, "Quản lý khách hàng")
-        self.tabs.addTab(self.vehicle_tab, "Quản lý phương tiện")
+        self.tabs.addTab(self.Staff_tab, "Quản lý Nhân Viên")
         self.tabs.addTab(self.stats_tab, "Thống kê")
         self.tabs.addTab(self.parking_config_tab, "Cấu hình bãi xe")
 
@@ -81,3 +81,8 @@ class ParkingManagementApp(QMainWindow):
     def _init_controllers(self):
         self.card_controller = MonthlyCardController(
             view=self.card_tab.monthly_card_tab)
+        self.single_card_controller = SingleCardLogController(
+            view=self.card_tab.single_card_tab)
+        self.single_card_management_controller = SingleCardManagementController(
+            view=self.card_tab.single_card_management_tab)
+        self.staff_controller = StaffCL(view=self.Staff_tab)

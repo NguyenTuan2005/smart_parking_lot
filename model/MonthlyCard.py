@@ -58,8 +58,20 @@ class MonthlyCard(Card):
             raise Exception("Monthly card is not valid for check-in.")
         return self
 
+    def check_out(self, plate: str):
+        today = date.today()
+        if today > self._expiry_date or not self._is_paid:
+            raise Exception("Monthly card is not valid for check-out.")
+        return self
+
     def is_month_card(self):
         return True
+
+    def is_same_plate(self, plate: str) -> bool:
+        return self._vehicle.is_same_plate(plate)
+
+    def calculate_price(self, minutes: int) -> int:
+        return self._monthly_fee
 
     def __repr__(self) -> str:
         return (
@@ -74,5 +86,3 @@ class MonthlyCard(Card):
             f"is_paid={self._is_paid}"
             f")\n"
         )
-
-

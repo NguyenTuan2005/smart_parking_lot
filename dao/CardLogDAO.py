@@ -94,21 +94,24 @@ class CardLogDAO:
             return None
 
     def close_log(self, log: CardLog, exit_time: datetime, fee: int, closed_by: int):
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-        UPDATE card_logs
-        SET exit_at = ?, fee = ?, closed_by = ?
-        WHERE id = ?
-        """
+            sql = """
+            UPDATE card_logs
+            SET exit_at = ?, fee = ?, closed_by = ?
+            WHERE id = ?
+            """
 
-        cursor.execute(sql, exit_time, fee, closed_by, log.id)
-        conn.commit()
-        conn.close()
+            cursor.execute(sql, exit_time, fee, closed_by, log.id)
+            conn.commit()
+            conn.close()
 
-        # cập nhật object trong memory
-        log.close(exit_time, fee)
+            # cập nhật object trong memory
+            log.close(exit_time, fee)
+        except Exception as e:
+            print(f"CardLogDao: Error close log {e}")
 
 
     def get_open_log_by_card(self, card_id: int) -> CardLog | None:
@@ -147,4 +150,76 @@ class CardLogDAO:
         conn.close()
 
         return [self._map_row_to_card_log(r) for r in rows]
+
+    def get_all_with_details(self) -> list[dict]:
+        conn = self._db.connect()
+        cursor = conn.cursor()
+
+        sql = """
+        SELECT cl.id, cl.entry_at, cl.exit_at, cl.fee, cl.created_by,
+               c.card_code,
+               v.plate_number, v.vehicle_type,
+               s.fullname as staff_name
+        FROM card_logs cl
+        JOIN cards c ON cl.card_id = c.id
+        LEFT JOIN vehicles v ON cl.vehicle_id = v.id
+        LEFT JOIN staffs s ON cl.created_by = s.id
+        ORDER BY cl.entry_at DESC
+        """
+
+        rows = cursor.execute(sql).fetchall()
+        conn.close()
+
+        results = []
+        for row in rows:
+            results.append({
+                'id': row.id,
+                'card_code': row.card_code,
+                'plate_number': row.plate_number,
+                'vehicle_type': row.vehicle_type,
+                'entry_at': row.entry_at,
+                'exit_at': row.exit_at,
+                'fee': row.fee if row.fee else 0,
+                'status': "Đã rời đi" if row.exit_at else "Đang gửi",
+                'created_by': row.created_by,
+                'staff_name': row.staff_name
+            })
+        return results
+
+    def search_logs(self, keyword: str) -> list[dict]:
+        conn = self._db.connect()
+        cursor = conn.cursor()
+        search_pattern = f"%{keyword}%"
+
+        sql = """
+        SELECT cl.id, cl.entry_at, cl.exit_at, cl.fee, cl.created_by,
+               c.card_code,
+               v.plate_number, v.vehicle_type,
+               s.fullname as staff_name
+        FROM card_logs cl
+        JOIN cards c ON cl.card_id = c.id
+        LEFT JOIN vehicles v ON cl.vehicle_id = v.id
+        LEFT JOIN staffs s ON cl.created_by = s.id
+        WHERE c.card_code LIKE ? OR v.plate_number LIKE ?
+        ORDER BY cl.entry_at DESC
+        """
+
+        rows = cursor.execute(sql, search_pattern, search_pattern).fetchall()
+        conn.close()
+
+        results = []
+        for row in rows:
+            results.append({
+                'id': row.id,
+                'card_code': row.card_code,
+                'plate_number': row.plate_number,
+                'vehicle_type': row.vehicle_type,
+                'entry_at': row.entry_at,
+                'exit_at': row.exit_at,
+                'fee': row.fee if row.fee else 0,
+                'status': "Đã rời đi" if row.exit_at else "Đang gửi",
+                'created_by': row.created_by,
+                'staff_name': row.staff_name
+            })
+        return results
 

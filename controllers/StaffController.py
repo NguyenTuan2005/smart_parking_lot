@@ -16,7 +16,7 @@ class StaffController:
 
         if new_plates:
             for plate in new_plates:
-                print(f"StaffController: {plate}")
+                print(f"StaffController: entry {plate}")
                 left_view = self.__views["left"]
                 try:
                     card = self.__application.check_in(None, plate)
@@ -29,5 +29,26 @@ class StaffController:
                         if frame is not None:
                             center_view = self.__views["center"]
                             center_view.set_frame(frame)
+                except Exception as e:
+                    left_view.set_status(str(e))
+
+    def process_exit(self, frame):
+        frame, new_plates = self.__ai_service.process_frame(frame)
+
+        if new_plates:
+            for plate in new_plates:
+                print(f"StaffController: exit {plate}")
+                left_view = self.__views["left"]
+                try:
+                    card = self.__application.check_out(None, plate)
+                    if card is None:
+                        left_view.set_status("Không tìm thấy thẻ")
+                    else:
+                        right_view = self.__views["right"]
+                        right_view.update_view(card)
+                        left_view.update_view(card)
+                        if frame is not None:
+                            center_view = self.__views["center"]
+                            center_view.set_frame(frame, start=2, stop=4)
                 except Exception as e:
                     left_view.set_status(str(e))

@@ -1,7 +1,8 @@
 from typing import List, Optional
 from db.database import Database
-from dto.dtos import CustomerDTO
+from dto.dtos import CustomerDTO, ExpiringCardDTO
 from model.Customer import Customer
+
 
 class CustomerDAO:
     def __init__(self):
@@ -12,9 +13,9 @@ class CustomerDAO:
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT id, full_name, phone_number, email
-            FROM customers
-        """)
+                       SELECT id, full_name, phone_number, email
+                       FROM customers
+                       """)
         rows = cursor.fetchall()
 
         customers = [Customer(row[0], row[1], row[2], row[3]) for row in rows]
@@ -28,10 +29,10 @@ class CustomerDAO:
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT id, full_name, phone_number, email
-            FROM customers
-            WHERE id = ?
-        """, (customer_id,))
+                       SELECT id, full_name, phone_number, email
+                       FROM customers
+                       WHERE id = ?
+                       """, (customer_id,))
 
         row = cursor.fetchone()
         cursor.close()
@@ -46,10 +47,10 @@ class CustomerDAO:
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT id, full_name, phone_number, email
-            FROM customers
-            WHERE phone_number = ?
-        """, phone_number)
+                       SELECT id, full_name, phone_number, email
+                       FROM customers
+                       WHERE phone_number = ?
+                       """, phone_number)
 
         row = cursor.fetchone()
         cursor.close()
@@ -66,7 +67,7 @@ class CustomerDAO:
         try:
             cursor.execute("""
                            INSERT INTO customers (full_name, phone_number, email)
-                           OUTPUT INSERTED.id
+                               OUTPUT INSERTED.id
                            VALUES (?, ?, ?)
                            """, (customer_dto.fullname, customer_dto.phone_number, customer_dto.email))
 
@@ -88,10 +89,13 @@ class CustomerDAO:
         cursor = conn.cursor()
 
         cursor.execute("""
-            UPDATE customers
-            SET full_name = ?, phone_number = ?, email = ?, updated_at = GETDATE()
-            WHERE id = ?
-        """, (customer.fullname, customer.phone_number, customer.email, customer.id))
+                       UPDATE customers
+                       SET full_name    = ?,
+                           phone_number = ?,
+                           email        = ?,
+                           updated_at   = GETDATE()
+                       WHERE id = ?
+                       """, (customer.fullname, customer.phone_number, customer.email, customer.id))
 
         conn.commit()
         result = cursor.rowcount
@@ -104,9 +108,10 @@ class CustomerDAO:
         cursor = conn.cursor()
 
         cursor.execute("""
-            DELETE FROM customers
-            WHERE id = ?
-        """, (customer_id,))
+                       DELETE
+                       FROM customers
+                       WHERE id = ?
+                       """, (customer_id,))
 
         conn.commit()
         result = cursor.rowcount
@@ -115,7 +120,43 @@ class CustomerDAO:
         return result > 0
 
 
-if __name__ == '__main__':
-    dao = CustomerDAO()
-    dto = CustomerDTO("HHHAA","11123", "hehe@gmail.com")
-    print(dao.save(dto))
+    # for email service
+    def get_users_expiring_in_days(self, days=3):
+        conn = self._db.connect()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+                       SELECT c.id, c.full_name, c.email, m.card_code, m.expiry_date
+                       FROM monthly_cards m
+                       JOIN customers c ON  m.customer_id = c.id
+                       WHERE m.expiry_date BETWEEN CAST(GETDATE() AS DATE)
+                           AND DATEADD(DAY, ?, CAST(GETDATE() AS DATE))
+                           AND notified = 0
+                       """, days)
+        rows = cursor.fetchall()
+
+        result = []
+        for r in rows:
+            result.append(
+                ExpiringCardDTO(
+                    customer_id=r.id,
+                    fullname=r.full_name,
+                    email=r.email,
+                    card_code=r.card_code,
+                    expiry_date=r.expiry_date
+                )
+            )
+        return result
+
+    def mark_notified(self, customer_id):
+        conn = self._db.connect()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+                       UPDATE customers
+                       SET notified = 1
+                       WHERE id = ?
+                       """, customer_id)
+
+        conn.commit()
+        conn.close()

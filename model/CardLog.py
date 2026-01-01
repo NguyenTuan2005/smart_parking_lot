@@ -2,6 +2,7 @@ from datetime import datetime
 
 from dao.VehicleDAO import VehicleDAO
 from dto.dtos import VehicleDTO
+from model.Card import Card
 from model.Vehicle import Vehicle
 from services.Session import Session
 
@@ -44,7 +45,10 @@ class CardLog:
             return int(( self._exit_at - self._entry_at).total_seconds() / 60)
         return 0
 
-    def check_in(self, plate: str, card_id: int):
+    def has_check_out(self):
+        return self._exit_at is not None and self._fee != 0
+
+    def check_in(self, plate: str, card: Card):
         self._entry_at = datetime.now()
         self._exit_at = None
         self._fee = 0
@@ -54,4 +58,15 @@ class CardLog:
         self._vehicle = VehicleDAO().get_by_plate(plate)
 
         from dao.CardLogDAO import CardLogDAO
-        CardLogDAO().create_entry(card_id, self.vehicle.vehicle_id, Session.get_user().id)
+        CardLogDAO().create_entry(card.card_id, self.vehicle.vehicle_id, Session.get_user().id)
+
+    def check_out(self, plate: str, card: Card):
+        if self._vehicle.is_same_plate(plate):
+            from dao.CardLogDAO import CardLogDAO
+            CardLogDAO().close_log(self, datetime.now(), card.calculate_price(self.duration()), Session.get_user().id)
+
+    def has_check_in(self):
+        return self._exit_at is None and self._fee == 0
+
+    def is_same_plate(self, plate: str) -> bool:
+        return self._vehicle.is_same_plate(plate)
