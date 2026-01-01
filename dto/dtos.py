@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Optional
 
 
 class CustomerDTO:
@@ -40,3 +41,28 @@ class ExpiringCardDTO:
 
     def  __repr__(self):
         return f'ExpiringCardDTO({self.customer_id}, {self.fullname}, {self.email}, {self.card_code}, {self.expiry_date})\n'
+
+class MonthlyCardCreationDTO:
+    def __init__(self, 
+                 card_code: str, 
+                 customer: CustomerDTO, 
+                 vehicle: VehicleDTO, 
+                 monthly_fee: int, 
+                 start_date: date, 
+                 expiry_date: date, 
+                 is_paid: bool,
+                 months: int = 1,
+                 card_id: Optional[int] = None,
+                 customer_id: Optional[int] = None,
+                 vehicle_id: Optional[int] = None):
+        self.card_id = card_id
+        self.card_code = card_code
+        self.customer = customer
+        self.customer_id = customer_id
+        self.vehicle = vehicle
+        self.vehicle_id = vehicle_id
+        self.monthly_fee = monthly_fee
+        self.start_date = start_date
+        self.expiry_date = expiry_date
+        self.months = months
+        self.is_paid = is_paid

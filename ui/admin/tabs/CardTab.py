@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
     QComboBox, QSpinBox, QAbstractItemView, QSizePolicy
 )
 from PyQt6.QtCore import Qt, QSize, pyqtSignal, QDate
+from dto.dtos import MonthlyCardCreationDTO, CustomerDTO, VehicleDTO
 
 def create_status_widget(text, is_success):
     widget = QWidget()
@@ -19,12 +20,12 @@ def create_status_widget(text, is_success):
     label.setAlignment(Qt.AlignmentFlag.AlignCenter)
     
     if is_success:
-        bg_color = "#e8f5e9" # light green
+        bg_color = "#e8f5e9" # green
         text_color = "#2A9B5A" 
         border_color = "#c8e6c9"
     else:
-        bg_color = "#ffebee" # light red
-        text_color = "#c62828" # Dark red
+        bg_color = "#ffebee" # red
+        text_color = "#c62828"
         border_color = "#ffcdd2"
 
     label.setStyleSheet(f"""
@@ -63,7 +64,7 @@ class CardTab(QWidget):
     def initUI(self):
         layout = QVBoxLayout()
         self.card_tabs.addTab(self.single_card_tab, "Nhật ký thẻ lượt")
-        self.card_tabs.addTab(self.single_card_management_tab, "Quản lý thẻ lượt")
+        self.card_tabs.addTab(self.single_card_management_tab, "Thẻ lượt")
         self.card_tabs.addTab(self.monthly_card_tab, "Thẻ tháng")
 
         layout.addWidget(self.card_tabs)
@@ -103,7 +104,7 @@ class SingleCardLogTab(QWidget):
         lbl_title.setStyleSheet("""
             font-size: 28px; 
             font-weight: bold; 
-            color: #2c3e50;
+            color: #2e86c1;
         """)
         header_layout.addWidget(lbl_title)
         
@@ -247,6 +248,7 @@ class SingleCardLogTab(QWidget):
         main_layout.addWidget(content_frame)
 
     def set_table_data(self, logs: list):
+        self.tblCardLogs.setSortingEnabled(False)
         self.tblCardLogs.setRowCount(0)
         for log in logs:
             row = self.tblCardLogs.rowCount()
@@ -287,13 +289,15 @@ class SingleCardLogTab(QWidget):
             self.tblCardLogs.setCellWidget(row, 7, status_widget)
 
             self.tblCardLogs.setItem(row, 8, QTableWidgetItem(str(log.get('staff_name') or '')))
+        
+        self.tblCardLogs.setSortingEnabled(True)
 
 
 class MonthlyCardLogTab(QWidget):
     viewRequested = pyqtSignal(dict)
-    editRequested = pyqtSignal(dict)
+    editRequested = pyqtSignal(MonthlyCardCreationDTO)
     deleteRequested = pyqtSignal(dict)
-    cardAdded = pyqtSignal(dict)
+    cardAdded = pyqtSignal(MonthlyCardCreationDTO)
 
     def __init__(self):
         super().__init__()
@@ -322,7 +326,7 @@ class MonthlyCardLogTab(QWidget):
         lbl_title.setStyleSheet("""
             font-size: 28px; 
             font-weight: bold; 
-            color: #2c3e50;
+            color: #2e86c1;
         """)
 
         header_layout.addWidget(lbl_title)
@@ -543,6 +547,7 @@ class MonthlyCardLogTab(QWidget):
         self.setLayout(main_layout)
 
     def set_table_data(self, cards: list):
+        self.tblCardLogs.setSortingEnabled(False)
         self.tblCardLogs.setRowCount(0)  # Xóa dữ liệu cũ
         for card in cards:
             row = self.tblCardLogs.rowCount()
@@ -569,6 +574,7 @@ class MonthlyCardLogTab(QWidget):
             self.tblCardLogs.setCellWidget(row, 7, status_widget)
 
             action_widget = QWidget()
+            action_widget.setStyleSheet("background-color: transparent;")
             layout = QHBoxLayout(action_widget)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.setSpacing(20)
@@ -613,6 +619,8 @@ class MonthlyCardLogTab(QWidget):
 
             self.tblCardLogs.setCellWidget(row, 8, action_widget)
 
+        self.tblCardLogs.setSortingEnabled(True)
+
     # add
     def show_add_card_dialog(self):
         if self._current_dialog:
@@ -633,23 +641,24 @@ class MonthlyCardLogTab(QWidget):
         self.tblCardLogs.insertRow(row)
 
         # Điền dữ liệu vào các cột
-        self.tblCardLogs.setItem(row, 0, QTableWidgetItem(card_data['card_code']))
-        self.tblCardLogs.setItem(row, 1, QTableWidgetItem(card_data['customer_name']))
-        self.tblCardLogs.setItem(row, 2, QTableWidgetItem(card_data['plate_number']))
-        self.tblCardLogs.setItem(row, 3, QTableWidgetItem(card_data['start_date'].strftime("%d/%m/%Y")))
-        self.tblCardLogs.setItem(row, 4, QTableWidgetItem(card_data['expiry_date'].strftime("%d/%m/%Y")))
-        self.tblCardLogs.setItem(row, 5, QTableWidgetItem(str(card_data['months'])))
-        self.tblCardLogs.setItem(row, 6, QTableWidgetItem(f"{card_data['monthly_fee']:,}"))
-        paid_text = "Đã thanh toán" if card_data['is_paid'] else "Chưa thanh toán"
+        self.tblCardLogs.setItem(row, 0, QTableWidgetItem(card_data.card_code))
+        self.tblCardLogs.setItem(row, 1, QTableWidgetItem(card_data.customer.fullname))
+        self.tblCardLogs.setItem(row, 2, QTableWidgetItem(card_data.vehicle.plate_number))
+        self.tblCardLogs.setItem(row, 3, QTableWidgetItem(card_data.start_date.strftime("%d/%m/%Y")))
+        self.tblCardLogs.setItem(row, 4, QTableWidgetItem(card_data.expiry_date.strftime("%d/%m/%Y")))
+        self.tblCardLogs.setItem(row, 5, QTableWidgetItem(str(card_data.months)))
+        self.tblCardLogs.setItem(row, 6, QTableWidgetItem(f"{card_data.monthly_fee:,}"))
+        paid_text = "Đã thanh toán" if card_data.is_paid else "Chưa thanh toán"
         item = StatusItem(paid_text)
         self.tblCardLogs.setItem(row, 7, item)
 
-        is_paid_success = card_data['is_paid']
+        is_paid_success = card_data.is_paid
         status_widget = create_status_widget(paid_text, is_paid_success)
         self.tblCardLogs.setCellWidget(row, 7, status_widget)
 
         # Tạo cell chứa các nút hành động (edit/delete)
         action_widget = QWidget()
+        action_widget.setStyleSheet("background-color: transparent;")
         layout = QHBoxLayout(action_widget)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(20)
@@ -685,7 +694,7 @@ class MonthlyCardLogTab(QWidget):
         self._current_dialog.finished.connect(self._clear_dialog_reference)
         self._current_dialog.show()
 
-    def on_card_updated(self, card_data):
+    def on_card_updated(self, card_data: MonthlyCardCreationDTO):
         self.editRequested.emit(card_data)
 
     # delete
@@ -720,8 +729,8 @@ class MonthlyCardLogTab(QWidget):
 
 
 class AddMonthlyCardDialog(QDialog):
-    cardAdded = pyqtSignal(dict)
-    cardUpdated = pyqtSignal(dict)
+    cardAdded = pyqtSignal(MonthlyCardCreationDTO)
+    cardUpdated = pyqtSignal(MonthlyCardCreationDTO)
 
     def __init__(self, parent=None, card_data=None):
         super().__init__(parent)
@@ -927,7 +936,7 @@ class AddMonthlyCardDialog(QDialog):
         self.dateExpiry.setDate(expiry_date)
 
     def save_card(self):
-        # Validate dữ liệu
+        # Validate
         if not self.txtCardCode.text().strip():
             QMessageBox.warning(self, "Lỗi", "Vui lòng nhập mã thẻ!")
             return
@@ -943,33 +952,46 @@ class AddMonthlyCardDialog(QDialog):
         if not self.txtMonthlyFee.text().strip():
             QMessageBox.warning(self, "Lỗi", "Vui lòng nhập phí tháng!")
             return
+
+      
         try:
-            monthly_fee = int(self.txtMonthlyFee.text().strip())
+            fee_str = self.txtMonthlyFee.text().replace(',', '')
+            fee = int(fee_str) if fee_str else 0
         except ValueError:
-            QMessageBox.warning(self, "Lỗi", "Phí tháng phải là số nguyên!")
-            return
+            fee = 0
+        
+        # Create DTO obj
+        customer_dto = CustomerDTO(
+            fullname=self.txtCustomerName.text().strip(),
+            phone_number=self.txtPhoneNumber.text().strip(),
+            email=self.txtCustomerEmail.text().strip()
+        )
+        
+        vehicle_dto = VehicleDTO(
+            vehicle_type=self.cboVehicleType.currentText(),
+            plate_number=self.txtPlateNumber.text().strip()
+        )
 
-        card_data = {
-            'card_code': self.txtCardCode.text().strip(),
-            'customer_name': self.txtCustomerName.text().strip(),
-            'phone_number': self.txtPhoneNumber.text().strip(),
-            'customer_email': self.txtCustomerEmail.text().strip(),
-            'plate_number': self.txtPlateNumber.text().strip(),
-            'vehicle_type': self.cboVehicleType.currentText(),
-            'start_date': self.dateStart.date().toPyDate(),
-            'expiry_date': self.dateExpiry.date().toPyDate(),
-            'months': self.spinMonths.value(),
-            'monthly_fee': monthly_fee,
-            'is_paid': self.chkIsPaid.isChecked()
-        }
+        card_dto = MonthlyCardCreationDTO(
+            card_code=self.txtCardCode.text().strip(),
+            customer=customer_dto,
+            vehicle=vehicle_dto,
+            monthly_fee=fee,
+            start_date=self.dateStart.date().toPyDate(),
+            expiry_date=self.dateExpiry.date().toPyDate(),
+            is_paid=self.chkIsPaid.isChecked(),
+            months=self.spinMonths.value()
+        )
 
+        # Retrieve IDs if editing
         if self._editing_card:
-            card_data['card_id'] = self._editing_card.get('card_id')
-            card_data['customer_id'] = self._editing_card.get('customer_id')
-            card_data['vehicle_id'] = self._editing_card.get('vehicle_id')
-            self.cardUpdated.emit(card_data)
+            card_dto.card_id = self._editing_card.get('card_id')
+            card_dto.customer_id = self._editing_card.get('customer_id')
+            card_dto.vehicle_id = self._editing_card.get('vehicle_id')
+            self.cardUpdated.emit(card_dto)
         else:
-            self.cardAdded.emit(card_data)
+            self.cardAdded.emit(card_dto)
+
         self.accept()
 
 
@@ -989,10 +1011,10 @@ class SingleCardManagementTab(QWidget):
         
         # Header
         header_frame = QFrame()
-        header_frame.setStyleSheet("background-color: white; border-bottom: 1px solid #e0e0e0; padding: 10px;")
+        header_frame.setStyleSheet("background-color: white; border-bottom: 1px solid #e0e0e0; padding: 5px;")
         header_layout = QVBoxLayout(header_frame)
         lbl_title = QLabel("Quản lý thẻ lượt")
-        lbl_title.setStyleSheet("font-size: 28px; font-weight: bold; color: #2c3e50;")
+        lbl_title.setStyleSheet("font-size: 28px; font-weight: bold; color: #2e86c1; text-align: center;")
         header_layout.addWidget(lbl_title)
         main_layout.addWidget(header_frame)
 
@@ -1100,7 +1122,7 @@ class SingleCardManagementTab(QWidget):
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
-        self.table.setColumnWidth(3, 100)
+        self.table.setColumnWidth(3, 150)
 
         self.table.verticalHeader().setVisible(False)
         self.table.setStyleSheet("""
@@ -1148,6 +1170,7 @@ class SingleCardManagementTab(QWidget):
         main_layout.addWidget(content_frame)
 
     def set_table_data(self, cards):
+        self.table.setSortingEnabled(False)
         self.table.setRowCount(0)
         for card in cards:
             row = self.table.rowCount()
@@ -1157,6 +1180,7 @@ class SingleCardManagementTab(QWidget):
             self.table.setItem(row, 2, QTableWidgetItem("Hoạt động"))
             
             container = QWidget()
+            container.setStyleSheet("background-color: transparent;")
             layout = QHBoxLayout(container)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.setSpacing(20)
@@ -1176,7 +1200,10 @@ class SingleCardManagementTab(QWidget):
             
             layout.addWidget(btn_edit)
             layout.addWidget(btn_delete)
+            layout.addWidget(btn_delete)
             self.table.setCellWidget(row, 3, container)
+
+        self.table.setSortingEnabled(True)
 
     def on_delete_clicked(self, card_id):
         reply = QMessageBox.question(

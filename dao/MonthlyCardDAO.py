@@ -14,7 +14,6 @@ class MonthlyCardDAO:
         self._customer_dao = customer_dao
         self._vehicle_dao = vehicle_dao
 
-    # ---------- READ ----------
     def get_by_id(self, card_id: int) -> MonthlyCard | None:
         try:
             conn = self._db.connect()
@@ -38,23 +37,27 @@ class MonthlyCardDAO:
             print(f"Lỗi DB MonthlyCardDAO.get_by_id: {e}")
 
     def get_by_code(self, card_code: str) -> MonthlyCard | None:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-              SELECT *
-              FROM monthly_cards
-              WHERE card_code = ?
-                AND is_active = 1 \
-              """
+            sql = """
+                  SELECT *
+                  FROM monthly_cards
+                  WHERE card_code = ?
+                    AND is_active = 1 \
+                  """
 
-        row = cursor.execute(sql, card_code).fetchone()
-        conn.close()
+            row = cursor.execute(sql, card_code).fetchone()
+            conn.close()
 
-        if not row:
+            if not row:
+                return None
+
+            return self._map_row_to_monthly_card(row)
+        except Exception as e:
+            print(f"Error in MonthlyCardDAO.get_by_code: {e}")
             return None
-
-        return self._map_row_to_monthly_card(row)
 
     def get_all(self) -> list[MonthlyCard]:
         try:
@@ -70,24 +73,28 @@ class MonthlyCardDAO:
             print(f"Lỗi DB MonthlyCardDAO.get_all: {e}")
 
     def search_cards(self, keyword: str) -> list[MonthlyCard]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
-        
-        sql = """
-            SELECT mc.*
-            FROM monthly_cards mc
-            LEFT JOIN customers c ON mc.customer_id = c.id
-            LEFT JOIN vehicles v ON mc.vehicle_id = v.id
-            WHERE mc.is_active = 1
-              AND (mc.card_code LIKE ?
-                   OR c.full_name LIKE ?
-                   OR v.plate_number LIKE ?)
-        """
-        wildcard_keyword = f"%{keyword}%"
-        rows = cursor.execute(sql, (wildcard_keyword, wildcard_keyword, wildcard_keyword)).fetchall()
-        conn.close()
-        
-        return [self._map_row_to_monthly_card(r) for r in rows]
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            
+            sql = """
+                SELECT mc.*
+                FROM monthly_cards mc
+                LEFT JOIN customers c ON mc.customer_id = c.id
+                LEFT JOIN vehicles v ON mc.vehicle_id = v.id
+                WHERE mc.is_active = 1
+                  AND (mc.card_code LIKE ?
+                       OR c.full_name LIKE ?
+                       OR v.plate_number LIKE ?)
+            """
+            wildcard_keyword = f"%{keyword}%"
+            rows = cursor.execute(sql, (wildcard_keyword, wildcard_keyword, wildcard_keyword)).fetchall()
+            conn.close()
+            
+            return [self._map_row_to_monthly_card(r) for r in rows]
+        except Exception as e:
+            print(f"Error in MonthlyCardDAO.search_cards: {e}")
+            return []
 
 
     def save(self, card_dto: MonthlyCardDTO) -> bool:
@@ -125,19 +132,22 @@ class MonthlyCardDAO:
             conn.close()
 
     def update_payment(self, card_id: int, is_paid: bool):
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-              UPDATE monthly_cards
-              SET is_paid    = ?,
-                  updated_at = GETDATE()
-              WHERE id = ? \
-              """
+            sql = """
+                  UPDATE monthly_cards
+                  SET is_paid    = ?,
+                      updated_at = GETDATE()
+                  WHERE id = ? \
+                  """
 
-        cursor.execute(sql, is_paid, card_id)
-        conn.commit()
-        conn.close()
+            cursor.execute(sql, is_paid, card_id)
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Error in MonthlyCardDAO.update_payment: {e}")
 
     def update(self, card: MonthlyCard) -> None:
         sql = """
@@ -174,31 +184,38 @@ class MonthlyCardDAO:
             conn.close()
 
     def extend_expiry(self, card_id: int, new_expiry):
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-              UPDATE monthly_cards
-              SET expiry_date = ?,
-                  updated_at  = GETDATE()
-              WHERE id = ? \
-              """
+            sql = """
+                  UPDATE monthly_cards
+                  SET expiry_date = ?,
+                      updated_at  = GETDATE()
+                  WHERE id = ? \
+                  """
 
-        cursor.execute(sql, new_expiry, card_id)
-        conn.commit()
-        conn.close()
+            cursor.execute(sql, new_expiry, card_id)
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Error in MonthlyCardDAO.extend_expiry: {e}")
 
     def delete(self, card_code:str):
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = "UPDATE monthly_cards SET is_active = 0 WHERE card_code = ?"
-        cursor.execute(sql, card_code)
-        result = cursor.rowcount
-        conn.commit()
-        conn.close()
+            sql = "UPDATE monthly_cards SET is_active = 0 WHERE card_code = ?"
+            cursor.execute(sql, card_code)
+            result = cursor.rowcount
+            conn.commit()
+            conn.close()
 
-        return result>0
+            return result>0
+        except Exception as e:
+            print(f"Error in MonthlyCardDAO.delete: {e}")
+            return False
 
     def _map_row_to_monthly_card(self, row) -> MonthlyCard:
         customer = self._customer_dao.get_by_id(row.customer_id)
