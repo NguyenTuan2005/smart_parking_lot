@@ -79,10 +79,21 @@ class ChartsTab(QWidget):
         for q in quick:
             b = QPushButton(q)
             b.setStyleSheet("""
-                padding: 5px 10px;
-                background:#3498DB;
-                color:white;
-                border-radius:5px;
+                QPushButton {
+                    padding: 5px 10px;
+                    background: #3498DB;
+                    color: white;
+                    border-radius: 5px;
+                    border: 1px solid #2980B9;
+                }
+                QPushButton:hover {
+                    background: #2980B9;
+                    border: 1px solid #21618C;
+                }
+                QPushButton:pressed {
+                    background: #21618C;
+                    border: 1px solid #1B4F72;
+                }
             """)
             b.clicked.connect(lambda checked, name=q: self._on_quick_filter_clicked(name))
             layout.addWidget(b)
@@ -90,11 +101,22 @@ class ChartsTab(QWidget):
         # Nút áp dụng
         btn_apply = QPushButton("Áp dụng")
         btn_apply.setStyleSheet("""
-            padding:6px 14px;
-            background:#27AE60;
-            color:white;
-            font-weight:bold;
-            border-radius:5px;
+            QPushButton {
+                padding: 6px 14px;
+                background: #27AE60;
+                color: white;
+                font-weight: bold;
+                border-radius: 5px;
+                border: 1px solid #229954;
+            }
+            QPushButton:hover {
+                background: #229954;
+                border: 1px solid #1E8449;
+            }
+            QPushButton:pressed {
+                background: #1E8449;
+                border: 1px solid #145A32;
+            }
         """)
         btn_apply.clicked.connect(self._on_apply_filter)
         layout.addWidget(btn_apply)
@@ -251,7 +273,7 @@ class ChartsTab(QWidget):
         ax = figure.add_subplot(111)
 
         # Lấy dữ liệu từ controller
-        months, revenues = self.controller.get_revenue_trend_data()
+        months, revenues = self.controller.get_revenue_trend_data(start_date=self.start_date, end_date=self.end_date)
 
         if HAS_SEABORN:
             sns.lineplot(x=months, y=revenues, marker="o", ax=ax, color="#2E86C1")
@@ -298,7 +320,7 @@ class ChartsTab(QWidget):
             durations.extend(vals)
 
         if HAS_SEABORN:
-            sns.boxplot(x=labels, y=durations, ax=ax, palette="Set2")
+            sns.boxplot(x=labels, y=durations, ax=ax, hue=labels, palette="Set2", legend=False)
         else:
             # fallback đơn giản bằng scatter khi không có seaborn
             ax.scatter(labels, durations, alpha=0.6, color="#2ECC71")
