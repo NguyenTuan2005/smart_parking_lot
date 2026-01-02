@@ -42,6 +42,37 @@ class ExpiringCardDTO:
     def  __repr__(self):
         return f'ExpiringCardDTO({self.customer_id}, {self.fullname}, {self.email}, {self.card_code}, {self.expiry_date})\n'
 
+class CustomerViewDTO:
+    def __init__(
+        self,
+        customer_id: int,
+        customer_name: str,
+        phone_number: str,
+        email: str,
+        plate_number: str,
+        vehicle_type: str,
+        card_status: str,
+        notified: bool = False,
+        card_id: Optional[int] = None,
+        vehicle_id: Optional[int] = None,
+        expiry_date: Optional[date] = None
+    ):
+        self.customer_id = customer_id
+        self.customer_name = customer_name
+        self.phone_number = phone_number
+        self.email = email
+        self.plate_number = plate_number
+        self.vehicle_type = vehicle_type
+        self.card_status = card_status
+        self.notified = notified
+        self.card_id = card_id
+        self.vehicle_id = vehicle_id
+        self.expiry_date = expiry_date
+
+    def __repr__(self):
+        return f'CustomerViewDTO({self.customer_id}, {self.customer_name}, {self.phone_number}, {self.card_status})'
+
+
 class MonthlyCardCreationDTO:
     def __init__(self, 
                  card_code: str, 

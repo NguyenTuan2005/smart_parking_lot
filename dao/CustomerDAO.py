@@ -16,6 +16,7 @@ class CustomerDAO:
             cursor.execute("""
                            SELECT id, full_name, phone_number, email
                            FROM customers
+                           WHERE is_active = 1
                            """)
             rows = cursor.fetchall()
 
@@ -125,8 +126,8 @@ class CustomerDAO:
             cursor = conn.cursor()
 
             cursor.execute("""
-                           DELETE
-                           FROM customers
+                           UPDATE customers
+                           SET is_active = 0
                            WHERE id = ?
                            """, (customer_id,))
 
@@ -138,6 +139,58 @@ class CustomerDAO:
         except Exception as e:
             print(f"Error in CustomerDAO.delete: {e}")
             return False
+
+    def unlock(self, customer_id: int) -> bool:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                           UPDATE customers
+                           SET is_active = 1
+                           WHERE id = ?
+                           """, (customer_id,))
+
+            conn.commit()
+            result = cursor.rowcount
+            cursor.close()
+            conn.close()
+            return result > 0
+        except Exception as e:
+            print(f"Error in CustomerDAO.unlock: {e}")
+            return False
+
+    def get_all_customer_views(self, is_active: int = 1) -> list:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            
+            sql = """
+                SELECT 
+                    c.id as customer_id,
+                    c.full_name,
+                    c.phone_number,
+                    c.email,
+                    v.plate_number,
+                    v.vehicle_type,
+                    mc.expiry_date,
+                    c.notified,
+                    mc.id as card_id,
+                    v.id as vehicle_id
+                FROM monthly_cards mc
+                JOIN customers c ON mc.customer_id = c.id
+                JOIN vehicles v ON mc.vehicle_id = v.id
+                WHERE mc.is_active = 1 AND c.is_active = ?
+                ORDER BY c.full_name
+            """
+            
+            rows = cursor.execute(sql, (is_active,)).fetchall()
+            cursor.close()
+            conn.close()
+            return rows
+        except Exception as e:
+            print(f"Error in CustomerDAO.get_all_customer_views: {e}")
+            return []
 
 
     # for email service

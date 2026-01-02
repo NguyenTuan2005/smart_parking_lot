@@ -50,7 +50,8 @@ CREATE TABLE [customers] (
   [email] varchar(50),
   [notified] BIT NOT NULL DEFAULT 0,
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
-  [updated_at] datetime NOT NULL DEFAULT GETDATE()
+  [updated_at] datetime NOT NULL DEFAULT GETDATE(),
+  [is_active] bit NOT NULL DEFAULT 1
 )
 
 CREATE TABLE [cards] (

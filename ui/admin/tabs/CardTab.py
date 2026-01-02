@@ -99,10 +99,11 @@ class SingleCardLogTab(QWidget):
         header_layout = QVBoxLayout(header_frame)
         header_layout.setContentsMargins(0, 0, 0, 0)
 
-        lbl_title = QLabel("Quản lý lượt gửi xe")
+        lbl_title = QLabel("QUẢN LÝ LƯỢT GỬI XE")
         lbl_title.setObjectName("Title")
+        lbl_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_title.setStyleSheet("""
-            font-size: 28px; 
+            font-size: 24px; 
             font-weight: bold; 
             color: #2e86c1;
         """)
@@ -158,6 +159,8 @@ class SingleCardLogTab(QWidget):
 
         # Refresh Button
         self.btnRefresh = QPushButton("Làm mới")
+        self.btnRefresh.setIcon(QIcon("assets/icons/refresh.png"))
+        self.btnRefresh.setIconSize(QSize(15, 15))
         self.btnRefresh.setStyleSheet("""
             QPushButton {
                 background-color: #ffffff;
@@ -322,9 +325,10 @@ class MonthlyCardLogTab(QWidget):
         header_layout = QVBoxLayout()
         header_layout.setContentsMargins(0, 0, 0, 0)
 
-        lbl_title = QLabel("Quản lý thẻ tháng")
+        lbl_title = QLabel("QUẢN LÝ THẺ THÁNG")
+        lbl_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_title.setStyleSheet("""
-            font-size: 28px; 
+            font-size: 24px; 
             font-weight: bold; 
             color: #2e86c1;
         """)
@@ -383,7 +387,9 @@ class MonthlyCardLogTab(QWidget):
         """)
 
         # Refresh Button
-        self.btnRefresh = QPushButton("Làm mới")
+        self.btnRefresh = QPushButton(" Làm mới")
+        self.btnRefresh.setIcon(QIcon("assets/icons/refresh.png"))
+        self.btnRefresh.setIconSize(QSize(15, 15))
         self.btnRefresh.setStyleSheet("""
              QPushButton {
                  background-color: #ffffff;
@@ -402,9 +408,9 @@ class MonthlyCardLogTab(QWidget):
         top_row.addStretch()
 
         # Add Button
-        self.btnAddCard = QPushButton("Thêm thẻ tháng")
-        self.btnAddCard.setIcon(QIcon("assets/icons/plus.svg"))
-        self.btnAddCard.setIconSize(QSize(16, 16))
+        self.btnAddCard = QPushButton(" Thêm thẻ tháng")
+        self.btnAddCard.setIcon(QIcon("assets/icons/add.png"))
+        self.btnAddCard.setIconSize(QSize(30, 30))
         self.btnAddCard.setStyleSheet("""
             QPushButton {
                 background-color: #27ae60;
@@ -422,7 +428,7 @@ class MonthlyCardLogTab(QWidget):
                 background-color: #0e3449;
             }
         """)
-        self.btnAddCard.setMaximumHeight(45)
+        self.btnAddCard.setMaximumHeight(40)
         self.btnAddCard.clicked.connect(self.show_add_card_dialog)
         top_row.addWidget(self.btnAddCard)
 
@@ -633,9 +639,6 @@ class MonthlyCardLogTab(QWidget):
         self._current_dialog.show()
 
     def on_card_added(self, card_data):
-        """
-        Nhận dữ liệu thẻ mới từ dialog, thêm vào bảng và emit signal ra ngoài.
-        """
         # Thêm một dòng mới
         row = self.tblCardLogs.rowCount()
         self.tblCardLogs.insertRow(row)
@@ -750,6 +753,7 @@ class AddMonthlyCardDialog(QDialog):
         layout.setContentsMargins(20, 20, 20, 20)
 
         self.title_label = QLabel()
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.title_label.setStyleSheet("""
                 font-size: 20px;
                 font-weight: bold;
@@ -1013,8 +1017,9 @@ class SingleCardManagementTab(QWidget):
         header_frame = QFrame()
         header_frame.setStyleSheet("background-color: white; border-bottom: 1px solid #e0e0e0; padding: 5px;")
         header_layout = QVBoxLayout(header_frame)
-        lbl_title = QLabel("Quản lý thẻ lượt")
-        lbl_title.setStyleSheet("font-size: 28px; font-weight: bold; color: #2e86c1; text-align: center;")
+        lbl_title = QLabel("QUẢN LÝ THẺ LƯỢT")
+        lbl_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lbl_title.setStyleSheet("font-size: 24px; font-weight: bold; color: #2e86c1; text-align: center;")
         header_layout.addWidget(lbl_title)
         main_layout.addWidget(header_frame)
 
@@ -1066,7 +1071,9 @@ class SingleCardManagementTab(QWidget):
         """)
 
         # Refresh Button
-        self.btnRefresh = QPushButton("Làm mới")
+        self.btnRefresh = QPushButton(" Làm mới")
+        self.btnRefresh.setIcon(QIcon("assets/icons/refresh.png"))
+        self.btnRefresh.setIconSize(QSize(15, 15))
         self.btnRefresh.setStyleSheet("""
              QPushButton {
                  background-color: #ffffff;
@@ -1085,9 +1092,9 @@ class SingleCardManagementTab(QWidget):
         top_row.addStretch()
 
         # Add Button (moved to right)
-        self.btnAdd = QPushButton("Thêm thẻ lượt")
-        self.btnAdd.setIcon(QIcon("assets/icons/plus.svg"))
-        self.btnAdd.setIconSize(QSize(16, 16))
+        self.btnAdd = QPushButton(" Thêm thẻ lượt")
+        self.btnAdd.setIcon(QIcon("assets/icons/add.png"))
+        self.btnAdd.setIconSize(QSize(30, 30))
         self.btnAdd.setStyleSheet("""
             QPushButton {
                 background-color: #27ae60;
@@ -1245,6 +1252,7 @@ class SingleCardDialog(QDialog):
         
         # Title
         title_label = QLabel("THÊM THẺ LƯỢT" if not self._card else "SỬA THẺ LƯỢT")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #2E86C1; padding-bottom: 10px;")
         layout.addWidget(title_label)
 

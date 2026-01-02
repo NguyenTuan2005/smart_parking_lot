@@ -7,7 +7,6 @@ class ReportService:
 
     def get_report_data(self, start_date, end_date):
         rows = self.dao.get_parking_history(start_date, end_date)
-        print("[SERVICE] Rows fetched:", len(rows))
 
         total_in = 0
         total_out = 0

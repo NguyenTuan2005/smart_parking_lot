@@ -37,8 +37,6 @@ class ReportDAO:
             ORDER BY cl.entry_at DESC
         """
 
-        print(f"[DAO] SQL Execute from {sd} to {ed}")
-
         cursor.execute(query, (sd, ed))
         rows = cursor.fetchall()
 

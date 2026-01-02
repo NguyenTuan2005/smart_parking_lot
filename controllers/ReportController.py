@@ -28,8 +28,6 @@ class ReportController:
         start = self.view.start_date_input.date().toPyDate()
         end = self.view.end_date_input.date().toPyDate()
 
-        print(f"[CONTROLLER] Load data from {start} to {end}")
-
         data = self.service.get_report_data(start, end)
         self.view.update_ui(data)
 
