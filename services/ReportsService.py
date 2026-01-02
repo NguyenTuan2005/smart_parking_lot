@@ -44,3 +44,13 @@ class ReportService:
                 "avg": f"{int(avg_fee):,}₫/xe"
             }
         }
+
+    def get_overview_stats(self):
+        from datetime import date
+        today = date.today()
+        return {
+            "revenue": self.dao.get_daily_revenue(today),
+            "parked": self.dao.get_currently_parked_count(),
+            "entries": self.dao.get_today_entries_count(today),
+            "monthly": self.dao.get_active_monthly_cards_count()
+        }

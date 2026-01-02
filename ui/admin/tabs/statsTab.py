@@ -22,12 +22,11 @@ class StatsTab(QWidget):
         self.initUI()
 
     def initUI(self):
-        """Khởi tạo giao diện chính với các tab con"""
         main_layout = QVBoxLayout()
 
         title = QLabel("THỐNG KÊ VÀ BÁO CÁO BÃI XE")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size:22px; font-weight:bold; color:#2E86C1; padding:10px;")
+        title.setStyleSheet("font-size:24px; font-weight:bold; color:#2e86c1; padding:10px;")
         main_layout.addWidget(title)
 
         stats_tabs = QTabWidget()

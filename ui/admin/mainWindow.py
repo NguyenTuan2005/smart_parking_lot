@@ -89,6 +89,4 @@ class ParkingManagementApp(QMainWindow):
             view=self.card_tab.single_card_management_tab)
         self.staff_controller = StaffCL(view=self.Staff_tab)
         self.customer_controller = CustomerController(view=self.customer_tab)
-        self.report_controller = ReportController(
-            self.stats_tab.reports_tab
-        )
+        self.report_controller = ReportController(self.stats_tab)

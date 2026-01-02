@@ -779,6 +779,7 @@ class AddMonthlyCardDialog(QDialog):
         self.dateStart = self._create_form_row("Ngày bắt đầu:", QDateEdit(), layout)
         self.dateStart.setCalendarPopup(True)
         self.dateStart.setDisplayFormat("dd/MM/yyyy")
+        self.dateStart.setDate(QDate.currentDate())
         self.dateStart.dateChanged.connect(self.update_expiry_date)
 
         self.spinMonths = self._create_form_row("Số tháng:", QSpinBox(), layout)
@@ -1035,7 +1036,7 @@ class SingleCardManagementTab(QWidget):
         
         # Top Controls
         top_row = QHBoxLayout()
-        top_row.setSpacing(15)
+        top_row.setSpacing(20)
 
         # Search Bar
         self.txtSearch = QLineEdit()
@@ -1116,7 +1117,7 @@ class SingleCardManagementTab(QWidget):
                 background-color: #0e3449;
             }
         """)
-        self.btnAdd.setMaximumHeight(45)
+        self.btnAdd.setMaximumHeight(40)
         self.btnAdd.clicked.connect(self.show_add_dialog)
         top_row.addWidget(self.btnAdd)
 

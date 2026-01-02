@@ -149,13 +149,11 @@ class ChartsTab(QWidget):
             self._update_chart_canvas(current_key)
 
     def initUI(self):
-        """Khởi tạo giao diện tab biểu đồ"""
         layout = QVBoxLayout()
-        layout.setContentsMargins(20, 10, 20, 20)
-        layout.setSpacing(12)
+        layout.setContentsMargins(20, 20, 20, 20)
 
-        subtitle = QLabel("📈 Biểu Đồ Thống Kê")
-        subtitle.setStyleSheet("font-size:16px; font-weight:bold; color:#1F618D; padding:5px;")
+        subtitle = QLabel("BIỂU ĐỒ THỐNG KÊ")
+        subtitle.setStyleSheet("font-size:24px; font-weight:bold; color:#2e86c1;")
         layout.addWidget(subtitle)
 
         layout.addWidget(self._create_time_filter())

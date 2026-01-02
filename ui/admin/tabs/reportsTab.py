@@ -27,7 +27,7 @@ class ReportsTab(QWidget):
         self.end_date_input.setDate(QDate.currentDate())
 
         self.btn_today = QPushButton("Hôm nay")
-        self.btn_apply = QPushButton("🔍 Áp dụng")
+        self.btn_apply = QPushButton("Áp dụng")
 
         layout.addWidget(QLabel("Từ ngày:"))
         layout.addWidget(self.start_date_input)
@@ -41,9 +41,10 @@ class ReportsTab(QWidget):
 
     def initUI(self):
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
 
-        title = QLabel("📋 BÁO CÁO HOẠT ĐỘNG VÀ DOANH THU")
-        title.setStyleSheet("font-size:18px;font-weight:bold;color:#1F618D")
+        title = QLabel("BÁO CÁO HOẠT ĐỘNG VÀ DOANH THU")
+        title.setStyleSheet("font-size:24px;font-weight:bold;color:#2e86c1")
         layout.addWidget(title)
 
         layout.addWidget(self._create_time_filter())

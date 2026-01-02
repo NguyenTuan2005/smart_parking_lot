@@ -1,121 +1,177 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem,
-    QDateEdit, QPushButton
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QGridLayout, 
+    QGraphicsDropShadowEffect, QPushButton
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QColor, QIcon, QPixmap
+
+
+class StatCard(QFrame):
+    def __init__(self, title, value, icon_path, color_code, parent=None):
+        super().__init__(parent)
+        self.setMinimumHeight(140)
+        self.setMinimumWidth(280)
+        self.setObjectName("StatCard")
+        
+        self.setStyleSheet(f"""
+            QFrame#StatCard {{
+                background-color: white;
+                border-radius: 15px;
+                border: 1px solid #e0e0e0;
+            }}
+            QLabel {{
+                background: transparent;
+            }}
+        """)
+        
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(15)
+        shadow.setXOffset(0)
+        shadow.setYOffset(4)
+        shadow.setColor(QColor(0, 0, 0, 40))
+        self.setGraphicsEffect(shadow)
+        
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 15, 20, 15)
+        
+        # Content Layout: Text (Left) + Icon (Right)
+        content_layout = QHBoxLayout()
+        
+        # Text grouping
+        text_group = QVBoxLayout()
+        
+        title_label = QLabel(title)
+        title_label.setStyleSheet("color: #7f8c8d; font-size: 14px; font-weight: 600;")
+        text_group.addWidget(title_label)
+        
+        self.value_label = QLabel(value)
+        self.value_label.setStyleSheet(f"color: {color_code}; font-size: 32px; font-weight: bold; margin-top: 5px;")
+        text_group.addWidget(self.value_label)
+        
+        content_layout.addLayout(text_group, 1)
+        
+        # Icon on the right
+        from PyQt6.QtGui import QPixmap
+        icon_label = QLabel()
+        pixmap = QPixmap(icon_path)
+        if not pixmap.isNull():
+            icon_label.setPixmap(pixmap.scaled(60, 60, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        icon_label.setFixedSize(60, 60)
+        content_layout.addWidget(icon_label, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
+        
+        layout.addLayout(content_layout)
+        
+        layout.addStretch()
+        
+        # Add a subtle bottom indicator line
+        line = QFrame()
+        line.setFixedHeight(4)
+        line.setStyleSheet(f"background-color: {color_code}; border-radius: 2px;")
+        layout.addWidget(line)
 
 
 class OverviewTab(QWidget):
-    """Tab hiển thị tổng quan thống kê bãi xe"""
-    
+
     def __init__(self):
         super().__init__()
         self.initUI()
 
-    def _create_time_filter(self):
-        """Tạo bộ lọc thời gian dùng chung"""
-        filter_widget = QWidget()
-        layout = QHBoxLayout()
-        layout.setSpacing(12)
-
-        # Từ ngày
-        start_date = QDateEdit()
-        start_date.setCalendarPopup(True)
-        start_date.setDisplayFormat("dd/MM/yyyy")
-
-        # Đến ngày
-        end_date = QDateEdit()
-        end_date.setCalendarPopup(True)
-        end_date.setDisplayFormat("dd/MM/yyyy")
-
-        layout.addWidget(QLabel("Từ ngày:"))
-        layout.addWidget(start_date)
-
-        layout.addWidget(QLabel("Đến ngày:"))
-        layout.addWidget(end_date)
-
-        # Nút lọc nhanh
-        quick = ["Hôm nay", "Tuần này", "Tháng này", "Năm nay"]
-        for q in quick:
-            b = QPushButton(q)
-            b.setStyleSheet("""
-                padding: 5px 10px;
-                background:#3498DB;
-                color:white;
-                border-radius:5px;
-            """)
-            layout.addWidget(b)
-
-        # Nút áp dụng
-        btn_apply = QPushButton("Áp dụng")
-        btn_apply.setStyleSheet("""
-            padding:6px 14px;
-            background:#27AE60;
-            color:white;
-            font-weight:bold;
-            border-radius:5px;
-        """)
-        layout.addWidget(btn_apply)
-
-        filter_widget.setLayout(layout)
-        return filter_widget
-
     def initUI(self):
-        """Khởi tạo giao diện tab tổng quan"""
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(20)
+        
+        # 1. Header Section
+        header_layout = QHBoxLayout()
+        title_label = QLabel("TỔNG QUAN HỆ THỐNG")
+        title_label.setStyleSheet("font-size: 25px; font-weight: bold; color: #2e86c1")
+        header_layout.addWidget(title_label)
+        header_layout.addStretch()
+        
+        # Refresh Section: Time Label + Reload Button
+        refresh_layout = QHBoxLayout()
+        refresh_layout.setSpacing(15)
+        
+        self.lbl_last_update = QLabel("Cập nhật lúc: --:--")
+        self.lbl_last_update.setStyleSheet("color: #95a5a6; font-size: 13px;")
+        
+        self.btn_reload = QPushButton(" Làm mới")
+        self.btn_reload.setIcon(QIcon("assets/icons/refresh.png"))
+        self.btn_reload.setIconSize(QSize(16, 16))
+        self.btn_reload.setStyleSheet("""
+            QPushButton {
+                background-color: white;
+                border: 1px solid #dcdcdc;
+                border-radius: 6px;
+                padding: 6px 15px;
+                color: #2c3e50;
+                font-weight: 600;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #f8f9fa;
+                border-color: #2e86c1;
+            }
+        """)
+        
+        refresh_layout.addWidget(self.lbl_last_update)
+        refresh_layout.addWidget(self.btn_reload)
+        header_layout.addLayout(refresh_layout)
+        
+        layout.addLayout(header_layout)
+        
+        # 2. Stat Cards Section (4 cards)
+        cards_layout = QHBoxLayout()
+        cards_layout.setSpacing(25)
+        
+        self.card_revenue = StatCard("Doanh thu hôm nay", "0 ₫", "assets/icons/revenue.png", "#27ae60")
+        self.card_parked = StatCard("Xe đang gửi", "0", "assets/icons/motorbike.png", "#2980b9")
+        self.card_entries = StatCard("Lượt xe hôm nay", "0", "assets/icons/bikeCount.png", "#f39c12")
+        self.card_monthly = StatCard("Thẻ tháng còn hạn", "0", "assets/icons/card.png", "#8e44ad")
+        
+        cards_layout.addWidget(self.card_revenue, 1)
+        cards_layout.addWidget(self.card_parked, 1)
+        cards_layout.addWidget(self.card_entries, 1)
+        cards_layout.addWidget(self.card_monthly, 1)
+        
+        layout.addLayout(cards_layout)
+        
+        # 3. Middle Section: Activity Feed or Quick Insight
+        insight_layout = QHBoxLayout()
+        
+        # Left: Quick Info
+        info_frame = QFrame()
+        info_frame.setStyleSheet("background-color: #fdfdfd; border-radius: 12px; border: 1px solid #eee;")
+        info_vbox = QVBoxLayout(info_frame)
+        info_title = QLabel("Thông tin nhanh")
+        info_title.setStyleSheet("font-weight: bold; color: #34495e; font-size: 15px;")
+        info_vbox.addWidget(info_title)
+        
+        self.info_content = QLabel("Hệ thống đang hoạt động ổn định.\nHiện tại bãi xe còn 45 chỗ trống.")
+        self.info_content.setStyleSheet("color: #7f8c8d; font-size: 14px; line-height: 1.5;")
+        self.info_content.setWordWrap(True)
+        info_vbox.addWidget(self.info_content)
+        info_vbox.addStretch()
+        
+        insight_layout.addWidget(info_frame, 1)
+        
+        # Right: Empty for now (can add mini chart later)
+        placeholder = QFrame()
+        placeholder.setStyleSheet("background-color: #fdfdfd; border-radius: 12px; border: 1px solid #eee; border-left: 4px solid #3498db;")
+        p_layout = QVBoxLayout(placeholder)
+        p_layout.addWidget(QLabel("Biểu đồ nhanh (Sắp ra mắt)"))
+        insight_layout.addWidget(placeholder, 2)
+        
+        layout.addLayout(insight_layout, 1) # Give it stretching weight
+        
+        # Spacer at bottom
+        layout.addStretch()
 
-        subtitle = QLabel("📊 Tổng Quan Bãi Xe")
-        subtitle.setStyleSheet("font-size:16px; font-weight:bold; color:#1F618D; padding:5px;")
-        layout.addWidget(subtitle)
-
-        layout.addWidget(self._create_time_filter())
-
-        table = QTableWidget()
-        table.setColumnCount(5)
-        table.setHorizontalHeaderLabels([
-            "Loại Thẻ", "Số Lượng Thẻ", "Số Xe Hiện Tại", "Doanh Thu", "Tỷ Lệ %"
-        ])
-
-        data = [
-            ("Thẻ Lượt", 20, 15, "5,000,000₫", "45%"),
-            ("Thẻ Tháng", 10, 8, "12,000,000₫", "55%")
-        ]
-
-        table.setRowCount(len(data))
-        for r, row in enumerate(data):
-            for c, v in enumerate(row):
-                table.setItem(r, c, QTableWidgetItem(str(v)))
-        layout.addWidget(table)
-
-        summary = QHBoxLayout()
-        info = [
-            ("Tổng Doanh Thu", "17,000,000₫", "#27AE60"),
-            ("Tổng Xe", "23", "#3498DB"),
-            ("Tổng Thẻ", "30", "#E74C3C"),
-            ("Lượt Ra Vào", "145", "#F39C12"),
-        ]
-        for t, v, col in info:
-            summary.addWidget(self._create_summary_box(t, v, col))
-
-        layout.addLayout(summary)
-        self.setLayout(layout)
-
-    def _create_summary_box(self, title, value, color):
-        """Tạo box tóm tắt nhanh"""
-        box = QWidget()
-        v = QVBoxLayout()
-        v.addWidget(QLabel(f"<b>{title}</b>"))
-        lbl = QLabel(value)
-        lbl.setStyleSheet(f"font-size:18px; color:{color}; font-weight:bold;")
-        v.addWidget(lbl)
-        box.setLayout(v)
-        box.setStyleSheet(f"""
-                    QWidget {{
-                        border:2px solid {color};
-                        border-radius:10px;
-                        background:#F8F9F9;
-                        padding:10px;
-                    }}
-                """)
-        return box
-
+    def update_stats(self, revenue, parked, entries, monthly):
+        self.card_revenue.value_label.setText(f"{int(revenue):,} ₫")
+        self.card_parked.value_label.setText(str(parked))
+        self.card_entries.value_label.setText(str(entries))
+        self.card_monthly.value_label.setText(str(monthly))
+        
+        from datetime import datetime
+        self.lbl_last_update.setText(f"Cập nhật lúc: {datetime.now().strftime('%H:%M:%S')}")
