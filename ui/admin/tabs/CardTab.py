@@ -765,7 +765,7 @@ class AddMonthlyCardDialog(QDialog):
         # Divider
         divider = QFrame()
         divider.setFrameShape(QFrame.Shape.HLine)
-        divider.setStyleSheet("background-color: #e0e0e0;")
+        divider.setStyleSheet("background-color: gray;")
         layout.addWidget(divider)
 
         # form
@@ -792,6 +792,8 @@ class AddMonthlyCardDialog(QDialog):
         self.dateExpiry.setReadOnly(True)
 
         self.txtMonthlyFee = self._create_form_row("Phí tháng (VND):", QLineEdit(), layout)
+        self.txtMonthlyFee.setReadOnly(True)
+        self.txtMonthlyFee.setStyleSheet(self.txtMonthlyFee.styleSheet() + "background-color: #f5f5f5;")
 
         chk_container = QWidget()
         chk_layout = QHBoxLayout(chk_container)
@@ -880,6 +882,7 @@ class AddMonthlyCardDialog(QDialog):
         layout.addLayout(btn_layout)
 
         self.setLayout(layout)
+        self.update_expiry_date()
         self.setStyleSheet("""
                     QLineEdit, QComboBox, QSpinBox, QDateEdit {
                         padding: 8px;
@@ -921,7 +924,6 @@ class AddMonthlyCardDialog(QDialog):
         months = card_data.get('months', 1)
         self.spinMonths.setValue(months)
         self.update_expiry_date()
-        self.txtMonthlyFee.setText(str(card_data.get('monthly_fee', 0)))
         self.chkIsPaid.setChecked(card_data.get('is_paid', False))
 
     def _create_form_row(self, label_text, widget, parent_layout):
@@ -938,6 +940,8 @@ class AddMonthlyCardDialog(QDialog):
         months = self.spinMonths.value()
         expiry_date = start_date.addMonths(months)
         self.dateExpiry.setDate(expiry_date)
+        total_fee = months * 60000
+        self.txtMonthlyFee.setText(f"{total_fee:,}")
 
     def save_card(self):
         # Validate
@@ -1259,7 +1263,7 @@ class SingleCardDialog(QDialog):
         # Divider
         divider = QFrame()
         divider.setFrameShape(QFrame.Shape.HLine)
-        divider.setStyleSheet("background-color: #e0e0e0;")
+        divider.setStyleSheet("background-color: gray;")
         layout.addWidget(divider)
 
         # Form

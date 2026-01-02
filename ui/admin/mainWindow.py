@@ -62,7 +62,6 @@ class ParkingManagementApp(QMainWindow):
             self.close()
 
     def _on_logout(self):
-
         pass
 
     def initUI(self):
