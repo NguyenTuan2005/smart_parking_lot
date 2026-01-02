@@ -1,123 +1,107 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem,
-    QDateEdit, QPushButton
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QTableWidget, QTableWidgetItem,
+    QDateEdit, QPushButton, QHeaderView
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QDate
 
 
 class ReportsTab(QWidget):
-    """Tab hiển thị báo cáo chi tiết"""
-    
     def __init__(self):
         super().__init__()
         self.initUI()
 
     def _create_time_filter(self):
-        """Tạo bộ lọc thời gian dùng chung"""
-        filter_widget = QWidget()
-        layout = QHBoxLayout()
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
         layout.setSpacing(12)
 
-        # Từ ngày
-        start_date = QDateEdit()
-        start_date.setCalendarPopup(True)
-        start_date.setDisplayFormat("dd/MM/yyyy")
+        self.start_date_input = QDateEdit()
+        self.start_date_input.setCalendarPopup(True)
+        self.start_date_input.setDisplayFormat("dd/MM/yyyy")
+        self.start_date_input.setDate(QDate.currentDate())
 
-        # Đến ngày
-        end_date = QDateEdit()
-        end_date.setCalendarPopup(True)
-        end_date.setDisplayFormat("dd/MM/yyyy")
+        self.end_date_input = QDateEdit()
+        self.end_date_input.setCalendarPopup(True)
+        self.end_date_input.setDisplayFormat("dd/MM/yyyy")
+        self.end_date_input.setDate(QDate.currentDate())
+
+        self.btn_today = QPushButton("Hôm nay")
+        self.btn_apply = QPushButton("🔍 Áp dụng")
 
         layout.addWidget(QLabel("Từ ngày:"))
-        layout.addWidget(start_date)
-
+        layout.addWidget(self.start_date_input)
         layout.addWidget(QLabel("Đến ngày:"))
-        layout.addWidget(end_date)
+        layout.addWidget(self.end_date_input)
+        layout.addWidget(self.btn_today)
+        layout.addWidget(self.btn_apply)
+        layout.addStretch()
 
-        # Nút lọc nhanh
-        quick = ["Hôm nay", "Tuần này", "Tháng này", "Năm nay"]
-        for q in quick:
-            b = QPushButton(q)
-            b.setStyleSheet("""
-                padding: 5px 10px;
-                background:#3498DB;
-                color:white;
-                border-radius:5px;
-            """)
-            layout.addWidget(b)
-
-        # Nút áp dụng
-        btn_apply = QPushButton("Áp dụng")
-        btn_apply.setStyleSheet("""
-            padding:6px 14px;
-            background:#27AE60;
-            color:white;
-            font-weight:bold;
-            border-radius:5px;
-        """)
-        layout.addWidget(btn_apply)
-
-        filter_widget.setLayout(layout)
-        return filter_widget
+        return widget
 
     def initUI(self):
-        """Khởi tạo giao diện tab báo cáo"""
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
 
-        subtitle = QLabel("📋 Báo Cáo Chi Tiết Hôm Nay")
-        subtitle.setStyleSheet("font-size:16px; font-weight:bold; color:#1F618D; padding:5px;")
-        layout.addWidget(subtitle)
+        title = QLabel("📋 BÁO CÁO HOẠT ĐỘNG VÀ DOANH THU")
+        title.setStyleSheet("font-size:18px;font-weight:bold;color:#1F618D")
+        layout.addWidget(title)
 
         layout.addWidget(self._create_time_filter())
 
-        report = QTableWidget()
-        report.setColumnCount(6)
-        report.setHorizontalHeaderLabels([
-            "Thời Gian", "Loại Thẻ", "Biển Số", "Hành Động", "Doanh Thu", "Ghi Chú"
+        self.report_table = QTableWidget()
+        self.report_table.setColumnCount(6)
+        self.report_table.setHorizontalHeaderLabels([
+            "Thời Gian", "Loại Thẻ", "Biển Số",
+            "Hành Động", "Doanh Thu", "Ghi Chú"
         ])
 
-        data = [
-            ("08:30", "Thẻ Lượt", "30-AB-123", "Vào", "50,000₫", "OK"),
-            ("14:20", "Thẻ Lượt", "30-IJ-345", "Ra", "50,000₫", "OK"),
-            ("10:45", "Thẻ Lượt", "30-CD-999", "Ra", "0₫", "Hết hạn"),
-        ]
+        self.report_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        self.report_table.verticalHeader().setVisible(False)
 
-        report.setRowCount(len(data))
-        for r, row in enumerate(data):
-            for c, v in enumerate(row):
-                report.setItem(r, c, QTableWidgetItem(str(v)))
-
-        layout.addWidget(report)
+        layout.addWidget(self.report_table)
 
         bottom = QHBoxLayout()
-        today = [
-            ("Xe Vào", "45", "#3498DB"),
-            ("Xe Ra", "42", "#2ECC71"),
-            ("Doanh Thu Hôm Nay", "850,000₫", "#E74C3C"),
-            ("Trung Bình", "20,238₫/xe", "#F39C12"),
-        ]
-        for t, v, col in today:
-            bottom.addWidget(self._create_summary_box(t, v, col))
+        self.box_in, self.lbl_in = self._box("Xe Vào", "0", "#3498DB")
+        self.box_out, self.lbl_out = self._box("Xe Ra", "0", "#2ECC71")
+        self.box_rev, self.lbl_rev = self._box("Doanh Thu", "0₫", "#E74C3C")
+        self.box_avg, self.lbl_avg = self._box("Trung Bình", "0₫/xe", "#F39C12")
+
+        for b in [self.box_in, self.box_out, self.box_rev, self.box_avg]:
+            bottom.addWidget(b)
 
         layout.addLayout(bottom)
-        self.setLayout(layout)
 
-    def _create_summary_box(self, title, value, color):
-        """Tạo box tóm tắt nhanh"""
+    def _box(self, title, value, color):
         box = QWidget()
-        v = QVBoxLayout()
+        v = QVBoxLayout(box)
         v.addWidget(QLabel(f"<b>{title}</b>"))
-        lbl = QLabel(value)
-        lbl.setStyleSheet(f"font-size:18px; color:{color}; font-weight:bold;")
-        v.addWidget(lbl)
-        box.setLayout(v)
-        box.setStyleSheet(f"""
-                    QWidget {{
-                        border:2px solid {color};
-                        border-radius:10px;
-                        background:#F8F9F9;
-                        padding:10px;
-                    }}
-                """)
-        return box
 
+        lbl = QLabel(value)
+        lbl.setStyleSheet(f"font-size:20px;color:{color};font-weight:bold")
+        v.addWidget(lbl)
+
+        box.setStyleSheet(f"""
+            QWidget {{
+                border:2px solid {color};
+                border-radius:10px;
+                padding:10px;
+            }}
+        """)
+        return box, lbl
+
+    def update_ui(self, data):
+        self.report_table.setRowCount(0)
+
+        for r, row in enumerate(data["table_data"]):
+            self.report_table.insertRow(r)
+            for c, val in enumerate(row):
+                item = QTableWidgetItem(str(val))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.report_table.setItem(r, c, item)
+
+        self.lbl_in.setText(data["stats"]["in"])
+        self.lbl_out.setText(data["stats"]["out"])
+        self.lbl_rev.setText(data["stats"]["revenue"])
+        self.lbl_avg.setText(data["stats"]["avg"])
