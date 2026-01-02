@@ -12,6 +12,9 @@ from ui.admin.tabs.StaffTab import StaffTab
 from ui.admin.tabs.statsTab import StatsTab
 from ui.admin.tabs.parkingConfigTab import ParkingConfigTab
 from ui.common import LogoutHandler
+from controllers.ReportController import ReportController
+
+from  ui.admin.tabs.reportsTab import ReportsTab
 
 
 class ParkingManagementApp(QMainWindow):
@@ -25,7 +28,7 @@ class ParkingManagementApp(QMainWindow):
         self.Staff_tab = StaffTab()
         self.stats_tab = StatsTab()
         self.parking_config_tab = ParkingConfigTab()
-
+        self.report_tab = ReportsTab()
         self.setWindowTitle("Hệ thống quản lý bãi xe - Admin")
         self.setGeometry(200, 100, 1200, 600)
         
@@ -75,6 +78,7 @@ class ParkingManagementApp(QMainWindow):
         self.tabs.addTab(self.stats_tab, "Thống kê")
         self.tabs.addTab(self.parking_config_tab, "Cấu hình bãi xe")
 
+
         layout.addWidget(self.tabs)
         central_widget.setLayout(layout)
 
@@ -86,3 +90,6 @@ class ParkingManagementApp(QMainWindow):
         self.single_card_management_controller = SingleCardManagementController(
             view=self.card_tab.single_card_management_tab)
         self.staff_controller = StaffCL(view=self.Staff_tab)
+        self.report_controller = ReportController(
+            self.stats_tab.reports_tab
+        )

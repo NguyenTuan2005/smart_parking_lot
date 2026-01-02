@@ -16,9 +16,9 @@ class StatisticsController:
         if hasattr(view, 'chart_type_changed'):
             view.chart_type_changed.connect(self.on_chart_type_changed)
 
-    def get_revenue_trend_data(self, year: int = None) -> Tuple[List[str], List[float]]:
+    def get_revenue_trend_data(self, year: int = None, start_date: datetime = None, end_date: datetime = None) -> Tuple[List[str], List[float]]:
         """Lấy dữ liệu doanh thu theo tháng"""
-        return self.service.get_revenue_trend_data(year)
+        return self.service.get_revenue_trend_data(year, start_date, end_date)
 
     def get_vehicle_mix_data(self, start_date: datetime = None, end_date: datetime = None) -> Tuple[List[str], List[int]]:
         """Lấy dữ liệu cơ cấu lượt xe"""

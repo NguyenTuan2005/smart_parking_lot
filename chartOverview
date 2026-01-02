@@ -1,0 +1,273 @@
+# 📊 TÀI LIỆU MỤC ĐÍCH & Ý NGHĨA CÁC BIỂU ĐỒ THỐNG KÊ BÃI XE
+
+## Mục lục
+1. [Doanh thu theo tháng](#1-doanh-thu-theo-tháng)
+2. [Cơ cấu lượt xe](#2-cơ-cấu-lượt-xe)
+3. [Thời gian đỗ xe theo nhóm](#3-thời-gian-đỗ-xe-theo-nhóm)
+4. [Lượt xe theo giờ & ngày (Heatmap)](#4-lượt-xe-theo-giờ--ngày-heatmap)
+5. [Lượt vào/ra theo ngày](#5-lượt-vàora-theo-ngày)
+6. [Tương quan phí & thời gian đỗ](#6-tương-quan-phí--thời-gian-đỗ)
+7. [Phân bố lượt xe theo giờ](#7-phân-bố-lượt-xe-theo-giờ)
+
+---
+
+## 1. Doanh thu theo tháng
+**📈 Loại biểu đồ:** Line Chart (Biểu đồ đường)
+
+### Mục đích
+Theo dõi xu hướng tăng trưởng doanh thu của bãi xe qua các tháng trong năm.
+
+### Tại sao cần thiết?
+- **Đánh giá hiệu quả kinh doanh**: Xem doanh thu có tăng/giảm qua thời gian
+- **Phát hiện xu hướng**: Tháng nào cao điểm, tháng nào thấp điểm
+- **Lập kế hoạch tài chính**: Dự báo doanh thu các tháng tiếp theo
+- **So sánh năm trước**: Xem tăng trưởng so với cùng kỳ
+
+### Ứng dụng thực tế
+- **Quản lý**: Ra quyết định đầu tư, mở rộng dựa trên doanh thu
+- **Marketing**: Tập trung quảng bá vào tháng thấp điểm
+- **Tài chính**: Lập ngân sách, dự báo dòng tiền
+
+### Ví dụ phân tích
+```
+Tháng 1: 200k → Tháng 2: 400k → Tháng 3: 600k
+➜ Doanh thu tăng 200% trong Q1
+➜ Cần duy trì chiến lược hiện tại
+```
+
+---
+
+## 2. Cơ cấu lượt xe
+**📊 Loại biểu đồ:** Bar Chart (Biểu đồ cột)
+
+### Mục đích
+So sánh tỷ trọng giữa khách hàng dùng thẻ tháng và khách vãng lai/lượt.
+
+### Tại sao cần thiết?
+- **Hiểu cấu trúc khách hàng**: Đâu là nguồn khách chính
+- **Chiến lược giá**: Điều chỉnh giá cho phù hợp với từng nhóm
+- **Tối ưu dịch vụ**: Phục vụ tốt hơn nhóm khách đông đảo
+- **Dự đoán doanh thu**: Thẻ tháng = doanh thu ổn định
+
+### Ứng dụng thực tế
+- **Nếu thẻ tháng chiếm đa số**:
+  - Doanh thu ổn định hàng tháng
+  - Tập trung chăm sóc khách hàng cũ
+  - Ưu đãi gia hạn thẻ
+
+- **Nếu khách lượt chiếm đa số**:
+  - Doanh thu biến động theo ngày
+  - Cần chiến lược thu hút khách mới
+  - Tăng cường marketing
+
+### Ví dụ phân tích
+```
+Thẻ tháng: 13 lượt (24%)
+Khách lượt: 40 lượt (76%)
+➜ Bãi xe phụ thuộc nhiều vào khách vãng lai
+➜ Nên có chương trình khuyến mãi thẻ tháng để tăng doanh thu ổn định
+```
+
+---
+
+## 3. Thời gian đỗ xe theo nhóm
+**📦 Loại biểu đồ:** Box Plot (Biểu đồ hộp)
+
+### Mục đích
+Phân tích và so sánh phân bố thời gian đỗ xe của từng nhóm khách hàng.
+
+### Tại sao cần thiết?
+- **Hiểu hành vi khách hàng**: Mỗi nhóm đỗ xe bao lâu
+- **Tối ưu chính sách giá**: Định giá phù hợp với thời gian đỗ
+- **Quản lý vị trí đỗ**: Phân bổ chỗ đỗ cho phù hợp
+- **Phát hiện bất thường**: Khách đỗ quá lâu hoặc quá ngắn
+
+### Ứng dụng thực tế
+- **Thẻ tháng**: Đỗ dài (8-12 giờ)
+  - Nhân viên văn phòng, cư dân
+  - Cần vị trí đỗ cố định, thuận tiện
+
+- **Khách lượt**: Đỗ ngắn (30 phút - 1.5 giờ)
+  - Khách mua sắm, ăn uống
+  - Cần vị trí gần lối ra/vào
+
+### Ví dụ phân tích
+```
+Thẻ tháng: Trung bình 9 giờ (480-720 phút)
+Khách lượt: Trung bình 1.5 giờ (30-270 phút)
+➜ 2 nhóm khách có nhu cầu rất khác biệt
+➜ Nên phân khu vực đỗ riêng biệt
+```
+
+---
+
+## 4. Lượt xe theo giờ & ngày (Heatmap)
+**🔥 Loại biểu đồ:** Heatmap (Bản đồ nhiệt)
+
+### Mục đích
+Nhận diện khung giờ và ngày trong tuần có mật độ xe cao/thấp nhất.
+
+### Tại sao cần thiết?
+- **Bố trí nhân sự**: Tăng nhân viên vào giờ cao điểm
+- **Quản lý không gian**: Biết khi nào cần mở rộng/thu hẹp khu vực
+- **Tối ưu vận hành**: Chuẩn bị sẵn sàng cho lượt xe đông
+- **Điều chỉnh giá**: Có thể tăng giá giờ cao điểm
+
+### Ứng dụng thực tế
+- **Khung giờ 8-9h, 16-18h**: Giờ cao điểm
+  - Cần 3-4 nhân viên
+  - Mở tất cả làn vào/ra
+  - Chuẩn bị máy in vé dự phòng
+
+- **Thứ 2, 5**: Ngày cao điểm
+  - Kiểm tra camera trước
+  - Đảm bảo đủ giấy in vé
+
+### Ví dụ phân tích
+```
+Thứ 2-5: Cao điểm (4-5 lượt)
+Thứ 6-CN: Thấp điểm (1-2 lượt)
+Khung giờ 8-9h, 16-18h: Mật độ cao nhất
+➜ Tăng nhân viên T2-T5, giảm T6-CN
+➜ Sắp xếp ca làm linh hoạt theo giờ
+```
+
+---
+
+## 5. Lượt vào/ra theo ngày
+**📊 Loại biểu đồ:** Grouped Bar Chart (Biểu đồ cột nhóm)
+
+### Mục đích
+So sánh số lượt xe vào và ra theo từng ngày trong tuần để phát hiện ngày cao điểm.
+
+### Tại sao cần thiết?
+- **Lập lịch làm việc**: Biết ngày nào cần nhiều nhân viên
+- **Bảo trì thiết bị**: Chọn ngày ít xe để sửa chữa
+- **Chạy khuyến mãi**: Tăng khách vào ngày thấp điểm
+- **Dự báo doanh thu**: Biết ngày nào doanh thu cao
+
+### Ứng dụng thực tế
+- **Ngày cao điểm**: Chuẩn bị tốt hơn
+  - Đủ nhân viên
+  - Kiểm tra thiết bị
+  - Chuẩn bị giấy in vé
+
+- **Ngày thấp điểm**: Tối ưu chi phí
+  - Giảm nhân viên
+  - Bảo trì thiết bị
+  - Chạy chương trình khuyến mãi
+
+### Ví dụ phân tích
+```
+T2: 2 lượt | T3: 3 lượt | T4: 4 lượt | T5: 5 lượt (cao nhất)
+T6: 2 lượt | T7: 1 lượt | CN: 1 lượt (thấp nhất)
+➜ T2-T5: 3 nhân viên
+➜ T6-CN: 1-2 nhân viên
+➜ Chạy khuyến mãi T6-CN
+```
+
+---
+
+## 6. Tương quan phí & thời gian đỗ
+**📈 Loại biểu đồ:** Scatter Plot with Regression (Biểu đồ phân tán có đường hồi quy)
+
+### Mục đích
+Kiểm tra xem phí thu có tỷ lệ thuận với thời gian đỗ hay không, phát hiện sai sót trong tính phí.
+
+### Tại sao cần thiết?
+- **Kiểm tra công thức tính phí**: Xem có đúng với quy định không
+- **Phát hiện gian lận**: Tìm các trường hợp thu sai
+- **Tối ưu bảng giá**: Điều chỉnh giá cho hợp lý
+- **Đảm bảo công bằng**: Khách đỗ lâu phải trả nhiều hơn
+
+### Ứng dụng thực tế
+- **Đường hồi quy thẳng**: Tính phí chính xác
+- **Điểm nằm xa đường**: Có thể sai sót
+  - Nhân viên tính sai
+  - Hệ thống lỗi
+  - Cần kiểm tra lại
+
+### Ví dụ phân tích
+```
+Thời gian tăng → Phí tăng tuyến tính
+30 phút: ~5k | 1 giờ: ~10k | 2 giờ: ~20k | 4 giờ: ~40k
+➜ Công thức đúng: Phí = 0.4 × Phút + 7
+➜ Nếu có điểm lệch: Cần kiểm tra giao dịch đó
+```
+
+---
+
+## 7. Phân bố lượt xe theo giờ
+**📊 Loại biểu đồ:** Histogram (Biểu đồ tần suất)
+
+### Mục đích
+Xem chi tiết phân bố lượt xe theo từng giờ trong ngày để quyết định giờ mở/đóng cửa.
+
+### Tại sao cần thiết?
+- **Quyết định giờ hoạt động**: Có nên mở 24/7 không?
+- **Sắp xếp ca làm**: Tập trung nhân viên giờ cao điểm
+- **Tiết kiệm chi phí**: Đóng cửa giờ không có xe
+- **Tối ưu dịch vụ**: Phục vụ tốt nhất giờ đông khách
+
+### Ứng dụng thực tế
+- **6-7h**: Ít xe (1-2 lượt)
+  - 1 nhân viên
+  - Không cần mở hết làn
+
+- **8-9h, 16-19h**: Nhiều xe (5-9 lượt)
+  - 3-4 nhân viên
+  - Mở tất cả làn vào/ra
+  - Sẵn sàng hỗ trợ khách
+
+- **22-5h**: Rất ít xe (0-1 lượt)
+  - Có thể đóng cửa
+  - Hoặc chỉ 1 nhân viên trực
+
+### Ví dụ phân tích
+```
+06-07h: 1-2 lượt (ít)
+08-09h: 5-7 lượt (cao điểm)
+12-13h: 3 lượt (trung bình)
+16-19h: 7-9 lượt (cao điểm)
+22-05h: 0-1 lượt (rất ít)
+➜ Giờ vàng: 8-9h, 16-19h
+➜ Có thể đóng cửa 22h-6h để tiết kiệm
+➜ Hoặc giảm nhân viên xuống 1 người
+```
+
+---
+
+## 🎯 Tổng kết tầm quan trọng
+
+### 1. **Tối ưu vận hành** (Operational Efficiency)
+- Biểu đồ 4, 5, 7: Giúp bố trí nhân sự, ca làm việc hợp lý
+- Tiết kiệm chi phí, tăng hiệu quả
+
+### 2. **Tối ưu doanh thu** (Revenue Optimization)
+- Biểu đồ 1, 2, 6: Giúp tối đa hóa doanh thu
+- Định giá đúng, chạy khuyến mãi đúng thời điểm
+
+### 3. **Hiểu khách hàng** (Customer Insights)
+- Biểu đồ 2, 3: Hiểu nhu cầu và hành vi khách hàng
+- Phục vụ tốt hơn, tăng sự hài lòng
+
+### 4. **Ra quyết định dựa trên dữ liệu** (Data-Driven Decision)
+- Tất cả biểu đồ: Cung cấp bằng chứng cụ thể
+- Không còn đoán mò, quyết định chính xác hơn
+
+---
+
+## 📝 Kết luận
+
+Mỗi biểu đồ đều có mục đích riêng và bổ sung cho nhau:
+- **Biểu đồ tài chính** (1, 6): Quản lý tiền
+- **Biểu đồ vận hành** (4, 5, 7): Quản lý người và thời gian
+- **Biểu đồ khách hàng** (2, 3): Quản lý dịch vụ
+
+Khi kết hợp tất cả, bạn có một **hệ thống quản lý toàn diện** giúp:
+✅ Tăng doanh thu
+✅ Giảm chi phí
+✅ Nâng cao chất lượng dịch vụ
+✅ Ra quyết định nhanh và chính xác
+
+**Đầu tư vào hệ thống thống kê = Đầu tư vào tương lai của bãi xe!** 🚀

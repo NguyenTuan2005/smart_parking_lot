@@ -18,7 +18,6 @@ class StaffCL:
 
     def load_data(self):
         rows = self.service.get_list()
-        print(f"DEBUG - Dữ liệu lấy được: {rows}")
         self.view.set_table_data(rows)
 
     def handle_search(self):
