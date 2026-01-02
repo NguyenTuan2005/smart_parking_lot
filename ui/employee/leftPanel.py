@@ -65,7 +65,7 @@ class LeftPanel(QWidget):
         # Tối ưu hóa Style
         bsVaoFrame.setStyleSheet("""
             QFrame {
-                padding: 6px; /* Giảm padding */
+                padding: 6px 22px; /* Giảm padding */
                 font-size: 22px; 
                 border-radius: 6px; /* Giảm border-radius */
                 background-color: #34495e; 
@@ -91,7 +91,7 @@ class LeftPanel(QWidget):
         # Tối ưu hóa Style
         bsRaFrame.setStyleSheet("""
             QFrame {
-                padding: 6px;
+                padding: 6px 22px;
                 font-size: 22px;
                 border-radius: 6px;
                 background-color: #34495e;
