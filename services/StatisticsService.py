@@ -9,11 +9,15 @@ class StatisticsService:
     def __init__(self):
         self._dao = StatisticsDAO()
 
-    def get_revenue_trend_data(self, year: int = None) -> Tuple[List[str], List[float]]:
+    def get_revenue_trend_data(self, year: int = None, start_date: datetime = None, end_date: datetime = None) -> Tuple[List[str], List[float]]:
         """
         Lấy dữ liệu doanh thu theo tháng để vẽ biểu đồ
         Returns: (months, revenues)
         """
+        if start_date and end_date:
+            # Nếu có date range, lấy year từ start_date
+            year = start_date.year
+        
         data = self._dao.get_revenue_by_month(year)
         
         if not data:
