@@ -23,7 +23,7 @@ class MonthlyCardDAO:
                   SELECT *
                   FROM monthly_cards
                   WHERE id = ?
-                    AND is_active = 1 \
+                    AND is_active = 1 
                   """
 
             row = cursor.execute(sql, card_id).fetchone()
@@ -45,7 +45,7 @@ class MonthlyCardDAO:
                   SELECT *
                   FROM monthly_cards
                   WHERE card_code = ?
-                    AND is_active = 1 \
+                    AND is_active = 1 
                   """
 
             row = cursor.execute(sql, card_code).fetchone()
@@ -76,7 +76,7 @@ class MonthlyCardDAO:
         try:
             conn = self._db.connect()
             cursor = conn.cursor()
-            
+
             sql = """
                 SELECT mc.*
                 FROM monthly_cards mc
@@ -88,14 +88,15 @@ class MonthlyCardDAO:
                        OR v.plate_number LIKE ?)
             """
             wildcard_keyword = f"%{keyword}%"
-            rows = cursor.execute(sql, (wildcard_keyword, wildcard_keyword, wildcard_keyword)).fetchall()
+            rows = cursor.execute(
+                sql, (wildcard_keyword, wildcard_keyword, wildcard_keyword)
+            ).fetchall()
             conn.close()
-            
+
             return [self._map_row_to_monthly_card(r) for r in rows]
         except Exception as e:
             print(f"Error in MonthlyCardDAO.search_cards: {e}")
             return []
-
 
     def save(self, card_dto: MonthlyCardDTO) -> bool:
 
@@ -103,22 +104,25 @@ class MonthlyCardDAO:
         cursor = conn.cursor()
 
         try:
-            start_date_str = card_dto.start_date.strftime('%Y-%m-%d')
-            expiry_date_str = card_dto.expiry_date.strftime('%Y-%m-%d')
+            start_date_str = card_dto.start_date.strftime("%Y-%m-%d")
+            expiry_date_str = card_dto.expiry_date.strftime("%Y-%m-%d")
 
-            cursor.execute("""
+            cursor.execute(
+                """
                            INSERT INTO monthly_cards (card_code, customer_id, vehicle_id, monthly_fee,
                                                       start_date, expiry_date, is_paid)
                            VALUES (?, ?, ?, ?, ?, ?, ?)
-                           """, (
-                               card_dto.card_code,
-                               card_dto.customer_id,
-                               card_dto.vehicle_id,
-                               card_dto.monthly_fee,
-                               start_date_str,
-                               expiry_date_str,
-                               card_dto.is_paid
-                           ))
+                           """,
+                (
+                    card_dto.card_code,
+                    card_dto.customer_id,
+                    card_dto.vehicle_id,
+                    card_dto.monthly_fee,
+                    start_date_str,
+                    expiry_date_str,
+                    card_dto.is_paid,
+                ),
+            )
             conn.commit()
 
             return cursor.rowcount > 0
@@ -140,7 +144,7 @@ class MonthlyCardDAO:
                   UPDATE monthly_cards
                   SET is_paid    = ?,
                       updated_at = GETDATE()
-                  WHERE id = ? \
+                  WHERE id = ? 
                   """
 
             cursor.execute(sql, is_paid, card_id)
@@ -160,21 +164,24 @@ class MonthlyCardDAO:
                   expiry_date = ?,
                   is_paid     = ?,
                   updated_at  = GETDATE()
-              WHERE id = ? \
+              WHERE id = ? 
               """
 
         conn = self._db.connect()
         try:
             cursor = conn.cursor()
             cursor.execute(
-                sql,(card.card_code,
+                sql,
+                (
+                    card.card_code,
                     card.customer.id,
                     card.vehicle.vehicle_id,
                     card.monthly_fee,
                     card.start_date,
                     card.expiry_date,
                     card.is_paid,
-                    card.card_id,)
+                    card.card_id,
+                ),
             )
             conn.commit()
         except Exception:
@@ -192,7 +199,7 @@ class MonthlyCardDAO:
                   UPDATE monthly_cards
                   SET expiry_date = ?,
                       updated_at  = GETDATE()
-                  WHERE id = ? \
+                  WHERE id = ? 
                   """
 
             cursor.execute(sql, new_expiry, card_id)
@@ -201,7 +208,7 @@ class MonthlyCardDAO:
         except Exception as e:
             print(f"Error in MonthlyCardDAO.extend_expiry: {e}")
 
-    def delete(self, card_code:str):
+    def delete(self, card_code: str):
         try:
             conn = self._db.connect()
             cursor = conn.cursor()
@@ -212,7 +219,7 @@ class MonthlyCardDAO:
             conn.commit()
             conn.close()
 
-            return result>0
+            return result > 0
         except Exception as e:
             print(f"Error in MonthlyCardDAO.delete: {e}")
             return False
@@ -229,6 +236,5 @@ class MonthlyCardDAO:
             monthly_fee=row.monthly_fee,
             start_date=row.start_date,
             expiry_date=row.expiry_date,
-            is_paid=row.is_paid
+            is_paid=row.is_paid,
         )
-

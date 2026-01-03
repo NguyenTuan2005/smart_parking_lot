@@ -52,5 +52,8 @@ class ReportService:
             "revenue": self.dao.get_daily_revenue(today),
             "parked": self.dao.get_currently_parked_count(),
             "entries": self.dao.get_today_entries_count(today),
-            "monthly": self.dao.get_active_monthly_cards_count()
+            "monthly": self.dao.get_active_monthly_cards_count(),
+            "overnight": self.dao.get_overnight_vehicles_count(),
+            "expiring": self.dao.get_expiring_monthly_cards_count(3),
+            "cameras": self.dao.get_active_cameras_count()
         }

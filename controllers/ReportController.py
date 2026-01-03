@@ -60,5 +60,8 @@ class ReportController:
             revenue=stats["revenue"],
             parked=stats["parked"],
             entries=stats["entries"],
-            monthly=stats["monthly"]
+            monthly=stats["monthly"],
+            overnight=stats["overnight"],
+            expiring=stats["expiring"],
+            cameras=stats["cameras"]
         )

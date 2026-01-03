@@ -106,3 +106,51 @@ class ReportDAO:
             return 0
         finally:
             if conn: conn.close()
+
+    # xe qua đêm (sau 10 tối đến 6h sáng)
+    def get_overnight_vehicles_count(self) -> int:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            sql = """
+                  SELECT COUNT(*) FROM card_logs 
+                  WHERE exit_at IS NULL 
+                  AND (
+                    (DATEPART(HOUR, entry_at) >= 22 OR DATEPART(HOUR, entry_at) < 6)
+                    OR entry_at < CAST(GETDATE() AS DATE)
+                  )
+                  """
+            cursor.execute(sql)
+            return cursor.fetchone()[0] or 0
+        except Exception:
+            return 0
+        finally:
+            if conn: conn.close()
+
+    def get_expiring_monthly_cards_count(self, days: int = 3) -> int:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            sql = """
+                  SELECT COUNT(*) FROM monthly_cards 
+                  WHERE is_active = 1 AND is_paid = 1
+                  AND expiry_date BETWEEN GETDATE() AND DATEADD(day, ?, GETDATE())
+                  """
+            cursor.execute(sql, (days,))
+            return cursor.fetchone()[0] or 0
+        except Exception:
+            return 0
+        finally:
+            if conn: conn.close()
+
+    def get_active_cameras_count(self) -> int:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            sql = "SELECT COUNT(*) FROM cameras"
+            cursor.execute(sql)
+            return cursor.fetchone()[0] or 0
+        except Exception:
+            return 0
+        finally:
+            if conn: conn.close()
