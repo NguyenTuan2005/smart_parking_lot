@@ -435,8 +435,8 @@ class EditCustomerDialog(QDialog):
 
         # Divider
         divider = QFrame()
-        divider.setFrameShape(QFrame.Shape.HLine)
-        divider.setStyleSheet("background-color: gray;")
+        divider.setFixedHeight(1)
+        divider.setStyleSheet("background-color: #e0e0e0; border: none;")
         layout.addWidget(divider)
 
         # Form

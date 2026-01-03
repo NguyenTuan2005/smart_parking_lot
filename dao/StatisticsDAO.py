@@ -4,35 +4,29 @@ from db.database import Database
 
 
 class StatisticsDAO:
-    """DAO để lấy dữ liệu thống kê từ database - FIXED VERSION"""
-
     def __init__(self):
         self._db = Database()
 
     def get_revenue_by_month(self, year: int = None) -> List[Dict]:
-        """
-        Lấy doanh thu theo tháng từ CẢ cards (thẻ lượt) VÀ monthly_cards
-        Returns: List[{'month': int, 'revenue': float}]
-        """
         conn = None
         cursor = None
         try:
             conn = self._db.connect()
             cursor = conn.cursor()
-
+            result = []
+            # tính doanh thu theo tháng của 1 năm
             if year:
                 # Doanh thu từ thẻ lượt (cards)
                 sql_single = """
                              SELECT
                                  MONTH (exit_at) as month, SUM (fee) as revenue
-                             FROM cards
+                             FROM card_logs
                              WHERE YEAR (exit_at) = ?
                                AND exit_at IS NOT NULL
                                AND fee IS NOT NULL
-                               AND is_active = 0
-                             GROUP BY MONTH (exit_at) \
+                             GROUP BY MONTH (exit_at)
                              """
-                single_rows = cursor.execute(sql_single, year).fetchall()
+                single_cards = cursor.execute(sql_single, year).fetchall()
 
                 # Doanh thu từ thẻ tháng (monthly_cards)
                 sql_monthly = """
@@ -41,44 +35,23 @@ class StatisticsDAO:
                               FROM monthly_cards
                               WHERE YEAR (start_date) = ?
                                 AND is_paid = 1
-                              GROUP BY MONTH (start_date) \
+                              GROUP BY MONTH (start_date)
                               """
-                monthly_rows = cursor.execute(sql_monthly, year).fetchall()
+                monthly_cards = cursor.execute(sql_monthly, year).fetchall()
 
                 # Gộp doanh thu
                 revenue_dict = {}
-                for row in single_rows:
+                for row in single_cards:
                     month = row[0]
-                    revenue_dict[month] = revenue_dict.get(month, 0) + float(row[1] or 0)
+                    revenue_dict[month] = revenue_dict.get(month, 0) + int(row[1] or 0)
 
-                for row in monthly_rows:
+                for row in monthly_cards:
                     month = row[0]
-                    revenue_dict[month] = revenue_dict.get(month, 0) + float(row[1] or 0)
+                    revenue_dict[month] = revenue_dict.get(month, 0) + int(row[1] or 0)
 
                 result = [{'month': month, 'revenue': revenue}
                           for month, revenue in sorted(revenue_dict.items())]
-            else:
-                # Lấy tất cả các tháng
-                sql = """
-                      SELECT
-                          YEAR (exit_at) as year, MONTH (exit_at) as month, SUM (fee) as revenue
-                      FROM cards
-                      WHERE exit_at IS NOT NULL
-                        AND fee IS NOT NULL
-                        AND is_active = 0
-                      GROUP BY YEAR (exit_at), MONTH (exit_at)
-                      ORDER BY year, month \
-                      """
-                rows = cursor.execute(sql).fetchall()
-
-                result = []
-                for row in rows:
-                    result.append({
-                        'year': row[0],
-                        'month': row[1],
-                        'revenue': float(row[2] or 0)
-                    })
-
+        
             return result
         except Exception as e:
             print(f"Lỗi StatisticsDAO.get_revenue_by_month: {e}")
@@ -92,10 +65,6 @@ class StatisticsDAO:
                 conn.close()
 
     def get_vehicle_mix(self, start_date: datetime = None, end_date: datetime = None) -> Dict[str, int]:
-        """
-        Lấy cơ cấu lượt xe: thẻ tháng vs thẻ lượt
-        Returns: {'monthly': int, 'single': int}
-        """
         conn = None
         cursor = None
         try:

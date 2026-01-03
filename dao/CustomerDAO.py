@@ -1,6 +1,6 @@
 from typing import List, Optional
 from db.database import Database
-from dto.dtos import CustomerDTO, ExpiringCardDTO
+from dto.dtos import CustomerDTO, ExpiringMonthlyCardCustomerDTO
 from model.Customer import Customer
 
 
@@ -212,7 +212,7 @@ class CustomerDAO:
             result = []
             for r in rows:
                 result.append(
-                    ExpiringCardDTO(
+                    ExpiringMonthlyCardCustomerDTO(
                         customer_id=r.id,
                         fullname=r.full_name,
                         email=r.email,

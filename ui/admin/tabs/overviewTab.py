@@ -81,7 +81,7 @@ class OverviewTab(QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(20)
         
-        # 1. Header Section
+        # Header Section
         header_layout = QHBoxLayout()
         title_label = QLabel("TỔNG QUAN HỆ THỐNG")
         title_label.setStyleSheet("font-size: 25px; font-weight: bold; color: #2e86c1")
@@ -120,14 +120,14 @@ class OverviewTab(QWidget):
         
         layout.addLayout(header_layout)
         
-        # 2. Stat Cards Section (4 cards)
+        # Stat Cards
         cards_layout = QHBoxLayout()
         cards_layout.setSpacing(25)
         
         self.card_revenue = StatCard("Doanh thu hôm nay", "0 ₫", "assets/icons/revenue.png", "#27ae60")
         self.card_parked = StatCard("Xe đang gửi", "0", "assets/icons/motorbike.png", "#2980b9")
         self.card_entries = StatCard("Lượt xe hôm nay", "0", "assets/icons/bikeCount.png", "#f39c12")
-        self.card_monthly = StatCard("Thẻ tháng còn hạn", "0", "assets/icons/card.png", "#8e44ad")
+        self.card_monthly = StatCard("Thẻ tháng còn hạn", "0", "assets/icons/card.png", "#324d8f")
         
         cards_layout.addWidget(self.card_revenue, 1)
         cards_layout.addWidget(self.card_parked, 1)
@@ -136,33 +136,17 @@ class OverviewTab(QWidget):
         
         layout.addLayout(cards_layout)
         
-        # 3. Middle Section: Activity Feed or Quick Insight
+        # Chart
         insight_layout = QHBoxLayout()
         
-        # Left: Quick Info
         info_frame = QFrame()
-        info_frame.setStyleSheet("background-color: #fdfdfd; border-radius: 12px; border: 1px solid #eee;")
-        info_vbox = QVBoxLayout(info_frame)
-        info_title = QLabel("Thông tin nhanh")
-        info_title.setStyleSheet("font-weight: bold; color: #34495e; font-size: 15px;")
-        info_vbox.addWidget(info_title)
-        
-        self.info_content = QLabel("Hệ thống đang hoạt động ổn định.\nHiện tại bãi xe còn 45 chỗ trống.")
-        self.info_content.setStyleSheet("color: #7f8c8d; font-size: 14px; line-height: 1.5;")
-        self.info_content.setWordWrap(True)
-        info_vbox.addWidget(self.info_content)
-        info_vbox.addStretch()
-        
         insight_layout.addWidget(info_frame, 1)
         
-        # Right: Empty for now (can add mini chart later)
+
         placeholder = QFrame()
-        placeholder.setStyleSheet("background-color: #fdfdfd; border-radius: 12px; border: 1px solid #eee; border-left: 4px solid #3498db;")
-        p_layout = QVBoxLayout(placeholder)
-        p_layout.addWidget(QLabel("Biểu đồ nhanh (Sắp ra mắt)"))
         insight_layout.addWidget(placeholder, 2)
         
-        layout.addLayout(insight_layout, 1) # Give it stretching weight
+        layout.addLayout(insight_layout, 1)
         
         # Spacer at bottom
         layout.addStretch()
