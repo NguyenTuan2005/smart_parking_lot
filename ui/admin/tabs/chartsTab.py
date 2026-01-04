@@ -201,11 +201,8 @@ class ChartsTab(QWidget):
         """Danh sách các loại biểu đồ"""
         return [
             ("revenue", "Doanh thu theo tháng"),
-            ("mix", "Cơ cấu lượt xe (gộp thẻ lượt & khách vãng lai)"),
-            ("duration", "Thời gian đỗ xe theo nhóm khách"),
             ("traffic", "Lượt xe theo giờ & ngày"),
             ("dow_entries", "Lượt vào/ra theo ngày trong tuần"),
-            ("fee_duration", "Tương quan phí & thời gian đỗ"),
             ("hour_hist", "Phân bố lượt xe theo giờ"),
         ]
 
@@ -213,11 +210,8 @@ class ChartsTab(QWidget):
         """Mô tả các loại biểu đồ"""
         return {
             "revenue": "Theo dõi xu hướng doanh thu các tháng để đánh giá tăng trưởng.",
-            "mix": "So sánh tỷ trọng khách dùng thẻ tháng và khách đi lượt/vãng lai.",
-            "duration": "Nhìn nhanh phân bố thời gian đỗ của từng nhóm khách.",
             "traffic": "Nhận diện khung giờ và ngày cao điểm để bố trí nhân sự.",
             "dow_entries": "So sánh lượt vào/ra theo ngày để thấy ngày cao điểm.",
-            "fee_duration": "Kiểm tra phí thu có tỷ lệ thuận thời gian đỗ hay không.",
             "hour_hist": "Phân bố lượt xe theo giờ để chọn khung mở rộng/thu hẹp ca.",
         }
 
@@ -236,16 +230,16 @@ class ChartsTab(QWidget):
         chart_widget = None
         if key == "revenue":
             chart_widget = self._chart_revenue_trend()
-        elif key == "mix":
-            chart_widget = self._chart_vehicle_mix()
-        elif key == "duration":
-            chart_widget = self._chart_duration_boxplot()
+        # elif key == "mix":
+        #     chart_widget = self._chart_vehicle_mix()
+        # elif key == "duration":
+        #     chart_widget = self._chart_duration_boxplot()
         elif key == "traffic":
             chart_widget = self._chart_traffic_heatmap()
         elif key == "dow_entries":
             chart_widget = self._chart_dow_entries()
-        elif key == "fee_duration":
-            chart_widget = self._chart_fee_vs_duration()
+        # elif key == "fee_duration":
+        #     chart_widget = self._chart_fee_vs_duration()
         elif key == "hour_hist":
             chart_widget = self._chart_hour_hist()
 
@@ -275,6 +269,22 @@ class ChartsTab(QWidget):
         else:
             ax.plot(months, revenues, marker="o", color="#2E86C1", linewidth=2.5)
 
+        # Thêm chú thích giá trị tại mỗi điểm
+        for i, (month, revenue) in enumerate(zip(months, revenues)):
+            ax.annotate(f'{revenue:.1f}', 
+                       xy=(month, revenue), 
+                       xytext=(5, 5), 
+                       textcoords='offset points',
+                       fontsize=9, 
+                       color='#2E86C1',
+                       bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
+
+        # Thêm thông tin tổng quan
+        total_revenue = sum(revenues)
+        ax.text(0.02, 0.98, f'Tổng doanh thu: {total_revenue:.1f} triệu đồng', 
+                transform=ax.transAxes, fontsize=10, verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+
         ax.set_title("Doanh Thu Theo Tháng", fontsize=14, fontweight='bold', pad=20)
         ax.set_ylabel("Triệu đồng", fontsize=11)
         ax.set_xlabel("Tháng", fontsize=11)
@@ -290,7 +300,7 @@ class ChartsTab(QWidget):
         labels, values = self.controller.get_vehicle_mix_data(self.start_date, self.end_date)
 
         if HAS_SEABORN:
-            sns.barplot(x=labels, y=values, ax=ax, palette="Blues")
+            sns.barplot(x=labels, y=values,hue=labels, ax=ax, palette="Blues", legend=False)
         else:
             ax.bar(labels, values, color="#3498DB")
 
@@ -366,12 +376,19 @@ class ChartsTab(QWidget):
         x = range(len(days))
         width = 0.35
 
-        if HAS_SEABORN:
-            ax.bar([i - width / 2 for i in x], entries, width, label='Vào', color='#3498DB', alpha=0.9)
-            ax.bar([i + width / 2 for i in x], exits, width, label='Ra', color='#2ECC71', alpha=0.9)
-        else:
-            ax.bar([i - width / 2 for i in x], entries, width, label='Vào', color='#3498DB')
-            ax.bar([i + width / 2 for i in x], exits, width, label='Ra', color='#2ECC71')
+        bars1 = ax.bar([i - width / 2 for i in x], entries, width, label='Vào', color='#3498DB', alpha=0.9)
+        bars2 = ax.bar([i + width / 2 for i in x], exits, width, label='Ra', color='#2ECC71', alpha=0.9)
+
+        # Thêm chú thích giá trị trên mỗi bar
+        for bar in bars1:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height + 0.5,
+                    f'{int(height)}', ha='center', va='bottom', fontsize=9, color='#3498DB')
+
+        for bar in bars2:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height + 0.5,
+                    f'{int(height)}', ha='center', va='bottom', fontsize=9, color='#2ECC71')
 
         ax.set_title("Lượt Vào/Ra Theo Ngày", fontsize=14, fontweight='bold', pad=15)
         ax.set_ylabel("Số lượt", fontsize=11)
@@ -428,6 +445,11 @@ class ChartsTab(QWidget):
             sns.histplot(hours, bins=24, ax=ax, color="#9B59B6", kde=True, line_kws={"linewidth": 2})
         else:
             ax.hist(hours, bins=24, color="#9B59B6", alpha=0.85)
+
+        # Thêm chú thích giá trị trên mỗi bar
+        for i, count in enumerate(hour_data):
+            if count > 0:
+                ax.text(i, count + 0.5, f'{count}', ha='center', va='bottom', fontsize=8, color='#9B59B6')
 
         ax.set_title("Phân Bố Lượt Xe Theo Giờ", fontsize=14, fontweight='bold', pad=15)
         ax.set_xlabel("Giờ trong ngày", fontsize=11)
