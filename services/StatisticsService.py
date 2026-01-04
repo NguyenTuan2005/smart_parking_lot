@@ -16,15 +16,48 @@ class StatisticsService:
         """
         Lấy dữ liệu doanh thu theo tháng để vẽ biểu đồ
         """
-        if start_date and end_date:
-            # Nếu có date range, lấy year từ start_date
-            year = start_date.year
-
-        data = self._dao.get_revenue_by_month(year)
+        data = self._dao.get_revenue_by_month(year, start_date, end_date)
 
         if not data:
             # Trả về dữ liệu mẫu nếu không có dữ liệu
-            months = [
+            if start_date and end_date:
+                # Nếu có khoảng thời gian, trả về các tháng trong khoảng đó
+                start_month = start_date.month
+                end_month = end_date.month
+                months = [f"T{i}" for i in range(start_month, end_month + 1)]
+                revenues = [0.0] * len(months)
+            else:
+                months = [
+                    "T1",
+                    "T2",
+                    "T3",
+                    "T4",
+                    "T5",
+                    "T6",
+                    "T7",
+                    "T8",
+                    "T9",
+                    "T10",
+                    "T11",
+                    "T12",
+                ]
+                revenues = [0.0] * 12
+            return months, revenues
+
+        # Nếu có khoảng thời gian, chỉ trả về các tháng trong khoảng đó
+        if start_date and end_date:
+            start_month = start_date.month
+            end_month = end_date.month
+            months = [f"T{i}" for i in range(start_month, end_month + 1)]
+            revenues = [0.0] * (end_month - start_month + 1)
+            
+            for item in data:
+                month_idx = item["month"] - start_month  # index từ 0 trong khoảng
+                if 0 <= month_idx < len(revenues):
+                    revenues[month_idx] = item["revenue"] / 1000  # nghìn đồng
+        else:
+            # Chuyển đổi sang format cho biểu đồ (toàn bộ năm)
+            month_names = [
                 "T1",
                 "T2",
                 "T3",
@@ -39,31 +72,15 @@ class StatisticsService:
                 "T12",
             ]
             revenues = [0.0] * 12
-            return months, revenues
 
-        # Chuyển đổi sang format cho biểu đồ
-        month_names = [
-            "T1",
-            "T2",
-            "T3",
-            "T4",
-            "T5",
-            "T6",
-            "T7",
-            "T8",
-            "T9",
-            "T10",
-            "T11",
-            "T12",
-        ]
-        revenues = [0.0] * 12
+            for item in data:
+                month_idx = item["month"] - 1  # month từ 1-12, index từ 0-11
+                if 0 <= month_idx < 12:
+                    revenues[month_idx] = item["revenue"] / 1000  # nghìn đồng
 
-        for item in data:
-            month_idx = item["month"] - 1  # month từ 1-12, index từ 0-11
-            if 0 <= month_idx < 12:
-                revenues[month_idx] = item["revenue"] / 1000000  # triệu đồng
+            months = month_names
 
-        return month_names, revenues
+        return months, revenues
 
     def get_daily_revenue_data(
         self, month: int = None, year: int = None
@@ -81,7 +98,7 @@ class StatisticsService:
         for item in data:
             day_idx = item["day"] - 1
             if 0 <= day_idx < num_days:
-                revenues[day_idx] = item["revenue"] / 1000000  # triệu đồng
+                revenues[day_idx] = item["revenue"] / 1000  # nghìn đồng
 
         return days, revenues
 
