@@ -37,11 +37,120 @@ class ReportDAO:
             ORDER BY cl.entry_at DESC
         """
 
-        print(f"[DAO] SQL Execute from {sd} to {ed}")
-
         cursor.execute(query, (sd, ed))
         rows = cursor.fetchall()
 
         cursor.close()
         conn.close()
         return rows
+
+    def get_daily_revenue(self, current_date):
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            date_str = current_date.strftime('%Y-%m-%d')
+
+            query = """
+                SELECT 
+                    (SELECT ISNULL(SUM(fee), 0) FROM card_logs WHERE CAST(exit_at AS DATE) = ?) +
+                    (SELECT ISNULL(SUM(monthly_fee), 0) FROM monthly_cards WHERE CAST(created_at AS DATE) = ? AND is_paid = 1)
+            """
+            cursor.execute(query, (date_str, date_str))
+            result = cursor.fetchone()[0]
+            return float(result) if result else 0.0
+        except Exception as e:
+            print(f"Error in get_daily_revenue: {e}")
+            return 0.0
+        finally:
+            if conn: conn.close()
+
+    def get_currently_parked_count(self):
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            query = "SELECT COUNT(*) FROM card_logs WHERE exit_at IS NULL"
+            cursor.execute(query)
+            return int(cursor.fetchone()[0])
+        except Exception as e:
+            print(f"Error in get_currently_parked_count: {e}")
+            return 0
+        finally:
+            if conn: conn.close()
+
+    def get_today_entries_count(self, current_date):
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            date_str = current_date.strftime('%Y-%m-%d')
+            query = "SELECT COUNT(*) FROM card_logs WHERE CAST(entry_at AS DATE) = ?"
+            cursor.execute(query, (date_str,))
+            return int(cursor.fetchone()[0])
+        except Exception as e:
+            print(f"Error in get_today_entries_count: {e}")
+            return 0
+        finally:
+            if conn: conn.close()
+
+    def get_active_monthly_cards_count(self):
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            # Active monthly cards: is_active = 1 and expiry_date >= today
+            from datetime import date
+            today = date.today().strftime('%Y-%m-%d')
+            query = "SELECT COUNT(*) FROM monthly_cards WHERE is_active = 1 AND expiry_date >= ?"
+            cursor.execute(query, (today,))
+            return int(cursor.fetchone()[0])
+        except Exception as e:
+            print(f"Error in get_active_monthly_cards_count: {e}")
+            return 0
+        finally:
+            if conn: conn.close()
+
+    # xe qua đêm (sau 10 tối đến 6h sáng)
+    def get_overnight_vehicles_count(self) -> int:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            sql = """
+                  SELECT COUNT(*) FROM card_logs 
+                  WHERE exit_at IS NULL 
+                  AND (
+                    (DATEPART(HOUR, entry_at) >= 22 OR DATEPART(HOUR, entry_at) < 6)
+                    OR entry_at < CAST(GETDATE() AS DATE)
+                  )
+                  """
+            cursor.execute(sql)
+            return cursor.fetchone()[0] or 0
+        except Exception:
+            return 0
+        finally:
+            if conn: conn.close()
+
+    def get_expiring_monthly_cards_count(self, days: int = 3) -> int:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            sql = """
+                  SELECT COUNT(*) FROM monthly_cards 
+                  WHERE is_active = 1 AND is_paid = 1
+                  AND expiry_date BETWEEN GETDATE() AND DATEADD(day, ?, GETDATE())
+                  """
+            cursor.execute(sql, (days,))
+            return cursor.fetchone()[0] or 0
+        except Exception:
+            return 0
+        finally:
+            if conn: conn.close()
+
+    def get_active_cameras_count(self) -> int:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            sql = "SELECT COUNT(*) FROM cameras"
+            cursor.execute(sql)
+            return cursor.fetchone()[0] or 0
+        except Exception:
+            return 0
+        finally:
+            if conn: conn.close()

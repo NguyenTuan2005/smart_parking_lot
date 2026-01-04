@@ -153,4 +153,36 @@ def getGlobalStyle():
         QTabBar::tab:hover {
             background-color: #d4b013;
         }
+
+        /* === MESSAGE BOX === */
+        QMessageBox {
+            background-color: #ffffff;
+        }
+
+        QMessageBox QLabel {
+            color: #2c3e50;
+            font-size: 13px;
+        }
+
+        QMessageBox QPushButton {
+            background-color: #f0f0f0;
+            color: #333333;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            padding: 6px 20px;
+            min-width: 60px;
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        QMessageBox QPushButton:hover {
+            background-color: #e5f1fb;
+            border: 1px solid #0078d7;
+            color: #000000;
+        }
+
+        QMessageBox QPushButton:pressed {
+            background-color: #cce4f7;
+            border: 1px solid #005499;
+        }
     """

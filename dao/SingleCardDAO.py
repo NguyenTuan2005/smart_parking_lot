@@ -36,31 +36,35 @@ class SingleCardDAO:
             print("Error in get_by_id:", e)
 
     def get_by_code(self, card_code: str) -> SingleCard | None:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-        SELECT id, card_code, price
-        FROM cards
-        WHERE card_code = ? AND is_active = 1
-        """
+            sql = """
+            SELECT id, card_code, price
+            FROM cards
+            WHERE card_code = ? AND is_active = 1
+            """
 
-        row = cursor.execute(sql, card_code).fetchone()
-        conn.close()
+            row = cursor.execute(sql, card_code).fetchone()
+            conn.close()
 
-        if not row:
+            if not row:
+                return None
+
+            card_log = self._card_log_dao.get_by_card_id(row.id)
+            if card_log is None:
+                card_log = CardLog()
+
+            return SingleCard(
+                card_id=row.id,
+                card_code=row.card_code,
+                price=row.price,
+                card_log=card_log
+            )
+        except Exception as e:
+            print(f"Error in SingleCardDAO.get_by_code: {e}")
             return None
-
-        card_log = self._card_log_dao.get_by_card_id(row.id)
-        if card_log is None:
-            card_log = CardLog()
-
-        return SingleCard(
-            card_id=row.vehicle_id,
-            card_code=row.card_code,
-            price=row.price,
-            card_log=card_log
-        )
 
     def get_all(self) -> list[SingleCard]:
         try:
@@ -116,43 +120,52 @@ class SingleCardDAO:
             return []
 
 
-    # ---------- CREATE ----------
     def create(self, card_code: str, price: int):
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-              INSERT INTO cards (card_code, price)
-              VALUES (?, ?) \
-              """
+            sql = """
+                  INSERT INTO cards (card_code, price)
+                  VALUES (?, ?) \
+                  """
 
-        cursor.execute(sql, card_code, price)
-        conn.commit()
-        conn.close()
+            cursor.execute(sql, card_code, price)
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Error in SingleCardDAO.create: {e}")
 
-    # ---------- UPDATE ----------
+
     def update_price(self, card_id: int, price: int):
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-              UPDATE cards
-              SET price      = ?, updated_at = GETDATE()
-              WHERE id = ? 
-              """
+            sql = """
+                  UPDATE cards
+                  SET price = ?, updated_at = GETDATE()
+                  WHERE id = ? 
+                  """
 
-        cursor.execute(sql, price, card_id)
-        conn.commit()
-        conn.close()
+            cursor.execute(sql, price, card_id)
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Error in SingleCardDAO.update_price: {e}")
 
-    # ---------- DELETE (soft) ----------
+
     def delete(self, card_id: int):
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = "UPDATE cards SET is_active = 0 WHERE id = ?"
-        cursor.execute(sql, card_id)
-        result = cursor.rowcount
-        conn.commit()
-        conn.close()
-        return result > 0
+            sql = "UPDATE cards SET is_active = 0 WHERE id = ?"
+            cursor.execute(sql, card_id)
+            result = cursor.rowcount
+            conn.commit()
+            conn.close()
+            return result > 0
+        except Exception as e:
+            print(f"Error in SingleCardDAO.delete: {e}")
+            return False

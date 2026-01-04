@@ -10,38 +10,46 @@ class VehicleDAO:
         self._db = Database()
 
     def get_all(self) -> List[Vehicle]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT id, plate_number
-            FROM vehicles
-        """)
-        rows = cursor.fetchall()
+            cursor.execute("""
+                SELECT id, plate_number
+                FROM vehicles
+            """)
+            rows = cursor.fetchall()
 
-        vehicles = [Vehicle(row[0], 'xe máy', row[1]) for row in rows]
+            vehicles = [Vehicle(row[0], 'xe máy', row[1]) for row in rows]
 
-        cursor.close()
-        conn.close()
-        return vehicles
+            cursor.close()
+            conn.close()
+            return vehicles
+        except Exception as e:
+            print(f"Error in VehicleDAO.get_all: {e}")
+            return []
 
     def get_by_id(self, vehicle_id: int) -> Optional[Vehicle]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT id, vehicle_type, plate_number
-            FROM vehicles
-            WHERE id = ?
-        """, (vehicle_id,))
+            cursor.execute("""
+                SELECT id, vehicle_type, plate_number
+                FROM vehicles
+                WHERE id = ?
+            """, (vehicle_id,))
 
-        row = cursor.fetchone()
-        cursor.close()
-        conn.close()
+            row = cursor.fetchone()
+            cursor.close()
+            conn.close()
 
-        if row:
-            return Vehicle(row[0], row[1], row[2])
-        return None
+            if row:
+                return Vehicle(row[0], row[1], row[2])
+            return None
+        except Exception as e:
+            print(f"Error in VehicleDAO.get_by_id: {e}")
+            return None
 
     def get_by_plate(self, plate_number) -> Optional[Vehicle]:
         try:
@@ -89,31 +97,39 @@ class VehicleDAO:
             conn.close()
 
     def update(self, vehicle: Vehicle) -> bool:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        cursor.execute("""
-            UPDATE vehicles
-            SET vehicle_type = ?, plate_number = ?, updated_at = GETDATE()
-            WHERE id = ?
-        """, (vehicle.vehicle_type ,vehicle.plate_number, vehicle.vehicle_id))
+            cursor.execute("""
+                UPDATE vehicles
+                SET vehicle_type = ?, plate_number = ?, updated_at = GETDATE()
+                WHERE id = ?
+            """, (vehicle.vehicle_type ,vehicle.plate_number, vehicle.vehicle_id))
 
-        conn.commit()
-        result = cursor.rowcount
-        cursor.close()
-        conn.close()
-        return result > 0
+            conn.commit()
+            result = cursor.rowcount
+            cursor.close()
+            conn.close()
+            return result > 0
+        except Exception as e:
+            print(f"Error in VehicleDAO.update: {e}")
+            return False
 
     def delete(self, vehicle_id: int) -> bool:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        cursor.execute("""
-            DELETE FROM vehicles WHERE id = ?
-        """, (vehicle_id,))
+            cursor.execute("""
+                DELETE FROM vehicles WHERE id = ?
+            """, (vehicle_id,))
 
-        conn.commit()
-        result = cursor.rowcount
-        cursor.close()
-        conn.close()
-        return result > 0
+            conn.commit()
+            result = cursor.rowcount
+            cursor.close()
+            conn.close()
+            return result > 0
+        except Exception as e:
+            print(f"Error in VehicleDAO.delete: {e}")
+            return False

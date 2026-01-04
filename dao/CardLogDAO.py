@@ -11,55 +11,67 @@ class CardLogDAO:
         self._vehicle_dao = VehicleDAO()
 
     def get_by_card_id(self, card_id: int) -> CardLog | None:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-              SELECT TOP 1 *
-              FROM card_logs
-              WHERE card_id = ? 
-              ORDER BY entry_at DESC
-              """
+            sql = """
+                  SELECT TOP 1 *
+                  FROM card_logs
+                  WHERE card_id = ? 
+                  ORDER BY entry_at DESC
+                  """
 
-        row = cursor.execute(sql, card_id).fetchone()
-        conn.close()
+            row = cursor.execute(sql, card_id).fetchone()
+            conn.close()
 
-        if not row:
+            if not row:
+                return None
+
+            return self._map_row_to_card_log(row)
+        except Exception as e:
+            print(f"Error in CardLogDAO.get_by_card_id: {e}")
             return None
 
-        return self._map_row_to_card_log(row)
-
     def get_all(self) -> list[CardLog]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-        SELECT *
-        FROM card_logs
-        ORDER BY entry_at DESC
-        """
+            sql = """
+            SELECT *
+            FROM card_logs
+            ORDER BY entry_at DESC
+            """
 
-        rows = cursor.execute(sql).fetchall()
-        conn.close()
+            rows = cursor.execute(sql).fetchall()
+            conn.close()
 
-        return [self._map_row_to_card_log(r) for r in rows]
+            return [self._map_row_to_card_log(r) for r in rows]
+        except Exception as e:
+            print(f"Error in CardLogDAO.get_all: {e}")
+            return []
 
     # lấy xe đang còn đậu trong bãi
     def get_all_active_parking(self) -> list[CardLog]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-        SELECT *
-        FROM card_logs
-        WHERE exit_at IS NULL
-        ORDER BY entry_at ASC
-        """
+            sql = """
+            SELECT *
+            FROM card_logs
+            WHERE exit_at IS NULL
+            ORDER BY entry_at ASC
+            """
 
-        rows = cursor.execute(sql).fetchall()
-        conn.close()
+            rows = cursor.execute(sql).fetchall()
+            conn.close()
 
-        return [self._map_row_to_card_log(r) for r in rows]
+            return [self._map_row_to_card_log(r) for r in rows]
+        except Exception as e:
+            print(f"Error in CardLogDAO.get_all_active_parking: {e}")
+            return []
 
 
     def _map_row_to_card_log(self, row) -> CardLog:
@@ -115,111 +127,127 @@ class CardLogDAO:
 
 
     def get_open_log_by_card(self, card_id: int) -> CardLog | None:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-              SELECT TOP 1 *
-              FROM card_logs
-              WHERE card_id = ? \
-                AND exit_at IS NULL
-              ORDER BY entry_at DESC \
-              """
+            sql = """
+                  SELECT TOP 1 *
+                  FROM card_logs
+                  WHERE card_id = ? \
+                    AND exit_at IS NULL
+                  ORDER BY entry_at DESC \
+                  """
 
-        row = cursor.execute(sql, card_id).fetchone()
-        conn.close()
+            row = cursor.execute(sql, card_id).fetchone()
+            conn.close()
 
-        if not row:
+            if not row:
+                return None
+
+            return self._map_row_to_card_log(row)
+        except Exception as e:
+            print(f"Error in CardLogDAO.get_open_log_by_card: {e}")
             return None
-
-        return self._map_row_to_card_log(row)
 
 
     def get_by_date_range(self, from_date: datetime, to_date: datetime) -> list[CardLog]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-        SELECT *
-        FROM card_logs
-        WHERE entry_at BETWEEN ? AND ?
-        ORDER BY entry_at DESC
-        """
+            sql = """
+            SELECT *
+            FROM card_logs
+            WHERE entry_at BETWEEN ? AND ?
+            ORDER BY entry_at DESC
+            """
 
-        rows = cursor.execute(sql, from_date, to_date).fetchall()
-        conn.close()
+            rows = cursor.execute(sql, from_date, to_date).fetchall()
+            conn.close()
 
-        return [self._map_row_to_card_log(r) for r in rows]
+            return [self._map_row_to_card_log(r) for r in rows]
+        except Exception as e:
+            print(f"Error in CardLogDAO.get_by_date_range: {e}")
+            return []
 
     def get_all_with_details(self) -> list[dict]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        sql = """
-        SELECT cl.id, cl.entry_at, cl.exit_at, cl.fee, cl.created_by,
-               c.card_code,
-               v.plate_number, v.vehicle_type,
-               s.fullname as staff_name
-        FROM card_logs cl
-        JOIN cards c ON cl.card_id = c.id
-        LEFT JOIN vehicles v ON cl.vehicle_id = v.id
-        LEFT JOIN staffs s ON cl.created_by = s.id
-        ORDER BY cl.entry_at DESC
-        """
+            sql = """
+            SELECT cl.id, cl.entry_at, cl.exit_at, cl.fee, cl.created_by,
+                   c.card_code,
+                   v.plate_number, v.vehicle_type,
+                   s.fullname as staff_name
+            FROM card_logs cl
+            JOIN cards c ON cl.card_id = c.id
+            LEFT JOIN vehicles v ON cl.vehicle_id = v.id
+            LEFT JOIN staffs s ON cl.created_by = s.id
+            ORDER BY cl.entry_at DESC
+            """
 
-        rows = cursor.execute(sql).fetchall()
-        conn.close()
+            rows = cursor.execute(sql).fetchall()
+            conn.close()
 
-        results = []
-        for row in rows:
-            results.append({
-                'id': row.id,
-                'card_code': row.card_code,
-                'plate_number': row.plate_number,
-                'vehicle_type': row.vehicle_type,
-                'entry_at': row.entry_at,
-                'exit_at': row.exit_at,
-                'fee': row.fee if row.fee else 0,
-                'status': "Đã rời đi" if row.exit_at else "Đang gửi",
-                'created_by': row.created_by,
-                'staff_name': row.staff_name
-            })
-        return results
+            results = []
+            for row in rows:
+                results.append({
+                    'id': row.id,
+                    'card_code': row.card_code,
+                    'plate_number': row.plate_number,
+                    'vehicle_type': row.vehicle_type,
+                    'entry_at': row.entry_at,
+                    'exit_at': row.exit_at,
+                    'fee': row.fee if row.fee else 0,
+                    'status': "Đã rời đi" if row.exit_at else "Đang gửi",
+                    'created_by': row.created_by,
+                    'staff_name': row.staff_name
+                })
+            return results
+        except Exception as e:
+            print(f"Error in CardLogDAO.get_all_with_details: {e}")
+            return []
 
     def search_logs(self, keyword: str) -> list[dict]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
-        search_pattern = f"%{keyword}%"
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            search_pattern = f"%{keyword}%"
 
-        sql = """
-        SELECT cl.id, cl.entry_at, cl.exit_at, cl.fee, cl.created_by,
-               c.card_code,
-               v.plate_number, v.vehicle_type,
-               s.fullname as staff_name
-        FROM card_logs cl
-        JOIN cards c ON cl.card_id = c.id
-        LEFT JOIN vehicles v ON cl.vehicle_id = v.id
-        LEFT JOIN staffs s ON cl.created_by = s.id
-        WHERE c.card_code LIKE ? OR v.plate_number LIKE ?
-        ORDER BY cl.entry_at DESC
-        """
+            sql = """
+            SELECT cl.id, cl.entry_at, cl.exit_at, cl.fee, cl.created_by,
+                   c.card_code,
+                   v.plate_number, v.vehicle_type,
+                   s.fullname as staff_name
+            FROM card_logs cl
+            JOIN cards c ON cl.card_id = c.id
+            LEFT JOIN vehicles v ON cl.vehicle_id = v.id
+            LEFT JOIN staffs s ON cl.created_by = s.id
+            WHERE c.card_code LIKE ? OR v.plate_number LIKE ?
+            ORDER BY cl.entry_at DESC
+            """
 
-        rows = cursor.execute(sql, search_pattern, search_pattern).fetchall()
-        conn.close()
+            rows = cursor.execute(sql, search_pattern, search_pattern).fetchall()
+            conn.close()
 
-        results = []
-        for row in rows:
-            results.append({
-                'id': row.id,
-                'card_code': row.card_code,
-                'plate_number': row.plate_number,
-                'vehicle_type': row.vehicle_type,
-                'entry_at': row.entry_at,
-                'exit_at': row.exit_at,
-                'fee': row.fee if row.fee else 0,
-                'status': "Đã rời đi" if row.exit_at else "Đang gửi",
-                'created_by': row.created_by,
-                'staff_name': row.staff_name
-            })
-        return results
+            results = []
+            for row in rows:
+                results.append({
+                    'id': row.id,
+                    'card_code': row.card_code,
+                    'plate_number': row.plate_number,
+                    'vehicle_type': row.vehicle_type,
+                    'entry_at': row.entry_at,
+                    'exit_at': row.exit_at,
+                    'fee': row.fee if row.fee else 0,
+                    'status': "Đã rời đi" if row.exit_at else "Đang gửi",
+                    'created_by': row.created_by,
+                    'staff_name': row.staff_name
+                })
+            return results
+        except Exception as e:
+            print(f"Error in CardLogDAO.search_logs: {e}")
+            return []
 

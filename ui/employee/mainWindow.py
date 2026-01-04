@@ -34,13 +34,9 @@ class EmployeeMainWindow(QMainWindow):
 
 
     def _createMenuBar(self):
-        """
-        Tạo thanh Menu bar ở trên cùng với các thành phần cụ thể (Cho Nhân viên).
-        """
         menuBar = QMenuBar(self)
         self.setMenuBar(menuBar)
 
-        # --- 1. Menu "Hệ thống" ---
         systemMenu = menuBar.addMenu("Hệ thống")
         
         logout_action = QAction("Đăng xuất", self)
@@ -53,26 +49,25 @@ class EmployeeMainWindow(QMainWindow):
         exit_action.triggered.connect(self.close)
         systemMenu.addAction(exit_action)
 
-        # --- 3. Menu "Hỗ trợ" ---
         support_menu = menuBar.addMenu("Hỗ trợ")
         support_menu.addAction(QAction("Về chúng tôi", self))
         support_menu.addAction(QAction("Trợ giúp", self))
 
     def _request_logout(self):
-        """Xử lý yêu cầu đăng xuất"""
         if self.logout_handler.confirm_logout(self):
-            self._rightPane.close()
             self.logout_requested.emit()
             self.close()
 
+    def closeEvent(self, event):
+    
+        if hasattr(self, '_rightPane'):
+            self._rightPane.close()
+        super().closeEvent(event)
+
     def _on_logout(self):
-        """Callback khi đăng xuất"""
         pass
 
     def _setupMainLayout(self):
-        """
-        Thiết lập Central Widget và Layout chính (QHBoxLayout).
-        """
         centralWidget = QWidget()
         self.setCentralWidget(centralWidget)
 
@@ -86,8 +81,7 @@ class EmployeeMainWindow(QMainWindow):
 
         # 2. Cột Giữa (Center Pane) - Sử dụng lớp CenterPanel
         centerPane = CenterPanel(self.__controller)
-        mainLayout.addWidget(centerPane, 4)  # Tỉ lệ 4 (cột rộng nhất)
-
+        mainLayout.addWidget(centerPane, 4) 
         # 3. Cột Phải (Right Pane) - Sử dụng lớp RightPanel
         self._rightPane = RightPanel(self.__controller)
-        mainLayout.addWidget(self._rightPane, 2)  # Tỉ lệ 2 (cột trung bình)
+        mainLayout.addWidget(self._rightPane, 2)  

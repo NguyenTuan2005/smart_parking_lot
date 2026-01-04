@@ -4,6 +4,7 @@ from dao.CustomerDAO import CustomerDAO
 from dao.MonthlyCardDAO import MonthlyCardDAO
 from dao.VehicleDAO import VehicleDAO
 from services.CardService import MonthlyCardService, SingleCardService
+from dto.dtos import MonthlyCardCreationDTO
 
 
 class MonthlyCardController:
@@ -44,7 +45,7 @@ class MonthlyCardController:
         except Exception as e:
             print(f"Lỗi khi load dữ liệu: {e}")
 
-    def create_monthly_card(self, card_data: dict):
+    def create_monthly_card(self, card_data: MonthlyCardCreationDTO):
         self.monthly_card_service.create_monthly_card(card_data)
         self.load_data()
 
@@ -71,7 +72,7 @@ class MonthlyCardController:
         except Exception as e:
             print(f"Lỗi hệ thống khi xóa thẻ: {e}")
 
-    def update_card(self, card_data: dict):
+    def update_card(self, card_data: MonthlyCardCreationDTO):
         try:
             self.monthly_card_service.update_card(card_data)
             QMessageBox.information(

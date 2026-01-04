@@ -7,7 +7,6 @@ class ReportService:
 
     def get_report_data(self, start_date, end_date):
         rows = self.dao.get_parking_history(start_date, end_date)
-        print("[SERVICE] Rows fetched:", len(rows))
 
         total_in = 0
         total_out = 0
@@ -44,4 +43,17 @@ class ReportService:
                 "revenue": f"{int(total_revenue):,}₫",
                 "avg": f"{int(avg_fee):,}₫/xe"
             }
+        }
+
+    def get_overview_stats(self):
+        from datetime import date
+        today = date.today()
+        return {
+            "revenue": self.dao.get_daily_revenue(today),
+            "parked": self.dao.get_currently_parked_count(),
+            "entries": self.dao.get_today_entries_count(today),
+            "monthly": self.dao.get_active_monthly_cards_count(),
+            "overnight": self.dao.get_overnight_vehicles_count(),
+            "expiring": self.dao.get_expiring_monthly_cards_count(3),
+            "cameras": self.dao.get_active_cameras_count()
         }

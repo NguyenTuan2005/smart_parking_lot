@@ -48,96 +48,112 @@ class PaymentDAO:
             print(f"Error retrieving payments: {e}")
 
     def get_by_id(self, payment_id: int) -> Optional[Payment]:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT id, card_id, monthly_card_id, amount, method, payment_date
-            FROM payments
-            WHERE id = ?
-        """, (payment_id,))
+            cursor.execute("""
+                SELECT id, card_id, monthly_card_id, amount, method, payment_date
+                FROM payments
+                WHERE id = ?
+            """, (payment_id,))
 
-        row = cursor.fetchone()
-        cursor.close()
-        conn.close()
+            row = cursor.fetchone()
+            cursor.close()
+            conn.close()
 
-        if row:
-            card = None
-            if row[1]:
-                card = self._single_card_dao.get_by_id(row[1])
-            elif row[2]:
-                card = self._monthly_card_dao.get_by_id(row[2])
+            if row:
+                card = None
+                if row[1]:
+                    card = self._single_card_dao.get_by_id(row[1])
+                elif row[2]:
+                    card = self._monthly_card_dao.get_by_id(row[2])
 
-            return Payment(
-                payment_id=str(row[0]),
-                card=card,
-                amount=row[3],
-                method=row[4],
-                paid_at=row[5]
-            )
-        return None
+                return Payment(
+                    payment_id=str(row[0]),
+                    card=card,
+                    amount=row[3],
+                    method=row[4],
+                    paid_at=row[5]
+                )
+            return None
+        except Exception as e:
+            print(f"Error in PaymentDAO.get_by_id: {e}")
+            return None
 
     def save(self, payment: Payment) -> bool:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        card_id = payment.card.card_id if isinstance(payment.card, SingleCard) else None
-        monthly_card_id = payment.card.card_id if isinstance(payment.card, MonthlyCard) else None
+            card_id = payment.card.card_id if isinstance(payment.card, SingleCard) else None
+            monthly_card_id = payment.card.card_id if isinstance(payment.card, MonthlyCard) else None
 
-        cursor.execute("""
-            INSERT INTO payments (card_id, monthly_card_id, amount, method, payment_date, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, GETDATE(), GETDATE())
-        """, (
-            card_id,
-            monthly_card_id,
-            payment.amount,
-            payment.method,
-            payment.paid_at
-        ))
+            cursor.execute("""
+                INSERT INTO payments (card_id, monthly_card_id, amount, method, payment_date, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, GETDATE(), GETDATE())
+            """, (
+                card_id,
+                monthly_card_id,
+                payment.amount,
+                payment.method,
+                payment.paid_at
+            ))
 
-        conn.commit()
-        result = cursor.rowcount
-        cursor.close()
-        conn.close()
-        return result > 0
+            conn.commit()
+            result = cursor.rowcount
+            cursor.close()
+            conn.close()
+            return result > 0
+        except Exception as e:
+            print(f"Error in PaymentDAO.save: {e}")
+            return False
 
     def update(self, payment: Payment) -> bool:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        card_id = payment.card.card_id if isinstance(payment.card, SingleCard) else None
-        monthly_card_id = payment.card.card_id if isinstance(payment.card, MonthlyCard) else None
+            card_id = payment.card.card_id if isinstance(payment.card, SingleCard) else None
+            monthly_card_id = payment.card.card_id if isinstance(payment.card, MonthlyCard) else None
 
-        cursor.execute("""
-            UPDATE payments
-            SET card_id = ?, monthly_card_id = ?, amount = ?, method = ?, payment_date = ?, updated_at = GETDATE()
-            WHERE id = ?
-        """, (
-            card_id,
-            monthly_card_id,
-            payment.amount,
-            payment.method,
-            payment.paid_at,
-            int(payment.id)
-        ))
+            cursor.execute("""
+                UPDATE payments
+                SET card_id = ?, monthly_card_id = ?, amount = ?, method = ?, payment_date = ?, updated_at = GETDATE()
+                WHERE id = ?
+            """, (
+                card_id,
+                monthly_card_id,
+                payment.amount,
+                payment.method,
+                payment.paid_at,
+                int(payment.id)
+            ))
 
-        conn.commit()
-        result = cursor.rowcount
-        cursor.close()
-        conn.close()
-        return result > 0
+            conn.commit()
+            result = cursor.rowcount
+            cursor.close()
+            conn.close()
+            return result > 0
+        except Exception as e:
+            print(f"Error in PaymentDAO.update: {e}")
+            return False
 
     def delete(self, payment_id: int) -> bool:
-        conn = self._db.connect()
-        cursor = conn.cursor()
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
-        cursor.execute("DELETE FROM payments WHERE id = ?", (payment_id,))
+            cursor.execute("DELETE FROM payments WHERE id = ?", (payment_id,))
 
-        conn.commit()
-        result = cursor.rowcount
-        cursor.close()
-        conn.close()
-        return result > 0
+            conn.commit()
+            result = cursor.rowcount
+            cursor.close()
+            conn.close()
+            return result > 0
+        except Exception as e:
+            print(f"Error in PaymentDAO.delete: {e}")
+            return False
 
 if __name__ == '__main__':
     dao = PaymentDAO()

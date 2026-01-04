@@ -60,7 +60,7 @@ class StaffTab(QWidget):
 
         title = QLabel("QUẢN LÝ NHÂN VIÊN")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size:22px; font-weight:bold; color:#2E86C1;")
+        title.setStyleSheet("font-size:24px; font-weight:bold; color:#2E86C1;")
         main_layout.addWidget(title)
 
         # Search Bar

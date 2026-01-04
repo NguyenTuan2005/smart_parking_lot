@@ -1,7 +1,6 @@
 
-from dao.CustomerDAO import CustomerDAO
 from datetime import datetime
-from services.CardExpiryService import CardExpiryService
+from services.MonthlyCardExpiryEmailService import MonthlyCardExpiryEmailService
 
 LOG_FILE = "email_sending_log.txt"
 
@@ -11,7 +10,7 @@ def log(msg):
 
 def main():
     log("START sending expiry card email")
-    service = CardExpiryService(CustomerDAO())
+    service = MonthlyCardExpiryEmailService()
     service.notify_customers_expiring_card(days=3) # ngày trước khi hết hạn
     log("END sending expiry card email")
 
