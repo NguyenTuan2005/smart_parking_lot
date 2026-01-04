@@ -199,11 +199,8 @@ class ChartsTab(QWidget):
         """Danh sách các loại biểu đồ"""
         return [
             ("revenue", "Doanh thu theo tháng"),
-            ("mix", "Cơ cấu lượt xe (gộp thẻ lượt & khách vãng lai)"),
-            ("duration", "Thời gian đỗ xe theo nhóm khách"),
             ("traffic", "Lượt xe theo giờ & ngày"),
             ("dow_entries", "Lượt vào/ra theo ngày trong tuần"),
-            ("fee_duration", "Tương quan phí & thời gian đỗ"),
             ("hour_hist", "Phân bố lượt xe theo giờ"),
         ]
 
@@ -211,11 +208,8 @@ class ChartsTab(QWidget):
         """Mô tả các loại biểu đồ"""
         return {
             "revenue": "Theo dõi xu hướng doanh thu các tháng để đánh giá tăng trưởng.",
-            "mix": "So sánh tỷ trọng khách dùng thẻ tháng và khách đi lượt/vãng lai.",
-            "duration": "Nhìn nhanh phân bố thời gian đỗ của từng nhóm khách.",
             "traffic": "Nhận diện khung giờ và ngày cao điểm để bố trí nhân sự.",
             "dow_entries": "So sánh lượt vào/ra theo ngày để thấy ngày cao điểm.",
-            "fee_duration": "Kiểm tra phí thu có tỷ lệ thuận thời gian đỗ hay không.",
             "hour_hist": "Phân bố lượt xe theo giờ để chọn khung mở rộng/thu hẹp ca.",
         }
 
@@ -234,16 +228,16 @@ class ChartsTab(QWidget):
         chart_widget = None
         if key == "revenue":
             chart_widget = self._chart_revenue_trend()
-        elif key == "mix":
-            chart_widget = self._chart_vehicle_mix()
-        elif key == "duration":
-            chart_widget = self._chart_duration_boxplot()
+        # elif key == "mix":
+        #     chart_widget = self._chart_vehicle_mix()
+        # elif key == "duration":
+        #     chart_widget = self._chart_duration_boxplot()
         elif key == "traffic":
             chart_widget = self._chart_traffic_heatmap()
         elif key == "dow_entries":
             chart_widget = self._chart_dow_entries()
-        elif key == "fee_duration":
-            chart_widget = self._chart_fee_vs_duration()
+        # elif key == "fee_duration":
+        #     chart_widget = self._chart_fee_vs_duration()
         elif key == "hour_hist":
             chart_widget = self._chart_hour_hist()
 
@@ -256,11 +250,12 @@ class ChartsTab(QWidget):
     def _create_figure(self, figsize=(12, 9)):
         """Tạo figure với padding đủ lớn"""
         figure = Figure(figsize=figsize, dpi=100)
-        # Tăng padding top để tránh cắt tiêu đề
-        figure.subplots_adjust(left=0.1, right=0.95, top=0.90, bottom=0.12)
+        # Tăng padding top để tránh cắt tiêu đề, tăng bottom để tránh che chú thích
+        figure.subplots_adjust(left=0.1, right=0.95, top=0.90, bottom=0.25)
         return figure
 
     def _chart_revenue_trend(self):
+        """Biểu đồ doanh thu theo tháng - Đã cải tiến"""
         figure = self._create_figure()
         ax = figure.add_subplot(111)
 
@@ -268,16 +263,62 @@ class ChartsTab(QWidget):
             start_date=self.start_date, end_date=self.end_date
         )
 
-        if HAS_SEABORN:
-            sns.lineplot(x=months, y=revenues, marker="o", ax=ax, color="#2E86C1", linewidth=2.5)
-        else:
-            ax.plot(months, revenues, marker="o", color="#2E86C1", linewidth=2.5)
+        # Lọc chỉ các tháng có dữ liệu trong khoảng thời gian được chọn
+        if self.start_date and self.end_date:
+            filtered_months = []
+            filtered_revenues = []
+            month_names = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"]
 
-        ax.set_title("Doanh Thu Theo Tháng", fontsize=14, fontweight='bold', pad=20)
-        ax.set_ylabel("Triệu đồng", fontsize=11)
-        ax.set_xlabel("Tháng", fontsize=11)
-        ax.grid(True, alpha=0.3, linestyle='--')
-        ax.tick_params(axis='x', rotation=45)
+            for i, (month, revenue) in enumerate(zip(months, revenues)):
+                month_num = i + 1
+                # Kiểm tra tháng có nằm trong khoảng thời gian không
+                if self.start_date.month <= month_num <= self.end_date.month or revenue > 0:
+                    filtered_months.append(month)
+                    filtered_revenues.append(revenue)
+
+            months = filtered_months if filtered_months else months
+            revenues = filtered_revenues if filtered_revenues else revenues
+
+        if HAS_SEABORN:
+            sns.lineplot(x=months, y=revenues, marker="o", ax=ax, color="#2E86C1",
+                         linewidth=2.5, markersize=8)
+        else:
+            ax.plot(months, revenues, marker="o", color="#2E86C1", linewidth=2.5, markersize=8)
+
+        # Chú thích giá trị với định dạng rõ ràng hơn
+        for i, (month, revenue) in enumerate(zip(months, revenues)):
+            if revenue > 0:  # Chỉ hiển thị cho tháng có doanh thu
+                ax.annotate(f'{revenue:.1f}k',
+                            xy=(month, revenue),
+                            xytext=(0, 8),
+                            textcoords='offset points',
+                            fontsize=9,
+                            color='#2E86C1',
+                            fontweight='bold',
+                            ha='center',
+                            bbox=dict(boxstyle='round,pad=0.4', facecolor='white',
+                                      edgecolor='#2E86C1', alpha=0.9))
+
+        # Thông tin tổng quan với thống kê bổ sung
+        total_revenue = sum(revenues)
+        avg_revenue = total_revenue / len([r for r in revenues if r > 0]) if any(revenues) else 0
+        max_revenue = max(revenues) if revenues else 0
+
+        stats_text = f'Tổng: {total_revenue:.1f}k | TB: {avg_revenue:.1f}k | Cao nhất: {max_revenue:.1f}k'
+        ax.text(0.98, 0.98, stats_text,
+                transform=ax.transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right',
+                bbox=dict(boxstyle='round,pad=0.5', facecolor='#FFF3CD',
+                          edgecolor='#FFC107', alpha=0.9))
+
+        ax.set_title("Doanh Thu Theo Tháng", fontsize=16, fontweight='bold', pad=20)
+        ax.set_ylabel("Nghìn đồng (k)", fontsize=12, fontweight='bold')
+        ax.set_xlabel("Tháng", fontsize=12, fontweight='bold')
+        ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.7)
+        ax.tick_params(axis='x', rotation=45, labelsize=10)
+        ax.tick_params(axis='y', labelsize=10)
+
+        # Định dạng trục y để hiển thị số đẹp hơn
+        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x:.0f}k'))
 
         return FigureCanvas(figure)
 
@@ -288,7 +329,7 @@ class ChartsTab(QWidget):
         labels, values = self.controller.get_vehicle_mix_data(self.start_date, self.end_date)
 
         if HAS_SEABORN:
-            sns.barplot(x=labels, y=values, ax=ax, palette="Blues")
+            sns.barplot(x=labels, y=values,hue=labels, ax=ax, palette="Blues", legend=False)
         else:
             ax.bar(labels, values, color="#3498DB")
 
@@ -326,7 +367,10 @@ class ChartsTab(QWidget):
         return FigureCanvas(figure)
 
     def _chart_traffic_heatmap(self):
-        figure = self._create_figure(figsize=(13, 7))
+        """Heatmap lượt xe theo giờ & ngày - Đã cải tiến"""
+        figure = self._create_figure(figsize=(14, 7))
+        # Tăng bottom margin cho heatmap để có chỗ cho chú thích
+        figure.subplots_adjust(left=0.1, right=0.95, top=0.90, bottom=0.25)
         ax = figure.add_subplot(111)
 
         days, hours, traffic = self.controller.get_traffic_heatmap_data(
@@ -334,19 +378,34 @@ class ChartsTab(QWidget):
         )
 
         if HAS_SEABORN:
+            # Tính tổng để làm màu sáng/tối phù hợp
+            max_traffic = max(max(row) for row in traffic) if traffic else 1
+
             sns.heatmap(
                 traffic,
                 annot=True,
                 fmt="d",
-                cmap="YlOrRd",
+                cmap="RdYlGn_r",  # Đỏ = cao điểm, Xanh = ít xe
                 xticklabels=hours,
                 yticklabels=days,
                 ax=ax,
-                cbar_kws={'label': 'Số lượt xe'}
+                cbar_kws={'label': 'Số lượt xe', 'shrink': 0.8},
+                linewidths=0.5,
+                linecolor='gray',
+                vmin=0,
+                vmax=max_traffic,
+                annot_kws={'fontsize': 10, 'fontweight': 'bold'}
             )
-            ax.set_xlabel("Khung giờ", fontsize=11)
-            ax.set_ylabel("Ngày", fontsize=11)
-            ax.set_title("Mật Độ Lượt Xe Theo Giờ & Ngày", fontsize=14, fontweight='bold', pad=15)
+
+            ax.set_xlabel("Khung giờ", fontsize=12, fontweight='bold')
+            ax.set_ylabel("Ngày trong tuần", fontsize=12, fontweight='bold')
+            ax.set_title("Mật Độ Lượt Xe Theo Giờ & Ngày", fontsize=16, fontweight='bold', pad=15)
+
+            # Thêm chú thích hướng dẫn
+            total_vehicles = sum(sum(row) for row in traffic)
+            ax.text(0.5, -0.25, f'Tổng số lượt: {total_vehicles} | Màu đậm = Cao điểm',
+                    transform=ax.transAxes, fontsize=10, ha='center',
+                    bbox=dict(boxstyle='round,pad=0.5', facecolor='lightblue', alpha=0.7))
         else:
             ax.set_title("Cần cài seaborn để xem heatmap", fontsize=14)
             ax.axis("off")
@@ -354,6 +413,7 @@ class ChartsTab(QWidget):
         return FigureCanvas(figure)
 
     def _chart_dow_entries(self):
+        """Biểu đồ lượt vào/ra theo ngày - Đã cải tiến"""
         figure = self._create_figure()
         ax = figure.add_subplot(111)
 
@@ -362,22 +422,64 @@ class ChartsTab(QWidget):
         )
 
         x = range(len(days))
-        width = 0.35
+        width = 0.38
 
-        if HAS_SEABORN:
-            ax.bar([i - width / 2 for i in x], entries, width, label='Vào', color='#3498DB', alpha=0.9)
-            ax.bar([i + width / 2 for i in x], exits, width, label='Ra', color='#2ECC71', alpha=0.9)
-        else:
-            ax.bar([i - width / 2 for i in x], entries, width, label='Vào', color='#3498DB')
-            ax.bar([i + width / 2 for i in x], exits, width, label='Ra', color='#2ECC71')
+        bars1 = ax.bar([i - width / 2 for i in x], entries, width,
+                       label='Vào', color='#3498DB', alpha=0.85, edgecolor='#2874A6', linewidth=1.5)
+        bars2 = ax.bar([i + width / 2 for i in x], exits, width,
+                       label='Ra', color='#2ECC71', alpha=0.85, edgecolor='#239B56', linewidth=1.5)
 
-        ax.set_title("Lượt Vào/Ra Theo Ngày", fontsize=14, fontweight='bold', pad=15)
-        ax.set_ylabel("Số lượt", fontsize=11)
-        ax.set_xlabel("Ngày", fontsize=11)
+        # Chú thích giá trị trên mỗi bar với điều kiện
+        for bar in bars1:
+            height = bar.get_height()
+            if height > 0:  # Chỉ hiển thị nếu có giá trị
+                ax.text(bar.get_x() + bar.get_width() / 2., height + max(entries) * 0.02,
+                        f'{int(height)}', ha='center', va='bottom',
+                        fontsize=9, fontweight='bold', color='#2874A6')
+
+        for bar in bars2:
+            height = bar.get_height()
+            if height > 0:
+                ax.text(bar.get_x() + bar.get_width() / 2., height + max(exits) * 0.02,
+                        f'{int(height)}', ha='center', va='bottom',
+                        fontsize=9, fontweight='bold', color='#239B56')
+
+        # Thêm đường trung bình
+        avg_entries = sum(entries) / len(entries) if entries else 0
+        avg_exits = sum(exits) / len(exits) if exits else 0
+        ax.axhline(y=avg_entries, color='#3498DB', linestyle='--',
+                   linewidth=1.5, alpha=0.5, label=f'TB Vào: {avg_entries:.0f}')
+        ax.axhline(y=avg_exits, color='#2ECC71', linestyle='--',
+                   linewidth=1.5, alpha=0.5, label=f'TB Ra: {avg_exits:.0f}')
+
+        # Tìm ngày cao điểm
+        max_entry_day = days[entries.index(max(entries))] if entries else ""
+        max_exit_day = days[exits.index(max(exits))] if exits else ""
+
+        # Thêm thống kê tổng quan ở góc phải trên
+        total_entries = sum(entries)
+        total_exits = sum(exits)
+        ratio_text = f'Tổng vào: {total_entries} | Tổng ra: {total_exits}'
+        ax.text(0.98, 0.98, ratio_text,
+                transform=ax.transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right',
+                bbox=dict(boxstyle='round,pad=0.5', facecolor='#D5F4E6',
+                          edgecolor='#27AE60', alpha=0.9))
+
+        ax.set_title("Lượt Vào/Ra Theo Ngày Trong Tuần", fontsize=16, fontweight='bold', pad=15)
+        ax.set_ylabel("Số lượt", fontsize=12, fontweight='bold')
+        ax.set_xlabel("Ngày", fontsize=12, fontweight='bold')
         ax.set_xticks(x)
-        ax.set_xticklabels(days)
-        ax.legend(fontsize=10)
-        ax.grid(True, alpha=0.3, axis='y', linestyle='--')
+        ax.set_xticklabels(days, fontsize=11, fontweight='bold')
+        ax.legend(fontsize=10, loc='lower right', framealpha=0.9)
+        ax.grid(True, alpha=0.3, axis='y', linestyle='--', linewidth=0.7)
+
+        # Thêm chú thích ngày cao điểm
+        if max_entry_day and max_exit_day:
+            peak_text = f'Cao điểm vào: {max_entry_day} | Cao điểm ra: {max_exit_day}'
+            ax.text(0.5, -0.25, peak_text,
+                    transform=ax.transAxes, fontsize=10, ha='center',
+                    bbox=dict(boxstyle='round,pad=0.5', facecolor='#FFE5E5',
+                              edgecolor='#E74C3C', alpha=0.8))
 
         return FigureCanvas(figure)
 
@@ -411,6 +513,7 @@ class ChartsTab(QWidget):
         return FigureCanvas(figure)
 
     def _chart_hour_hist(self):
+        """Biểu đồ phân bố lượt xe theo giờ - Đã cải tiến"""
         figure = self._create_figure()
         ax = figure.add_subplot(111)
 
@@ -418,19 +521,64 @@ class ChartsTab(QWidget):
             self.start_date, self.end_date
         )
 
-        hours = []
-        for hour in range(24):
-            hours.extend([hour] * hour_data[hour])
+        hours = list(range(24))
 
         if HAS_SEABORN:
-            sns.histplot(hours, bins=24, ax=ax, color="#9B59B6", kde=True, line_kws={"linewidth": 2})
-        else:
-            ax.hist(hours, bins=24, color="#9B59B6", alpha=0.85)
+            # Tạo data frame cho seaborn
+            hours_expanded = []
+            for hour in range(24):
+                hours_expanded.extend([hour] * hour_data[hour])
 
-        ax.set_title("Phân Bố Lượt Xe Theo Giờ", fontsize=14, fontweight='bold', pad=15)
-        ax.set_xlabel("Giờ trong ngày", fontsize=11)
-        ax.set_ylabel("Số lượt", fontsize=11)
+            if hours_expanded:  # Nếu có dữ liệu
+                sns.histplot(hours_expanded, bins=24, ax=ax, color="#9B59B6",
+                             kde=True, line_kws={"linewidth": 2.5, "color": "#7D3C98"},
+                             edgecolor='#6C3483', linewidth=1.2)
+            else:  # Nếu không có dữ liệu, vẽ bar chart trống
+                ax.bar(hours, hour_data, color="#9B59B6", alpha=0.85,
+                       edgecolor='#6C3483', linewidth=1.2)
+        else:
+            ax.bar(hours, hour_data, color="#9B59B6", alpha=0.85,
+                   edgecolor='#6C3483', linewidth=1.2)
+
+        # Chú thích giá trị chỉ cho các giờ có lượt xe > 0
+        max_count = max(hour_data) if hour_data else 1
+        for i, count in enumerate(hour_data):
+            if count > 0:
+                ax.text(i, count + max_count * 0.02, f'{count}',
+                        ha='center', va='bottom', fontsize=8,
+                        fontweight='bold', color='#6C3483')
+
+        # Phân tích giờ cao điểm
+        peak_hours = [h for h, c in enumerate(hour_data) if c == max(hour_data)]
+        low_hours = [h for h, c in enumerate(hour_data) if c == min(hour_data) and c > 0]
+
+        total_vehicles = sum(hour_data)
+        avg_per_hour = total_vehicles / 24 if total_vehicles > 0 else 0
+
+        # Đánh dấu giờ cao điểm
+        for peak_hour in peak_hours:
+            ax.axvline(x=peak_hour, color='#E74C3C', linestyle='--',
+                       linewidth=2, alpha=0.7, label=f'Cao điểm: {peak_hour}h' if peak_hour == peak_hours[0] else '')
+
+        # Đường trung bình
+        ax.axhline(y=avg_per_hour, color='#3498DB', linestyle='--',
+                   linewidth=1.5, alpha=0.6, label=f'Trung bình: {avg_per_hour:.1f}')
+
+        ax.set_title("Phân Bố Lượt Xe Theo Giờ", fontsize=16, fontweight='bold', pad=15)
+        ax.set_xlabel("Giờ trong ngày", fontsize=12, fontweight='bold')
+        ax.set_ylabel("Số lượt xe", fontsize=12, fontweight='bold')
         ax.set_xticks(range(0, 24, 2))
-        ax.grid(True, alpha=0.3, axis='y', linestyle='--')
+        ax.set_xticklabels([f'{h}h' for h in range(0, 24, 2)], fontsize=10)
+        ax.grid(True, alpha=0.3, axis='y', linestyle='--', linewidth=0.7)
+        ax.legend(fontsize=10, loc='upper right', framealpha=0.9)
+
+        # Thêm thông tin phân tích
+        if peak_hours and low_hours:
+            peak_str = ', '.join([f'{h}h' for h in peak_hours[:3]])  # Lấy tối đa 3 giờ
+            analysis_text = f'Tổng: {total_vehicles} lượt | Cao điểm: {peak_str}'
+            ax.text(0.5, -0.25, analysis_text,
+                    transform=ax.transAxes, fontsize=10, ha='center',
+                    bbox=dict(boxstyle='round,pad=0.5', facecolor='#E8DAEF',
+                              edgecolor='#9B59B6', alpha=0.8))
 
         return FigureCanvas(figure)
