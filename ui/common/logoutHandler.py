@@ -1,59 +1,61 @@
-"""
-Logout Handler for managing logout functionality across the application
-"""
 
 from PyQt6.QtWidgets import QMessageBox
-# Đảm bảo import đúng cho các hằng số QObject và pyqtSignal
 from PyQt6.QtCore import pyqtSignal, QObject
 
 
 class LogoutHandler(QObject):
-    """
-    Signal để thông báo khi người dùng đăng xuất
-    """
     logout_requested = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
     def request_logout(self, window=None):
-        """
-        Xử lý yêu cầu đăng xuất, hiển thị hộp thoại xác nhận và đóng cửa sổ.
-
-        Args:
-            window: Cửa sổ hiện tại (dùng để hiển thị xác nhận)
-        """
         if window:
-            reply = QMessageBox.question(
-                window,
-                "Xác nhận đăng xuất",
-                "Bạn có chắc chắn muốn đăng xuất?",
-                # Sửa lỗi PyQt6: Dùng QStandardButton.Yes | QStandardButton.No
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
-            )
+            msg = QMessageBox(window)
+            msg.setIcon(QMessageBox.Icon.Question)
+            msg.setWindowTitle("Xác nhận đăng xuất")
+            msg.setText("Bạn có chắc chắn muốn đăng xuất?")
+            msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            msg.setDefaultButton(QMessageBox.StandardButton.No)
+            
+            # Apply clear styling to override global yellow buttons and faint text
+            msg.setStyleSheet("""
+                QMessageBox { background-color: white; }
+                QLabel { color: #2c3e50; font-size: 13px; }
+                QPushButton { 
+                    background-color: #f0f0f0; color: #333; 
+                    border: 1px solid #ccc; border-radius: 4px; 
+                    padding: 5px 15px; min-width: 80px; 
+                }
+                QPushButton:hover { background-color: #e5f1fb; border: 1px solid #0078d7; }
+            """)
 
-            if reply == QMessageBox.StandardButton.Yes:
-                # Đóng cửa sổ hiện tại
+            if msg.exec() == QMessageBox.StandardButton.Yes:
                 window.close()
-                # Phát tín hiệu đăng xuất
                 self.logout_requested.emit()
         else:
-            # Nếu không có cửa sổ, phát tín hiệu đăng xuất trực tiếp
             self.logout_requested.emit()
 
     def confirm_logout(self, window=None):
-        """
-        Yêu cầu xác nhận trước khi đăng xuất, trả về True/False
-        """
         if window:
-            reply = QMessageBox.question(
-                window,
-                "Đăng xuất",
-                "Bạn muốn đăng xuất khỏi hệ thống?",
-                # Sửa lỗi PyQt6: Dùng QStandardButton.Yes | QStandardButton.StandardButton.No
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
-            )
-            return reply == QMessageBox.StandardButton.Yes
+            msg = QMessageBox(window)
+            msg.setIcon(QMessageBox.Icon.Question)
+            msg.setWindowTitle("Đăng xuất")
+            msg.setText("Bạn muốn đăng xuất khỏi hệ thống?")
+            msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            msg.setDefaultButton(QMessageBox.StandardButton.No)
+            
+            # Apply clear styling
+            msg.setStyleSheet("""
+                QMessageBox { background-color: white; }
+                QLabel { color: #2c3e50; font-size: 13px; }
+                QPushButton { 
+                    background-color: #f0f0f0; color: #333; 
+                    border: 1px solid #ccc; border-radius: 4px; 
+                    padding: 5px 15px; min-width: 80px; 
+                }
+                QPushButton:hover { background-color: #e5f1fb; border: 1px solid #0078d7; }
+            """)
+            
+            return msg.exec() == QMessageBox.StandardButton.Yes
         return True

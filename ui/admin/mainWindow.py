@@ -5,6 +5,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QAction
 from controllers.StaffCL import StaffCL
 from controllers.CardController import MonthlyCardController, SingleCardLogController, SingleCardManagementController
+from controllers.CustomerController import CustomerController
 from services.Session import Session
 from ui.admin.tabs.CardTab import CardTab
 from ui.admin.tabs.customersTab import CustomerTab
@@ -40,7 +41,6 @@ class ParkingManagementApp(QMainWindow):
         self._init_controllers()
 
     def _create_menu_bar(self):
-        """Tạo menu bar với nút đăng xuất"""
         menubar = self.menuBar()
         
         # Menu Hệ thống
@@ -57,13 +57,11 @@ class ParkingManagementApp(QMainWindow):
         system_menu.addAction(exit_action)
 
     def _request_logout(self):
-        """Xử lý yêu cầu đăng xuất"""
         if self.logout_handler.confirm_logout(self):
             self.logout_requested.emit()
             self.close()
 
     def _on_logout(self):
-
         pass
 
     def initUI(self):
@@ -90,6 +88,5 @@ class ParkingManagementApp(QMainWindow):
         self.single_card_management_controller = SingleCardManagementController(
             view=self.card_tab.single_card_management_tab)
         self.staff_controller = StaffCL(view=self.Staff_tab)
-        self.report_controller = ReportController(
-            self.stats_tab.reports_tab
-        )
+        self.customer_controller = CustomerController(view=self.customer_tab)
+        self.report_controller = ReportController(self.stats_tab)

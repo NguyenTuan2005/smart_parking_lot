@@ -2,12 +2,12 @@
 --1. STAFFS
 SET IDENTITY_INSERT staffs ON;
 INSERT INTO staffs (id, username, password, fullname, phone_number, role) VALUES
-(1, 'admin', '123', 'Nguyen Van A', '0901000001', 1),
-(2, 'employee', '123', 'Nguyen Van B', '0901000002', 2),
-(3, 'tuan', '123', 'Nguyen Vo Quoc Tuan', '0901000002', 1),
-(4, 'chi', '123', 'Do Thi Kim Chi', '0901000003', 1),
-(5, 'hoang', '123', 'Phan Ba Huy Hoang', '0901000003', 2),
-(6, 'tri', '123', 'Nguyen Minh Tri', '0901000003', 2);
+(1, 'admin', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'Nguyen Van A', '0901000001', 1),
+(2, 'employee', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'Nguyen Van B', '0901000002', 2),
+(3, 'tuan', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'Nguyen Vo Quoc Tuan', '0901000002', 1),
+(4, 'chi', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'Do Thi Kim Chi', '0901000003', 1),
+(5, 'hoang', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'Phan Ba Huy Hoang', '0901000003', 2),
+(6, 'tri', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'Nguyen Minh Tri', '0901000003', 2);
 SET IDENTITY_INSERT staffs OFF;
 
 
