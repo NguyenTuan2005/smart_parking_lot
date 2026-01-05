@@ -107,8 +107,8 @@ class LeftPanel(QWidget):
         bsRaVLayout.addWidget(self.__bsRaLabel, alignment=Qt.AlignmentFlag.AlignCenter)
         infoLayout.addWidget(bsRaFrame, 3, 0)
 
-        # Hàng 4, 5: SỐ NGÀY GỬI
-        durationLabel = QLabel("SỐ NGÀY GỬI")
+        # Hàng 4, 5: SỐ GIỜ GỬI
+        durationLabel = QLabel("SỐ GIỜ GỬI")
         durationLabel.setStyleSheet("color: #95a5a6; font-size: 14px;")  # Giảm font
         infoLayout.addWidget(durationLabel, 4, 0)
 

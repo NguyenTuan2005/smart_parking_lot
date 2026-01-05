@@ -5,3 +5,4 @@
 .idea
 .vscode
 .venv
+send_mail.bat

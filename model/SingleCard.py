@@ -2,14 +2,23 @@ import math
 
 from model.Card import Card
 from model.CardLog import CardLog
+from model.Settings import Settings
 
 
 class SingleCard(Card):
-    def __init__(self, card_id: int, card_code: str, price: int, night_price: int, card_log: CardLog =None):
+    def __init__(
+        self,
+        card_id: int,
+        card_code: str,
+        price: int,
+        night_price: int,
+        card_log: CardLog = None,
+    ):
         super().__init__(card_id, card_code)
         self._price = price
         self.__night_price = night_price
         self._card_log = card_log
+        self.__settings = Settings()
 
     def set_card_log(self, card_log: CardLog):
         self._card_log = card_log
@@ -26,12 +35,19 @@ class SingleCard(Card):
     def night_price(self) -> int:
         return self.__night_price
 
+    @property
+    def card_code(self) -> str:
+        return self._card_code
+
     def duration(self) -> int:
         return self._card_log.duration()
 
     def calculate_price(self, minutes: int) -> int:
         hours = math.ceil(minutes / 60)
-        return hours * self._price
+        result = self._price if self._card_log.in_day_time() else self.__night_price
+        if hours > self.__settings.max_parking_hours:
+            result *= self.__settings.overtime_fee
+        return result
 
     def is_single_card(self):
         return True
@@ -70,6 +86,7 @@ class SingleCard(Card):
         self._price = fee
 
         from dao.SingleCardDAO import SingleCardDAO
+
         SingleCardDAO().update_price(self._card_id, self._price)
 
     def apply_single_night_fee(self, night_fee: int):
@@ -78,4 +95,5 @@ class SingleCard(Card):
         self._price = night_fee
 
         from dao.SingleCardDAO import SingleCardDAO
+
         SingleCardDAO().update_night_price(night_fee)

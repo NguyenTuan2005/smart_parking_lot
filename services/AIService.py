@@ -1,4 +1,7 @@
 import warnings
+
+from model.Settings import Settings
+
 warnings.filterwarnings("ignore", message=".*torch.cuda.amp.autocast.*", category=FutureWarning)
 import os
 import re
@@ -12,6 +15,7 @@ class AIService:
         self._load_models()
         self._recent_plates = {}
         self._cooldown_seconds = 3
+        self.__settings = Settings()
 
     def _load_models(self):
         try:
@@ -55,6 +59,6 @@ class AIService:
 
     def _cleanup_old_plates(self, current_time):
         remove_list = [plate for plate, timestamp in self._recent_plates.items()
-                       if current_time - timestamp > 10]
+                       if current_time - timestamp > self.__settings.ai_cleanup_time]
         for plate in remove_list:
             del self._recent_plates[plate]

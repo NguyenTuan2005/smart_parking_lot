@@ -13,6 +13,7 @@ import cv2
 from controllers.StaffController import StaffController
 from model.Card import Card
 from model.MonthlyCard import MonthlyCard
+from model.Settings import Settings
 from model.SingleCard import SingleCard
 
 
@@ -21,6 +22,7 @@ class RightPanel(QWidget):
         super().__init__(parent)
         self.__controller = controller
         controller.add_view('right', self)
+        self.__setting = Settings()
         self.entry_camera = None
         self.exit_camera = None
         # modes: 'camera' or 'upload' for each side
@@ -142,14 +144,14 @@ class RightPanel(QWidget):
         self.entry_timer.timeout.connect(self._updateEntryFrame)
         # Chỉ khởi động timer nếu camera mở thành công
         if self.entry_camera.isOpened():
-            self.entry_timer.start(100)  # 100ms ~ 10 FPS
+            self.entry_timer.start(self.__setting.camera_refresh_rate)
 
         # --- Camera ra (index 1 hoặc 2) ---
         self.exit_camera = cv2.VideoCapture(1)  # Đặt index 1 (hoặc 2 nếu index 1 không có)
         self.exit_timer = QTimer()
         self.exit_timer.timeout.connect(self._updateExitFrame)
         if self.exit_camera.isOpened():
-            self.exit_timer.start(100)
+            self.exit_timer.start(self.__setting.camera_refresh_rate)
 
     def _updateEntryFrame(self):
         if not self.entry_camera or not self.entry_camera.isOpened():
@@ -240,7 +242,7 @@ class RightPanel(QWidget):
                 return
             self.upload_timer_exit = QTimer()
             self.upload_timer_exit.timeout.connect(self._updateUploadFrameExit)
-            self.upload_timer_exit.start(100)
+            self.upload_timer_exit.start(self.__setting.camera_refresh_rate)
             self.mode_exit = 'upload'
             self.modeButtonExit.setText('Dùng RA')
         else:
@@ -260,7 +262,7 @@ class RightPanel(QWidget):
             self.exit_camera = cv2.VideoCapture(1)
             if self.exit_camera.isOpened():
                 try:
-                    self.exit_timer.start(100)
+                    self.exit_timer.start(self.__setting.camera_refresh_rate)
                 except Exception:
                     pass
             self.mode_exit = 'camera'
@@ -290,7 +292,7 @@ class RightPanel(QWidget):
                 return
             self.upload_timer = QTimer()
             self.upload_timer.timeout.connect(self._updateUploadFrame)
-            self.upload_timer.start(100)
+            self.upload_timer.start(self.__setting.camera_refresh_rate)
             self.mode = 'upload'
             self.modeButtonEntry.setText('Dùng VÀO')
         else:
@@ -311,7 +313,7 @@ class RightPanel(QWidget):
             if self.entry_camera.isOpened():
                 try:
                     self.entry_timer.timeout.connect(self._updateEntryFrame)
-                    self.entry_timer.start(100)
+                    self.entry_timer.start(self.__setting.camera_refresh_rate)
                 except Exception:
                     pass
             self.mode = 'camera'

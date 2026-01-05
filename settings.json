@@ -1,6 +1,10 @@
 {
     "total_slots": 250,
-    "monthly_fee": 120000,
+    "monthly_fee": 60000,
     "single_day_fee": 3000,
-    "single_night_fee": 5000
+    "single_night_fee": 5000,
+    "max_parking_hours": 14,
+    "overtime_fee": 40,
+    "camera_refresh_rate": 100,
+    "ai_cleanup_time": 10
 }
