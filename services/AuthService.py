@@ -4,6 +4,7 @@ from typing import Optional
 import hashlib
 import hmac
 
+
 class AuthService:
     def __init__(self):
         self.staff_dao = StaffDAO()
@@ -14,9 +15,8 @@ class AuthService:
         if not staff:
             return None
 
-        input_password = hashlib.sha256(password.encode()).hexdigest()
+        if not staff.check_password(password):
+            return None
 
-        if hmac.compare_digest(input_password, staff.password):
-            return staff
-
-        return None
+        staff.erase_password()
+        return staff
