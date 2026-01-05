@@ -23,7 +23,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QSize, pyqtSignal, QDate
 from dto.dtos import MonthlyCardCreationDTO, CustomerDTO, VehicleDTO
-from utils.Validator import Validator
+from util.Validator import Validator
 
 
 def create_status_widget(text, is_success):

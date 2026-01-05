@@ -40,6 +40,16 @@ class CardLog:
     def vehicle(self):
         return self._vehicle
 
+    def __repr__(self) -> str:
+        return (
+            f"CardLog("
+            f"entry_at='{self._entry_at}', "
+            f"exit_at={self._exit_at}, "
+            f"fee={self._fee}, "
+            f"vehicle={self._vehicle}"
+            f")"
+        )
+
     def duration(self):
         if  self._entry_at and self._exit_at:
             return int(( self._exit_at - self._entry_at).total_seconds() / 60)
@@ -69,4 +79,13 @@ class CardLog:
         return self._exit_at is None and self._fee == 0
 
     def is_same_plate(self, plate: str) -> bool:
+        if self._vehicle is None:
+            return False
         return self._vehicle.is_same_plate(plate)
+
+    def in_day_time(self):
+        if self._entry_at is None:
+            return False
+        end_of_entry_day = self._entry_at.replace(hour=22, minute=0, second=0, microsecond=0)
+        exit_time = self._exit_at if self._exit_at is not None else datetime.now()
+        return exit_time <= end_of_entry_day

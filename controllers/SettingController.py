@@ -31,10 +31,15 @@ class SettingController:
             if not self.__settings.eq_single_night_fee(single_night_fee):
                 self.__application.apply_single_night_fee(single_night_fee)
                 self.__settings.single_night_fee = single_night_fee
+
         except ValueError:
             QMessageBox.critical(self.__view, "Lỗi", "Giá trị không hợp lệ!!")
             return
         self.__settings.total_slots = self.__view.slots_spin.value()
+        self.__settings.max_parking_hours = self.__view.max_parking_hours_spin.value()
+        self.__settings.overtime_fee = self.__view.overtime_fee_spin.value()
+        self.__settings.camera_refresh_rate = self.__view.camera_refresh_rate_spin.value()
+        self.__settings.ai_cleanup_time = self.__view.ai_cleanup_time_spin.value()
 
         try:
             self.__settings.save_data()

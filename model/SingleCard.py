@@ -2,6 +2,7 @@ import math
 
 from model.Card import Card
 from model.CardLog import CardLog
+from model.Settings import Settings
 
 
 class SingleCard(Card):
@@ -10,6 +11,7 @@ class SingleCard(Card):
         self._price = price
         self.__night_price = night_price
         self._card_log = card_log
+        self.__settings = Settings()
 
     def set_card_log(self, card_log: CardLog):
         self._card_log = card_log
@@ -31,7 +33,10 @@ class SingleCard(Card):
 
     def calculate_price(self, minutes: int) -> int:
         hours = math.ceil(minutes / 60)
-        return hours * self._price
+        result = self._price if self._card_log.in_day_time() else self.__night_price
+        if hours > self.__settings.max_parking_hours:
+            result *= self.__settings.overtime_fee
+        return result
 
     def is_single_card(self):
         return True
