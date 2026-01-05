@@ -15,15 +15,16 @@ class MonthlyCardController:
         self.view.cardAdded.connect(self.create_monthly_card)
         self.view.deleteRequested.connect(self.handle_delete_card)
         self.view.editRequested.connect(self.update_card)
-        
-        # New Connections
-        if hasattr(self.view, 'btnRefresh'):
+        self.view.addCardRequested.connect(self.prepare_add_monthly_card)
+        self.view.regenCodeRequested.connect(self.handle_regen_monthly_card)
+
+        if hasattr(self.view, "btnRefresh"):
             self.view.btnRefresh.clicked.connect(self.load_data)
-        
-        if hasattr(self.view, 'btnSearch'):
+
+        if hasattr(self.view, "btnSearch"):
             self.view.btnSearch.clicked.connect(self.search_cards)
             self.view.txtSearchCardCode.returnPressed.connect(self.search_cards)
-            
+
         self.load_data()
 
     def search_cards(self):
@@ -37,7 +38,7 @@ class MonthlyCardController:
             self.view.set_table_data(cards)
         except Exception as e:
             print(f"Lỗi tìm kiếm thẻ tháng: {e}")
-            
+
     def load_data(self):
         try:
             cards = self.monthly_card_service.get_all_cards()
@@ -45,18 +46,33 @@ class MonthlyCardController:
         except Exception as e:
             print(f"Lỗi khi load dữ liệu: {e}")
 
+    def prepare_add_monthly_card(self):
+        try:
+            next_code = self.monthly_card_service.generate_next_monthly_card_code()
+            self.view.show_add_card_dialog(next_code=next_code)
+        except Exception as e:
+            print(f"Lỗi khi chuẩn bị thêm thẻ tháng: {e}")
+            self.view.show_add_card_dialog()
+
+    def handle_regen_monthly_card(self, dialog):
+        try:
+            next_code = self.monthly_card_service.generate_next_monthly_card_code()
+            dialog.set_card_code(next_code)
+        except Exception as e:
+            print(f"Lỗi khi tạo lại mã thẻ tháng: {e}")
+
     def create_monthly_card(self, card_data: MonthlyCardCreationDTO):
         self.monthly_card_service.create_monthly_card(card_data)
         self.load_data()
 
     def handle_delete_card(self, delete_data: dict):
-        card_code = delete_data.get('card_code')
+        card_code = delete_data.get("card_code")
         if not card_code:
             return
 
         confirmed = self.view.show_confirmation_dialog(
             "Xác nhận xóa thẻ tháng",
-            f"Bạn có chắc chắn muốn xóa thẻ tháng {card_code}? Hành động này không thể hoàn tác."
+            f"Bạn có chắc chắn muốn xóa thẻ tháng {card_code}? Hành động này không thể hoàn tác.",
         )
 
         if not confirmed:
@@ -67,7 +83,9 @@ class MonthlyCardController:
             if success:
                 self.load_data()
             else:
-                print(f"Lỗi: Không thể xóa thẻ {card_code} (có thể không tìm thấy hoặc lỗi DB).")
+                print(
+                    f"Lỗi: Không thể xóa thẻ {card_code} (có thể không tìm thấy hoặc lỗi DB)."
+                )
 
         except Exception as e:
             print(f"Lỗi hệ thống khi xóa thẻ: {e}")
@@ -76,17 +94,11 @@ class MonthlyCardController:
         try:
             self.monthly_card_service.update_card(card_data)
             QMessageBox.information(
-                self.view,
-                "Thành công",
-                "Cập nhật thẻ tháng thành công"
+                self.view, "Thành công", "Cập nhật thẻ tháng thành công"
             )
 
         except Exception as e:
-            QMessageBox.critical(
-                self.view,
-                "Lỗi",
-                str(e)
-            )
+            QMessageBox.critical(self.view, "Lỗi", str(e))
 
         self.load_data()
 
@@ -96,14 +108,13 @@ class SingleCardLogController:
         self.view = view
         self.single_card_service = SingleCardService()
 
-        # Connect signals
-        if hasattr(self.view, 'btnRefresh'):
+        if hasattr(self.view, "btnRefresh"):
             self.view.btnRefresh.clicked.connect(self.load_data)
-        
-        if hasattr(self.view, 'btnSearch'):
+
+        if hasattr(self.view, "btnSearch"):
             self.view.btnSearch.clicked.connect(self.search_logs)
             self.view.txtSearchCardCode.returnPressed.connect(self.search_logs)
-        
+
         self.load_data()
 
     def load_data(self):
@@ -119,7 +130,7 @@ class SingleCardLogController:
             if not keyword:
                 self.load_data()
                 return
-            
+
             logs = self.single_card_service.search_logs(keyword)
             self.view.set_table_data(logs)
         except Exception as e:
@@ -130,19 +141,20 @@ class SingleCardManagementController:
     def __init__(self, view):
         self.view = view
         self.service = SingleCardService()
-        
+
         self.view.createRequested.connect(self.create_card)
         self.view.updateRequested.connect(self.update_card)
         self.view.deleteRequested.connect(self.delete_card)
-        
-        # New Connections
-        if hasattr(self.view, 'btnRefresh'):
+        self.view.addCardRequested.connect(self.prepare_add_single_card)
+        self.view.regenCodeRequested.connect(self.handle_regen_single_card)
+
+        if hasattr(self.view, "btnRefresh"):
             self.view.btnRefresh.clicked.connect(self.load_data)
-        
-        if hasattr(self.view, 'btnSearch'):
+
+        if hasattr(self.view, "btnSearch"):
             self.view.btnSearch.clicked.connect(self.search_cards)
             self.view.txtSearch.returnPressed.connect(self.search_cards)
-        
+
         self.load_data()
 
     def search_cards(self):
@@ -164,16 +176,31 @@ class SingleCardManagementController:
         except Exception as e:
             print(f"SingleCardManagementController Load Error: {e}")
 
+    def prepare_add_single_card(self):
+        try:
+            next_code = self.service.generate_next_single_card_code()
+            self.view.show_add_dialog(next_code=next_code)
+        except Exception as e:
+            print(f"Lỗi khi chuẩn bị thêm thẻ lượt: {e}")
+            self.view.show_add_dialog()
+
+    def handle_regen_single_card(self, dialog):
+        try:
+            next_code = self.service.generate_next_single_card_code()
+            dialog.set_card_code(next_code)
+        except Exception as e:
+            print(f"Lỗi khi tạo lại mã thẻ lượt: {e}")
+
     def create_card(self, data):
         try:
-            self.service.create_card(data['card_code'], data['price'])
+            self.service.create_card(data["card_code"], data["price"])
             self.load_data()
         except Exception as e:
             print(f"Error creating card: {e}")
 
     def update_card(self, data):
         try:
-            self.service.update_card(data['card_id'], data['price'])
+            self.service.update_card(data["card_id"], data["price"])
             self.load_data()
         except Exception as e:
             print(f"Error updating card: {e}")
@@ -184,5 +211,3 @@ class SingleCardManagementController:
             self.load_data()
         except Exception as e:
             print(f"Error deleting card: {e}")
-
-

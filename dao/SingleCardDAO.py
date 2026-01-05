@@ -31,7 +31,7 @@ class SingleCardDAO:
             if card_log is None:
                 card_log = CardLog()
 
-            return SingleCard(row.id, row.card_code, row.price, card_log= card_log)
+            return SingleCard(row.id, row.card_code, row.price, card_log=card_log)
         except Exception as e:
             print("Error in get_by_id:", e)
 
@@ -60,7 +60,7 @@ class SingleCardDAO:
                 card_id=row.id,
                 card_code=row.card_code,
                 price=row.price,
-                card_log=card_log
+                card_log=card_log,
             )
         except Exception as e:
             print(f"Error in SingleCardDAO.get_by_code: {e}")
@@ -119,7 +119,6 @@ class SingleCardDAO:
             print("Error in search_cards:", e)
             return []
 
-
     def create(self, card_code: str, price: int):
         try:
             conn = self._db.connect()
@@ -135,7 +134,6 @@ class SingleCardDAO:
             conn.close()
         except Exception as e:
             print(f"Error in SingleCardDAO.create: {e}")
-
 
     def update_price(self, card_id: int, price: int):
         try:
@@ -154,7 +152,6 @@ class SingleCardDAO:
         except Exception as e:
             print(f"Error in SingleCardDAO.update_price: {e}")
 
-
     def delete(self, card_id: int):
         try:
             conn = self._db.connect()
@@ -169,3 +166,15 @@ class SingleCardDAO:
         except Exception as e:
             print(f"Error in SingleCardDAO.delete: {e}")
             return False
+
+    def get_last_card_code(self) -> str | None:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            sql = "SELECT TOP 1 card_code FROM cards ORDER BY id DESC"
+            row = cursor.execute(sql).fetchone()
+            conn.close()
+            return row[0] if row else None
+        except Exception as e:
+            print(f"Error in SingleCardDAO.get_last_card_code: {e}")
+            return None
