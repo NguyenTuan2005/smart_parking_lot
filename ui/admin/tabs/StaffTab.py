@@ -1,7 +1,13 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout,
-    QPushButton, QTableWidget, QTableWidgetItem,
-    QHeaderView
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QLineEdit,
+    QHBoxLayout,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
 )
 from PyQt6.QtCore import Qt
 
@@ -47,7 +53,6 @@ QPushButton:hover {
 """
 
 
-
 class StaffTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -56,7 +61,7 @@ class StaffTab(QWidget):
     def initUI(self):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(15, 15, 15, 15)
-        main_layout.setSpacing(12)
+        main_layout.setSpacing(5)
 
         title = QLabel("QUẢN LÝ NHÂN VIÊN")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -77,22 +82,21 @@ class StaffTab(QWidget):
         search_layout.addWidget(self.refresh_btn)
         main_layout.addLayout(search_layout)
 
-
         # ===== TABLE =====
         self.table = QTableWidget()
         self.table.setColumnCount(5)  # ID, Tên, SĐT, Username, Vai trò
-        self.table.setHorizontalHeaderLabels([
-            "ID ",
-            "Tên đầy đủ",
-            "Số điện thoại",
-            "Username",
-            "Vai trò"
-        ])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.table.setHorizontalHeaderLabels(
+            ["ID ", "Tên đầy đủ", "Số điện thoại", "Username", "Vai trò"]
+        )
+        self.table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.verticalHeader().setVisible(False)
         main_layout.addWidget(self.table, stretch=1)
-        self.table.setStyleSheet("QHeaderView::section { background-color: #f2f2f2; font-weight: bold; }")
+        self.table.setStyleSheet(
+            "QHeaderView::section { background-color: #f2f2f2; font-weight: bold; }"
+        )
         # Buttons
         button_layout = QHBoxLayout()
         self.btn_add = QPushButton("Thêm nhân viên")

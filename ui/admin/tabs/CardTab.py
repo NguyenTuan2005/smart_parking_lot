@@ -23,6 +23,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QSize, pyqtSignal, QDate
 from dto.dtos import MonthlyCardCreationDTO, CustomerDTO, VehicleDTO
+from utils.Validator import Validator
 
 
 def create_status_widget(text, is_success):
@@ -192,7 +193,7 @@ class SingleCardLogTab(QWidget):
         )
 
         # Refresh Button
-        self.btnRefresh = QPushButton("Làm mới")
+        self.btnRefresh = QPushButton(" Làm mới")
         self.btnRefresh.setIcon(QIcon("assets/icons/refresh.png"))
         self.btnRefresh.setIconSize(QSize(15, 15))
         self.btnRefresh.setStyleSheet(
@@ -358,6 +359,8 @@ class MonthlyCardLogTab(QWidget):
     editRequested = pyqtSignal(MonthlyCardCreationDTO)
     deleteRequested = pyqtSignal(dict)
     cardAdded = pyqtSignal(MonthlyCardCreationDTO)
+    addCardRequested = pyqtSignal()
+    regenCodeRequested = pyqtSignal(object)
 
     def __init__(self):
         super().__init__()
@@ -502,7 +505,7 @@ class MonthlyCardLogTab(QWidget):
         """
         )
         self.btnAddCard.setMaximumHeight(40)
-        self.btnAddCard.clicked.connect(self.show_add_card_dialog)
+        self.btnAddCard.clicked.connect(self.on_add_card_clicked)
         top_row.addWidget(self.btnAddCard)
 
         content_layout.addLayout(top_row)
@@ -722,14 +725,25 @@ class MonthlyCardLogTab(QWidget):
 
         self.tblCardLogs.setSortingEnabled(True)
 
+    def on_add_card_clicked(self):
+        self.addCardRequested.emit()
+
     # add
-    def show_add_card_dialog(self):
+    def show_add_card_dialog(self, card_data=None, next_code=None):
         if self._current_dialog:
             self._current_dialog.raise_()
             self._current_dialog.activateWindow()
             return
-        self._current_dialog = AddMonthlyCardDialog(self)
-        self._current_dialog.cardAdded.connect(self.on_card_added)
+        self._current_dialog = AddMonthlyCardDialog(
+            self, card_data=card_data, next_code=next_code
+        )
+        if card_data is None:
+            self._current_dialog.cardAdded.connect(self.on_card_added)
+            self._current_dialog.regenCodeRequested.connect(
+                lambda: self.regenCodeRequested.emit(self._current_dialog)
+            )
+        else:
+            self._current_dialog.cardUpdated.connect(self.on_card_updated)
         self._current_dialog.finished.connect(self._clear_dialog_reference)
         self._current_dialog.show()
 
@@ -839,20 +853,24 @@ class MonthlyCardLogTab(QWidget):
 class AddMonthlyCardDialog(QDialog):
     cardAdded = pyqtSignal(MonthlyCardCreationDTO)
     cardUpdated = pyqtSignal(MonthlyCardCreationDTO)
+    regenCodeRequested = pyqtSignal()
 
-    def __init__(self, parent=None, card_data=None):
+    def __init__(self, parent=None, card_data=None, next_code=None):
         super().__init__(parent)
         self.btnCancel = None
         self.btnSave = None
         self.setModal(True)
         self.setMinimumWidth(600)
         self._editing_card = card_data
+        self._next_code = next_code
         self.setWindowTitle(
             "Chỉnh sửa thẻ tháng" if card_data else "Thêm thẻ tháng mới"
         )
         self.init_ui()
         if card_data:
             self.load_card_data(card_data)
+        elif next_code:
+            self.txtCardCode.setText(next_code)
 
     def init_ui(self):
         layout = QVBoxLayout()
@@ -878,7 +896,43 @@ class AddMonthlyCardDialog(QDialog):
         layout.addWidget(divider)
 
         # form
-        self.txtCardCode = self._create_form_row("Mã thẻ:", QLineEdit(), layout)
+        # Card Code with Regen Button
+        code_row = QHBoxLayout()
+        code_label = QLabel("Mã thẻ:")
+        code_label.setMinimumWidth(150)
+        code_row.addWidget(code_label)
+
+        self.txtCardCode = QLineEdit()
+        self.txtCardCode.setPlaceholderText("Nhập hoặc tạo mã tự động...")
+        code_row.addWidget(self.txtCardCode, 1)
+
+        self.btnRegenCode = QPushButton()
+        self.btnRegenCode.setIcon(QIcon("assets/icons/refresh.png"))
+        self.btnRegenCode.setIconSize(QSize(20, 20))
+        self.btnRegenCode.setToolTip("Tạo mã tự động")
+        self.btnRegenCode.setFixedSize(40, 40)
+        self.btnRegenCode.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #f8f9fa;
+                border: 1px solid #dcdcdc;
+                border-radius: 6px;
+            }
+            QPushButton:hover {
+                background-color: #e9ecef;
+                border-color: #2E86C1;
+            }
+        """
+        )
+        self.btnRegenCode.clicked.connect(self.regenCodeRequested.emit)
+        code_row.addWidget(self.btnRegenCode)
+        layout.addLayout(code_row)
+
+        if self._editing_card:
+            self.btnRegenCode.setVisible(False)
+            self.txtCardCode.setReadOnly(True)
+            self.txtCardCode.setStyleSheet("background-color: #f5f5f5; color: #7f8c8d;")
+
         self.txtCustomerName = self._create_form_row(
             "Tên khách hàng:", QLineEdit(), layout
         )
@@ -1034,23 +1088,41 @@ class AddMonthlyCardDialog(QDialog):
         else:
             self.title_label.setText("THÊM THẺ THÁNG MỚI")
 
+    def set_card_code(self, code):
+        self.txtCardCode.setText(code)
+
     def load_card_data(self, card_data):
         """Điền dữ liệu vào dialog khi edit"""
+        # Chặn tín hiệu để không tự tính lại ngày/phí khi đang load
+        self.dateStart.blockSignals(True)
+        self.spinMonths.blockSignals(True)
+
         self.txtCardCode.setText(card_data.get("card_code", ""))
         self.txtCustomerName.setText(card_data.get("customer_name", ""))
         self.txtPhoneNumber.setText(card_data.get("phone_number", ""))
         self.txtCustomerEmail.setText(card_data.get("customer_email", ""))
         self.txtPlateNumber.setText(card_data.get("plate_number", ""))
+
         vehicle_type = card_data.get("vehicle_type", "Xe máy")
         idx = self.cboVehicleType.findText(vehicle_type)
         if idx >= 0:
             self.cboVehicleType.setCurrentIndex(idx)
+
         start_date = card_data.get("start_date", QDate.currentDate().toPyDate())
         self.dateStart.setDate(QDate(start_date.year, start_date.month, start_date.day))
+
         months = card_data.get("months", 1)
         self.spinMonths.setValue(months)
+
         self.update_expiry_date()
+
+        fee = card_data.get("monthly_fee", 0)
+        self.txtMonthlyFee.setText(f"{fee:,}")
+
         self.chkIsPaid.setChecked(card_data.get("is_paid", False))
+
+        self.dateStart.blockSignals(False)
+        self.spinMonths.blockSignals(False)
 
     def _create_form_row(self, label_text, widget, parent_layout):
         row_layout = QHBoxLayout()
@@ -1066,6 +1138,7 @@ class AddMonthlyCardDialog(QDialog):
         months = self.spinMonths.value()
         expiry_date = start_date.addMonths(months)
         self.dateExpiry.setDate(expiry_date)
+
         total_fee = months * 60000
         self.txtMonthlyFee.setText(f"{total_fee:,}")
 
@@ -1085,6 +1158,18 @@ class AddMonthlyCardDialog(QDialog):
             return
         if not self.txtMonthlyFee.text().strip():
             QMessageBox.warning(self, "Lỗi", "Vui lòng nhập phí tháng!")
+            return
+
+        email = self.txtCustomerEmail.text().strip()
+        if email and not Validator.is_valid_email(email):
+            QMessageBox.warning(self, "Lỗi", "Định dạng email không hợp lệ!")
+            return
+
+        phone = self.txtPhoneNumber.text().strip()
+        if not Validator.is_valid_phone(phone):
+            QMessageBox.warning(
+                self, "Lỗi", "Số điện thoại không hợp lệ (phải có 10 chữ số)!"
+            )
             return
 
         try:
@@ -1132,6 +1217,8 @@ class SingleCardManagementTab(QWidget):
     createRequested = pyqtSignal(dict)
     updateRequested = pyqtSignal(dict)
     deleteRequested = pyqtSignal(int)
+    addCardRequested = pyqtSignal()
+    regenCodeRequested = pyqtSignal(object)
 
     def __init__(self):
         super().__init__()
@@ -1256,7 +1343,7 @@ class SingleCardManagementTab(QWidget):
         """
         )
         self.btnAdd.setMaximumHeight(40)
-        self.btnAdd.clicked.connect(self.show_add_dialog)
+        self.btnAdd.clicked.connect(self.on_add_clicked)
         top_row.addWidget(self.btnAdd)
 
         content_layout.addLayout(top_row)
@@ -1373,8 +1460,12 @@ class SingleCardManagementTab(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             self.deleteRequested.emit(card_id)
 
-    def show_add_dialog(self):
-        dlg = SingleCardDialog(self)
+    def on_add_clicked(self):
+        self.addCardRequested.emit()
+
+    def show_add_dialog(self, next_code=None):
+        dlg = SingleCardDialog(self, next_code=next_code)
+        dlg.regenCodeRequested.connect(lambda: self.regenCodeRequested.emit(dlg))
         if dlg.exec():
             self.createRequested.emit(dlg.get_data())
 
@@ -1387,12 +1478,17 @@ class SingleCardManagementTab(QWidget):
 
 
 class SingleCardDialog(QDialog):
-    def __init__(self, parent=None, card=None):
+    regenCodeRequested = pyqtSignal()
+
+    def __init__(self, parent=None, card=None, next_code=None):
         super().__init__(parent)
         self.setWindowTitle("Thêm thẻ lượt" if not card else "Sửa thẻ lượt")
         self.setMinimumWidth(500)
         self._card = card
+        self._next_code = next_code
         self.init_ui()
+        if not card and next_code:
+            self.txtCode.setText(next_code)
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -1414,8 +1510,42 @@ class SingleCardDialog(QDialog):
         layout.addWidget(divider)
 
         # Form
-        self.txtCode = self._create_form_row("Mã thẻ:", QLineEdit(), layout)
-        self.txtCode.setPlaceholderText("Nhập mã thẻ")
+        # Code row with regen button
+        code_row_layout = QHBoxLayout()
+        code_label = QLabel("Mã thẻ:")
+        code_label.setMinimumWidth(150)
+        code_row_layout.addWidget(code_label)
+
+        self.txtCode = QLineEdit()
+        self.txtCode.setPlaceholderText("Nhập hoặc tạo mã tự động...")
+        code_row_layout.addWidget(self.txtCode, 1)
+
+        self.btnRegenCode = QPushButton()
+        self.btnRegenCode.setIcon(QIcon("assets/icons/refresh.png"))
+        self.btnRegenCode.setIconSize(QSize(20, 20))
+        self.btnRegenCode.setToolTip("Tạo mã tự động")
+        self.btnRegenCode.setFixedSize(40, 40)
+        self.btnRegenCode.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #f8f9fa;
+                border: 1px solid #dcdcdc;
+                border-radius: 6px;
+            }
+            QPushButton:hover {
+                background-color: #e9ecef;
+                border-color: #2E86C1;
+            }
+        """
+        )
+        self.btnRegenCode.clicked.connect(self.regenCodeRequested.emit)
+        code_row_layout.addWidget(self.btnRegenCode)
+        layout.addLayout(code_row_layout)
+
+        if self._card:
+            self.btnRegenCode.setVisible(False)
+            self.txtCode.setReadOnly(True)
+            self.txtCode.setStyleSheet("background-color: #f5f5f5; color: #7f8c8d;")
 
         self.txtPrice = self._create_form_row("Giá vé (VND):", QLineEdit(), layout)
         self.txtPrice.setPlaceholderText("Nhập giá vé")
@@ -1467,6 +1597,9 @@ class SingleCardDialog(QDialog):
             QLabel { font-size: 14px; }
         """
         )
+
+    def set_card_code(self, code):
+        self.txtCode.setText(code)
 
     def _create_form_row(self, label_text, widget, parent_layout):
         row_layout = QHBoxLayout()

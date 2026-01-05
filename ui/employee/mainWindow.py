@@ -15,6 +15,7 @@ class EmployeeMainWindow(QMainWindow):
     Lớp chính cho Giao diện Hệ thống Quản lý Bãi đỗ xe cho Nhân viên (QMainWindow).
     Tích hợp các panel (Left, Center, Right).
     """
+
     logout_requested = pyqtSignal()
 
     def __init__(self):
@@ -25,33 +26,32 @@ class EmployeeMainWindow(QMainWindow):
 
         # Áp dụng Global Style
         self.setStyleSheet(getGlobalStyle())
-        
+
         self.logout_handler = LogoutHandler(self)
         self.logout_handler.logout_requested.connect(self._on_logout)
 
         self._createMenuBar()
         self._setupMainLayout()
 
-
     def _createMenuBar(self):
         menuBar = QMenuBar(self)
         self.setMenuBar(menuBar)
 
         systemMenu = menuBar.addMenu("Hệ thống")
-        
+
         logout_action = QAction("Đăng xuất", self)
         logout_action.triggered.connect(self._request_logout)
         systemMenu.addAction(logout_action)
-        
+
         systemMenu.addSeparator()  # Thêm đường phân cách
-        
+
         exit_action = QAction("Thoát", self)
         exit_action.triggered.connect(self.close)
         systemMenu.addAction(exit_action)
 
-        support_menu = menuBar.addMenu("Hỗ trợ")
-        support_menu.addAction(QAction("Về chúng tôi", self))
-        support_menu.addAction(QAction("Trợ giúp", self))
+        # support_menu = menuBar.addMenu("Hỗ trợ")
+        # support_menu.addAction(QAction("Về chúng tôi", self))
+        # support_menu.addAction(QAction("Trợ giúp", self))
 
     def _request_logout(self):
         if self.logout_handler.confirm_logout(self):
@@ -59,8 +59,8 @@ class EmployeeMainWindow(QMainWindow):
             self.close()
 
     def closeEvent(self, event):
-    
-        if hasattr(self, '_rightPane'):
+
+        if hasattr(self, "_rightPane"):
             self._rightPane.close()
         super().closeEvent(event)
 
@@ -81,7 +81,7 @@ class EmployeeMainWindow(QMainWindow):
 
         # 2. Cột Giữa (Center Pane) - Sử dụng lớp CenterPanel
         centerPane = CenterPanel(self.__controller)
-        mainLayout.addWidget(centerPane, 4) 
+        mainLayout.addWidget(centerPane, 4)
         # 3. Cột Phải (Right Pane) - Sử dụng lớp RightPanel
         self._rightPane = RightPanel(self.__controller)
-        mainLayout.addWidget(self._rightPane, 2)  
+        mainLayout.addWidget(self._rightPane, 2)

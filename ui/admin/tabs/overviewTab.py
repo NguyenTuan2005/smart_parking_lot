@@ -174,13 +174,12 @@ class OverviewTab(QWidget):
 
     def initUI(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(25, 25, 25, 25)
-        layout.setSpacing(25)
-
         # Header Section
         header_layout = QHBoxLayout()
         title_label = QLabel("TỔNG QUAN HỆ THỐNG")
-        title_label.setStyleSheet("font-size: 26px; font-weight: 800; color: #2e86c1")
+        title_label.setStyleSheet(
+            "font-size: 24px; font-weight: 800; color: #2e86c1; padding-left: 15px"
+        )
         header_layout.addWidget(title_label)
         header_layout.addStretch()
 
@@ -234,10 +233,10 @@ class OverviewTab(QWidget):
             "Xe đang gửi", "0", "assets/icons/motorbike.png", "#2980b9"
         )
         self.card_entries = StatCard(
-            "Lượt xe hôm nay", "0", "assets/icons/bikeCount.png", "#f39c12"
+            "Lượt xe hôm nay", "0", "assets/icons/bikeCount.png", "#27ae60"
         )
         self.card_monthly = StatCard(
-            "Thẻ tháng còn hạn", "0", "assets/icons/card.png", "#324d8f"
+            "Thẻ tháng còn hạn", "0", "assets/icons/card.png", "#2980b9"
         )
 
         cards_layout.addWidget(self.card_revenue, 1)
@@ -246,12 +245,13 @@ class OverviewTab(QWidget):
         cards_layout.addWidget(self.card_monthly, 1)
 
         layout.addLayout(cards_layout)
+        layout.addSpacing(8)
 
         # 2. Main Content: Revenue Chart and Quick Stats
         main_content_layout = QHBoxLayout()
         main_content_layout.setSpacing(25)
 
-        # Chart Container (3/4)
+        # Chart Container
         self.chart_frame = QFrame()
         self.chart_frame.setObjectName("ChartFrame")
         self.chart_frame.setStyleSheet(
@@ -296,7 +296,7 @@ class OverviewTab(QWidget):
         stats_layout.setContentsMargins(20, 20, 20, 20)
         stats_layout.setSpacing(15)
 
-        stats_header = QLabel("THỐNG KÊ NHANH")
+        stats_header = QLabel("Thống kê trong ngày")
         stats_header.setStyleSheet(
             "font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 5px;"
         )
@@ -366,7 +366,7 @@ class OverviewTab(QWidget):
             color="#2c3e50",
             fontname="Arial",
         )
-        ax.set_ylabel("Triệu đồng", fontsize=10, color="#7f8c8d", fontname="Arial")
+        ax.set_ylabel("Nghìn đồng", fontsize=10, color="#7f8c8d", fontname="Arial")
         ax.set_xlabel(
             "Ngày trong tháng", fontsize=10, color="#7f8c8d", fontname="Arial"
         )
