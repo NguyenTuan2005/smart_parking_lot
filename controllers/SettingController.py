@@ -36,7 +36,6 @@ class SettingController:
             return
         self.__settings.total_slots = self.__view.slots_spin.value()
 
-
         try:
             self.__settings.save_data()
         except Exception as e:

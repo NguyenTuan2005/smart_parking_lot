@@ -19,34 +19,53 @@ class SettingTab(QWidget):
         layout = QVBoxLayout()
         layout.setContentsMargins(10, 10, 10, 10)
 
-        title = QLabel("Cấu hình bãi xe và giá thẻ")
-        title.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        title.setStyleSheet("font-weight: bold; font-size: 14px; margin-bottom: 8px;")
+        title = QLabel("CẤU HÌNH BÃI XE VÀ GIÁ THẺ")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet(
+            """
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #2e86c1;
+        """
+        )
         layout.addWidget(title)
 
         # Total slots
         self.slots_spin = QSpinBox()
         self.slots_spin.setMinimum(0)
         self.slots_spin.setMaximum(100000)
-        layout.addWidget(QLabel("Số lượng chỗ (slots):"))
+        label = QLabel("Số lượng chỗ (slots):")
+        label.setStyleSheet(
+            "font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 5px;"
+        )
+        layout.addWidget(label)
         layout.addWidget(self.slots_spin)
 
         # Monthly fee
         self.monthly_fee_input = QLineEdit()
-        self.monthly_fee_input.setPlaceholderText("Số tiền (ví dụ 1500000)")
-        layout.addWidget(QLabel("Phí tháng (VND):"))
+        label = QLabel("Phí tháng (VND):")
+        label.setStyleSheet(
+            "font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 5px;"
+        )
+        layout.addWidget(label)
         layout.addWidget(self.monthly_fee_input)
 
         # Day rate
         self.single_day_input = QLineEdit()
-        self.single_day_input.setPlaceholderText("Phí ban ngày (VND)")
-        layout.addWidget(QLabel("Phí vé - Ban ngày (VND):"))
+        label = QLabel("Phí vé - Ban ngày (VND):")
+        label.setStyleSheet(
+            "font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 5px;"
+        )
+        layout.addWidget(label)
         layout.addWidget(self.single_day_input)
 
         # Night rate
         self.single_night_input = QLineEdit()
-        self.single_night_input.setPlaceholderText("Phí ban đêm (VND)")
-        layout.addWidget(QLabel("Phí vé - Ban đêm (VND):"))
+        label = QLabel("Phí vé - Ban đêm (VND):")
+        label.setStyleSheet(
+            "font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 5px;"
+        )
+        layout.addWidget(label)
         layout.addWidget(self.single_night_input)
 
         # Buttons
@@ -54,9 +73,6 @@ class SettingTab(QWidget):
         self.save_btn = QPushButton("Lưu cấu hình")
         self.save_btn.clicked.connect(self.__on_save_clicked)
         btn_layout.addWidget(self.save_btn)
-
-        self.reset_btn = QPushButton("Khôi phục mặc định")
-        btn_layout.addWidget(self.reset_btn)
 
         layout.addLayout(btn_layout)
 
@@ -74,5 +90,3 @@ class SettingTab(QWidget):
             QMessageBox.information(self, "Thành công", "Lưu cấu hình thành công.")
         except Exception as e:
             QMessageBox.critical(self, "Lỗi", f"Lưu cấu hình thất bại: {e}")
-
-
