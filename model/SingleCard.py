@@ -5,7 +5,14 @@ from model.CardLog import CardLog
 
 
 class SingleCard(Card):
-    def __init__(self, card_id: int, card_code: str, price: int, night_price: int, card_log: CardLog =None):
+    def __init__(
+        self,
+        card_id: int,
+        card_code: str,
+        price: int,
+        night_price: int,
+        card_log: CardLog = None,
+    ):
         super().__init__(card_id, card_code)
         self._price = price
         self.__night_price = night_price
@@ -25,6 +32,10 @@ class SingleCard(Card):
     @property
     def night_price(self) -> int:
         return self.__night_price
+
+    @property
+    def card_code(self) -> str:
+        return self._card_code
 
     def duration(self) -> int:
         return self._card_log.duration()
@@ -70,6 +81,7 @@ class SingleCard(Card):
         self._price = fee
 
         from dao.SingleCardDAO import SingleCardDAO
+
         SingleCardDAO().update_price(self._card_id, self._price)
 
     def apply_single_night_fee(self, night_fee: int):
@@ -78,4 +90,5 @@ class SingleCard(Card):
         self._price = night_fee
 
         from dao.SingleCardDAO import SingleCardDAO
+
         SingleCardDAO().update_night_price(night_fee)

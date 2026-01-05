@@ -1,8 +1,6 @@
 from dao.StaffDAO import StaffDAO
 from model.Staff import Staff
 from typing import Optional
-import hashlib
-import hmac
 
 
 class AuthService:
