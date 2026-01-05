@@ -224,6 +224,18 @@ class MonthlyCardDAO:
             print(f"Error in MonthlyCardDAO.delete: {e}")
             return False
 
+    def get_last_card_code(self) -> str | None:
+        try:
+            conn = self._db.connect()
+            cursor = conn.cursor()
+            sql = "SELECT TOP 1 card_code FROM monthly_cards ORDER BY id DESC"
+            row = cursor.execute(sql).fetchone()
+            conn.close()
+            return row[0] if row else None
+        except Exception as e:
+            print(f"Error in MonthlyCardDAO.get_last_card_code: {e}")
+            return None
+
     def _map_row_to_monthly_card(self, row) -> MonthlyCard:
         customer = self._customer_dao.get_by_id(row.customer_id)
         vehicle = self._vehicle_dao.get_by_id(row.vehicle_id)

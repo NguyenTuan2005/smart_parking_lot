@@ -1,7 +1,18 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QPushButton,
-    QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QDialog,
-    QFrame, QAbstractItemView, QComboBox
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QLineEdit,
+    QHBoxLayout,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
+    QMessageBox,
+    QDialog,
+    QFrame,
+    QAbstractItemView,
+    QComboBox,
 )
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
 from PyQt6.QtGui import QIcon, QAction
@@ -18,17 +29,18 @@ def create_status_widget(text, is_success):
 
     label = QLabel(text)
     label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    
+
     if is_success:
         bg_color = "#e8f5e9"  # green
-        text_color = "#2A9B5A" 
+        text_color = "#2A9B5A"
         border_color = "#c8e6c9"
     else:
         bg_color = "#ffebee"  # red
         text_color = "#c62828"
         border_color = "#ffcdd2"
 
-    label.setStyleSheet(f"""
+    label.setStyleSheet(
+        f"""
         QLabel {{
             background-color: {bg_color};
             color: {text_color};
@@ -38,7 +50,8 @@ def create_status_widget(text, is_success):
             font-weight: 600;
             font-size: 12px;
         }}
-    """)
+    """
+    )
     layout.addWidget(label)
     return widget
 
@@ -49,7 +62,7 @@ class StatusItem(QTableWidgetItem):
         self.sort_key = text
 
     def __lt__(self, other):
-        other_key = getattr(other, 'sort_key', other.text())
+        other_key = getattr(other, "sort_key", other.text())
         return self.sort_key < other_key
 
 
@@ -60,7 +73,7 @@ class CustomerTab(QWidget):
     unlockRequested = pyqtSignal(object)
     customerUpdated = pyqtSignal(object)
     refreshRequested = pyqtSignal()
-    
+
     def __init__(self):
         super().__init__()
         self._current_dialog = None
@@ -73,23 +86,27 @@ class CustomerTab(QWidget):
 
         # Header Section
         header_frame = QFrame()
-        header_frame.setStyleSheet("""
+        header_frame.setStyleSheet(
+            """
             QFrame {
                 background-color: white;
                 border-bottom: 1px solid #e0e0e0;
                 padding: 10px;
             }
-        """)
+        """
+        )
         header_layout = QVBoxLayout()
         header_layout.setContentsMargins(0, 0, 0, 0)
 
         lbl_title = QLabel("QUẢN LÝ KHÁCH HÀNG")
         lbl_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_title.setStyleSheet("""
+        lbl_title.setStyleSheet(
+            """
             font-size: 24px; 
             font-weight: bold; 
             color: #2e86c1;
-        """)
+        """
+        )
 
         header_layout.addWidget(lbl_title)
         header_frame.setLayout(header_layout)
@@ -111,9 +128,12 @@ class CustomerTab(QWidget):
         self.txtSearch.setPlaceholderText("Tìm theo tên, số điện thoại, biển số...")
 
         search_action = QAction(QIcon("assets/icons/search.svg"), "", self.txtSearch)
-        self.txtSearch.addAction(search_action, QLineEdit.ActionPosition.LeadingPosition)
+        self.txtSearch.addAction(
+            search_action, QLineEdit.ActionPosition.LeadingPosition
+        )
 
-        self.txtSearch.setStyleSheet("""
+        self.txtSearch.setStyleSheet(
+            """
             QLineEdit {
                 padding: 10px;
                 padding-left: 10px;
@@ -125,14 +145,16 @@ class CustomerTab(QWidget):
             QLineEdit:focus {
                 border: 1px solid #2196F3;
             }
-        """)
+        """
+        )
 
         self.txtSearch.setMinimumWidth(350)
         self.txtSearch.setMaximumHeight(45)
 
         # Search Button
         self.btnSearch = QPushButton("Tìm kiếm")
-        self.btnSearch.setStyleSheet("""
+        self.btnSearch.setStyleSheet(
+            """
             QPushButton {
                 background-color: #2E86C1;
                 color: white;
@@ -142,13 +164,15 @@ class CustomerTab(QWidget):
                 font-weight: 600;
             }
             QPushButton:hover { background-color: #154360; }
-        """)
+        """
+        )
 
         # Refresh Button
         self.btnRefresh = QPushButton(" Làm mới")
         self.btnRefresh.setIcon(QIcon("assets/icons/refresh.png"))
         self.btnRefresh.setIconSize(QSize(15, 15))
-        self.btnRefresh.setStyleSheet("""
+        self.btnRefresh.setStyleSheet(
+            """
             QPushButton {
                 background-color: #ffffff;
                 color: #333;
@@ -158,7 +182,8 @@ class CustomerTab(QWidget):
                 font-weight: 600;
             }
             QPushButton:hover { background-color: #f0f0f0; }
-        """)
+        """
+        )
         self.btnRefresh.clicked.connect(lambda: self.refreshRequested.emit())
 
         top_row.addWidget(self.txtSearch)
@@ -168,7 +193,8 @@ class CustomerTab(QWidget):
 
         # view locked customers
         self.btnNotify = QPushButton("Xem khách hàng bị khóa")
-        self.btnNotify.setStyleSheet("""
+        self.btnNotify.setStyleSheet(
+            """
             QPushButton {
                 background-color: #2e86c1;
                 color: white;
@@ -178,22 +204,24 @@ class CustomerTab(QWidget):
                 font-weight: 600;
                 border-radius: 6px;
             }
-        """)
+        """
+        )
         self.btnNotify.setMaximumHeight(45)
         top_row.addWidget(self.btnNotify)
-
 
         content_layout.addLayout(top_row)
 
         # Table Section
         table_frame = QFrame()
-        table_frame.setStyleSheet("""
+        table_frame.setStyleSheet(
+            """
             QFrame {
                 background-color: white;
                 border-radius: 8px;
                 border: 1px solid #e0e0e0;
             }
-        """)
+        """
+        )
         table_layout = QVBoxLayout()
         table_layout.setContentsMargins(0, 0, 0, 0)
         table_layout.setSpacing(0)
@@ -206,16 +234,25 @@ class CustomerTab(QWidget):
 
         self.table.verticalHeader().setDefaultSectionSize(55)
         self.table.setColumnCount(8)
-        self.table.setHorizontalHeaderLabels([
-            "TÊN KHÁCH HÀNG", "SỐ ĐIỆN THOẠI", "EMAIL", 
-            "BIỂN SỐ XE", "LOẠI XE", "TRẠNG THÁI THẺ", "THÔNG BÁO HẾT HẠN", "HÀNH ĐỘNG"
-        ])
+        self.table.setHorizontalHeaderLabels(
+            [
+                "TÊN KHÁCH HÀNG",
+                "SỐ ĐIỆN THOẠI",
+                "EMAIL",
+                "BIỂN SỐ XE",
+                "LOẠI XE",
+                "TRẠNG THÁI THẺ",
+                "THÔNG BÁO HẾT HẠN",
+                "HÀNH ĐỘNG",
+            ]
+        )
 
         # Enable sorting
         self.table.setSortingEnabled(True)
         self.table.setAlternatingRowColors(True)
 
-        self.table.setStyleSheet("""
+        self.table.setStyleSheet(
+            """
             QTableWidget {
                 background-color: white;
                 alternate-background-color: #F2F7FF;
@@ -252,13 +289,14 @@ class CustomerTab(QWidget):
                 background-color: #2E86C1;
                 border: none;
             }
-        """)
+        """
+        )
 
         # Set column widths
         header = self.table.horizontalHeader()
         for i in range(8):
             header.setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch)
-        
+
         header.setSectionResizeMode(7, QHeaderView.ResizeMode.Fixed)  # Actions
         self.table.setColumnWidth(7, 120)
 
@@ -273,35 +311,39 @@ class CustomerTab(QWidget):
         main_layout.addWidget(content_frame)
 
         # Set background
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QWidget {
                 background-color: #f8f9fa;
                 font-family: 'Segoe UI', Arial, sans-serif;
             }
-        """)
+        """
+        )
 
         self.setLayout(main_layout)
 
-    def set_table_data(self, customers: List[CustomerViewDTO], is_locked_view: bool = False):
+    def set_table_data(
+        self, customers: List[CustomerViewDTO], is_locked_view: bool = False
+    ):
         self.table.setSortingEnabled(False)
         self.table.setRowCount(0)
-        
+
         for customer in customers:
             row = self.table.rowCount()
             self.table.insertRow(row)
 
-            self.table.setItem(row, 0, QTableWidgetItem(customer.customer_name or ''))
-            self.table.setItem(row, 1, QTableWidgetItem(customer.phone_number or ''))
-            self.table.setItem(row, 2, QTableWidgetItem(customer.email or ''))
-            self.table.setItem(row, 3, QTableWidgetItem(customer.plate_number or ''))
-            self.table.setItem(row, 4, QTableWidgetItem(customer.vehicle_type or ''))
+            self.table.setItem(row, 0, QTableWidgetItem(customer.customer_name or ""))
+            self.table.setItem(row, 1, QTableWidgetItem(customer.phone_number or ""))
+            self.table.setItem(row, 2, QTableWidgetItem(customer.email or ""))
+            self.table.setItem(row, 3, QTableWidgetItem(customer.plate_number or ""))
+            self.table.setItem(row, 4, QTableWidgetItem(customer.vehicle_type or ""))
 
             # Card status column
-            card_status = customer.card_status or 'Không xác định'
+            card_status = customer.card_status or "Không xác định"
             item = StatusItem(card_status)
             self.table.setItem(row, 5, item)
 
-            is_active = (card_status == "Còn hạn")
+            is_active = card_status == "Còn hạn"
             status_widget = create_status_widget(card_status, is_active)
             self.table.setCellWidget(row, 5, status_widget)
 
@@ -327,13 +369,17 @@ class CustomerTab(QWidget):
                 btn_edit.setIcon(QIcon("assets/icons/edit.png"))
                 btn_edit.setIconSize(QSize(16, 16))
                 btn_edit.setToolTip("Chỉnh sửa")
-                btn_edit.clicked.connect(lambda checked, c=customer: self.on_edit_clicked(c))
+                btn_edit.clicked.connect(
+                    lambda checked, c=customer: self.on_edit_clicked(c)
+                )
 
                 btn_lock = QPushButton()
                 btn_lock.setIcon(QIcon("assets/icons/lock.png"))
                 btn_lock.setIconSize(QSize(16, 16))
                 btn_lock.setToolTip("Khóa")
-                btn_lock.clicked.connect(lambda checked, c=customer: self.on_lock_clicked(c))
+                btn_lock.clicked.connect(
+                    lambda checked, c=customer: self.on_lock_clicked(c)
+                )
 
                 layout.addWidget(btn_edit)
                 layout.addWidget(btn_lock)
@@ -342,7 +388,9 @@ class CustomerTab(QWidget):
                 btn_unlock.setIcon(QIcon("assets/icons/unlock.png"))
                 btn_unlock.setIconSize(QSize(16, 16))
                 btn_unlock.setToolTip("Mở khóa")
-                btn_unlock.clicked.connect(lambda checked, c=customer: self.on_unlock_clicked(c))
+                btn_unlock.clicked.connect(
+                    lambda checked, c=customer: self.on_unlock_clicked(c)
+                )
                 layout.addWidget(btn_unlock)
 
             self.table.setCellWidget(row, 7, action_widget)
@@ -376,7 +424,7 @@ class CustomerTab(QWidget):
         if self.show_confirmation_dialog(
             "Xác nhận khóa",
             f"Bạn có chắc chắn muốn khóa khách hàng '{customer_dto.customer_name}'?",
-            "Khóa"
+            "Khóa",
         ):
             self.lockRequested.emit(customer_dto)
 
@@ -384,16 +432,20 @@ class CustomerTab(QWidget):
         if self.show_confirmation_dialog(
             "Xác nhận mở khóa",
             f"Bạn có chắc chắn muốn mở khóa cho khách hàng '{customer_dto.customer_name}'?",
-            "Mở khóa"
+            "Mở khóa",
         ):
             self.unlockRequested.emit(customer_dto)
 
-    def show_confirmation_dialog(self, title: str, message: str, confirm_text: str = "Đồng ý") -> bool:
+    def show_confirmation_dialog(
+        self, title: str, message: str, confirm_text: str = "Đồng ý"
+    ) -> bool:
         msg_box = QMessageBox(self)
         msg_box.setIcon(QMessageBox.Icon.Warning)
         msg_box.setWindowTitle(title)
         msg_box.setText(message)
-        msg_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        msg_box.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
         msg_box.setDefaultButton(QMessageBox.StandardButton.No)
 
         yes_button = msg_box.button(QMessageBox.StandardButton.Yes)
@@ -420,17 +472,19 @@ class EditCustomerDialog(QDialog):
 
     def init_ui(self):
         layout = QVBoxLayout()
-        layout.setSpacing(15)
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(5)
+        layout.setContentsMargins(15, 15, 15, 15)
 
         self.title_label = QLabel("CHỈNH SỬA THÔNG TIN KHÁCH HÀNG")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.title_label.setStyleSheet("""
+        self.title_label.setStyleSheet(
+            """
             font-size: 20px;
             font-weight: bold;
             color: #2E86C1;
             padding-bottom: 10px;
-        """)
+        """
+        )
         layout.addWidget(self.title_label)
 
         # Divider
@@ -440,8 +494,12 @@ class EditCustomerDialog(QDialog):
         layout.addWidget(divider)
 
         # Form
-        self.txtCustomerName = self._create_form_row("Tên khách hàng:", QLineEdit(), layout)
-        self.txtPhoneNumber = self._create_form_row("Số điện thoại:", QLineEdit(), layout)
+        self.txtCustomerName = self._create_form_row(
+            "Tên khách hàng:", QLineEdit(), layout
+        )
+        self.txtPhoneNumber = self._create_form_row(
+            "Số điện thoại:", QLineEdit(), layout
+        )
         self.txtEmail = self._create_form_row("Email:", QLineEdit(), layout)
         self.txtPlateNumber = self._create_form_row("Biển số xe:", QLineEdit(), layout)
         self.cboVehicleType = self._create_form_row("Loại xe:", QComboBox(), layout)
@@ -452,7 +510,8 @@ class EditCustomerDialog(QDialog):
         btn_layout.addStretch()
 
         self.btnCancel = QPushButton("Hủy")
-        self.btnCancel.setStyleSheet("""
+        self.btnCancel.setStyleSheet(
+            """
             QPushButton {
                 background-color: #95a5a6;
                 color: white;
@@ -464,11 +523,13 @@ class EditCustomerDialog(QDialog):
                 min-width: 100px;
             }
             QPushButton:hover { background-color: #7f8c8d; }
-        """)
+        """
+        )
         self.btnCancel.clicked.connect(self.reject)
 
         self.btnSave = QPushButton("Lưu")
-        self.btnSave.setStyleSheet("""
+        self.btnSave.setStyleSheet(
+            """
             QPushButton {
                 background-color: #2E86C1;
                 color: white;
@@ -480,7 +541,8 @@ class EditCustomerDialog(QDialog):
                 min-width: 100px;
             }
             QPushButton:hover { background-color: #154360; }
-        """)
+        """
+        )
         self.btnSave.clicked.connect(self.save_customer)
 
         btn_layout.addWidget(self.btnCancel)
@@ -488,7 +550,8 @@ class EditCustomerDialog(QDialog):
         layout.addLayout(btn_layout)
 
         self.setLayout(layout)
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QLineEdit, QComboBox {
                 padding: 8px;
                 border: 1px solid #dcdcdc;
@@ -500,7 +563,8 @@ class EditCustomerDialog(QDialog):
                 border: 2px solid #2E86C1;
             }
             QLabel { font-size: 14px; }
-        """)
+        """
+        )
 
     def _create_form_row(self, label_text, widget, parent_layout):
         row_layout = QHBoxLayout()
@@ -512,11 +576,11 @@ class EditCustomerDialog(QDialog):
         return widget
 
     def load_customer_data(self, dto):
-        self.txtCustomerName.setText(dto.customer_name or '')
-        self.txtPhoneNumber.setText(dto.phone_number or '')
-        self.txtEmail.setText(dto.email or '')
-        self.txtPlateNumber.setText(dto.plate_number or '')
-        idx = self.cboVehicleType.findText(dto.vehicle_type or 'Xe máy')
+        self.txtCustomerName.setText(dto.customer_name or "")
+        self.txtPhoneNumber.setText(dto.phone_number or "")
+        self.txtEmail.setText(dto.email or "")
+        self.txtPlateNumber.setText(dto.plate_number or "")
+        idx = self.cboVehicleType.findText(dto.vehicle_type or "Xe máy")
         if idx >= 0:
             self.cboVehicleType.setCurrentIndex(idx)
 

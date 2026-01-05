@@ -16,7 +16,7 @@ except ImportError:
 
 class StatsTab(QWidget):
     """Tab chính chứa các tab con: Tổng quan, Biểu đồ, và Báo cáo"""
-    
+
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -26,7 +26,9 @@ class StatsTab(QWidget):
 
         title = QLabel("THỐNG KÊ VÀ BÁO CÁO BÃI XE")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size:24px; font-weight:bold; color:#2e86c1; padding:10px;")
+        title.setStyleSheet(
+            "font-size:24px; font-weight:bold; color:#2e86c1; padding-top:5px;"
+        )
         main_layout.addWidget(title)
 
         stats_tabs = QTabWidget()
@@ -43,6 +45,6 @@ class StatsTab(QWidget):
         # Tab Báo Cáo Chi Tiết
         self.reports_tab = ReportsTab()
         stats_tabs.addTab(self.reports_tab, "Báo Cáo Chi Tiết")
-        
+
         main_layout.addWidget(stats_tabs)
         self.setLayout(main_layout)
