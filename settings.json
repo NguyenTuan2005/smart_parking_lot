@@ -6,5 +6,5 @@
     "max_parking_hours": 14,
     "overtime_fee": 40,
     "camera_refresh_rate": 100,
-    "ai_cleanup_time": 10
+    "ai_cleanup_time": 7
 }

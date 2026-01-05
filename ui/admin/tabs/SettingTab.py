@@ -272,8 +272,17 @@ class SettingTab(QWidget):
         self.ai_cleanup_time_spin.setValue(settings.ai_cleanup_time)
 
     def __on_save_clicked(self):
-        try:
-            self.__controller.save_settings()
-            QMessageBox.information(self, "Thành công", "Lưu cấu hình thành công.")
-        except Exception as e:
-            QMessageBox.critical(self, "Lỗi", f"Lưu cấu hình thất bại: {e}")
+        reply = QMessageBox.question(
+            self,
+            "Xác nhận",
+            "Bạn có chắc muốn lưu cấu hình?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                self.__controller.save_settings()
+                QMessageBox.information(self, "Thành công", "Lưu cấu hình thành công.")
+            except Exception as e:
+                QMessageBox.critical(self, "Lỗi", f"Lưu cấu hình thất bại: {e}")
+        else:
+            return
