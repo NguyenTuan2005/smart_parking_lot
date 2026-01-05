@@ -14,17 +14,22 @@ from model.Vehicle import Vehicle
 
 
 class Application:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(Application, cls).__new__(cls, *args, **kwargs)
+            cls._instance.__initialized = False
+        return cls._instance
+
     def __init__(self):
+        if self.__initialized:
+            return
+        self.__initialized = True
         self._users: Set[User] = set(CustomerDAO().get_all()) | set(StaffDAO().get_all())
         self._cards: Set[Card] = set(SingleCardDAO().get_all()) | set(MonthlyCardDAO(CustomerDAO(), VehicleDAO()).get_all())
         self._vehicles: Set[Vehicle] = set(VehicleDAO().get_all())
         self._payments: Set[Payment] = set(PaymentDAO().get_all())
-
-    def calculate_total_revenue(self):
-        pass
-
-    def statistic_revenue_by_month(self):
-        pass
 
     def check_in(self, card: Card, plate: str) -> Card | None:
         if card is None:
@@ -49,6 +54,3 @@ class Application:
         except Exception as e:
             raise Exception(e) from e
         return card
-
-    def detect_plate(self, card: Card) -> None:
-        pass

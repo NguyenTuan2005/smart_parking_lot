@@ -1,28 +1,19 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QSpinBox, QHBoxLayout, QMessageBox
 from PyQt6.QtCore import Qt
-import json
-from pathlib import Path
-from datetime import datetime
+
+from controllers.SettingController import SettingController
+from model.Settings import Settings
 
 
-class ParkingConfigTab(QWidget):
+class SettingTab(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-
-
-        self._defaults = {
-            "lot_name": "Parking Lot",
-            "total_slots": 100,
-            "monthly_fee": 1500000,
-            "single_mode": "time_based",  # other possible: "flat"
-            "day_start": 7,   # hour when 'day' starts (0-23)
-            "day_end": 18,    # hour when 'day' ends (inclusive)
-            "single_day_rate": 3000,
-            "single_night_rate": 7000
-        }
-
+        self.__controller = SettingController()
         self._init_ui()
+
+        self.__controller.set_view(self)
+        self.__controller.load_data()
 
     def _init_ui(self):
         layout = QVBoxLayout()
@@ -32,12 +23,6 @@ class ParkingConfigTab(QWidget):
         title.setAlignment(Qt.AlignmentFlag.AlignLeft)
         title.setStyleSheet("font-weight: bold; font-size: 14px; margin-bottom: 8px;")
         layout.addWidget(title)
-
-        # Lot name
-        self.lot_name_input = QLineEdit()
-        self.lot_name_input.setPlaceholderText("Tên bãi xe")
-        layout.addWidget(QLabel("Tên bãi xe:"))
-        layout.addWidget(self.lot_name_input)
 
         # Total slots
         self.slots_spin = QSpinBox()
@@ -84,6 +69,7 @@ class ParkingConfigTab(QWidget):
         # Buttons
         btn_layout = QHBoxLayout()
         self.save_btn = QPushButton("Lưu cấu hình")
+
         btn_layout.addWidget(self.save_btn)
 
         self.reset_btn = QPushButton("Khôi phục mặc định")
@@ -92,6 +78,14 @@ class ParkingConfigTab(QWidget):
         layout.addLayout(btn_layout)
 
         self.setLayout(layout)
+
+    def set_data(self, settings: Settings):
+        self.slots_spin.setValue(settings.total_slots)
+        self.monthly_fee_input.setText(str(settings.monthly_fee))
+        self.day_start_spin.setValue(settings.day_start)
+        self.day_end_spin.setValue(settings.day_end)
+        self.single_day_input.setText(str(settings.single_day_fee))
+        self.single_night_input.setText(str(settings.single_night_fee))
 
 
 
