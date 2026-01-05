@@ -8,7 +8,6 @@ from dao.SingleCardDAO import SingleCardDAO
 from dao.StaffDAO import StaffDAO
 from dao.VehicleDAO import VehicleDAO
 from model.Card import Card
-from model.MonthlyCard import MonthlyCard
 from model.Payment import Payment
 from model.SingleCard import SingleCard
 from model.User import User

@@ -50,8 +50,9 @@ go
 
 
 go
-ALTER TABLE cards
-ADD night_price INT NOT NULL DEFAULT 5000;
+UPDATE cards
+SET night_price = 5000
+WHERE night_price IS NULL;
 go
 
 go
