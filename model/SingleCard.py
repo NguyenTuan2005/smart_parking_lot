@@ -58,3 +58,17 @@ class SingleCard(Card):
             f"price={self._price}"
             f")"
         )
+
+    def apply_single_day_fee(self, fee: int):
+        if fee <= 0:
+            raise ValueError("Giá tiền phải lớn hơn 0")
+        self._price = fee
+
+        from dao.SingleCardDAO import SingleCardDAO
+        SingleCardDAO().update_price(self._card_id, self._price)
+
+    def apply_single_night_fee(self, night_fee: int):
+        if night_fee <= 0:
+            raise ValueError("Giá tiền phải lớn hơn 0")
+        self._price = night_fee
+        # save night price

@@ -1,5 +1,5 @@
 import random
-from typing import Set, Any
+from typing import Set, Any, cast
 
 from dao.CustomerDAO import CustomerDAO
 from dao.MonthlyCardDAO import MonthlyCardDAO
@@ -8,7 +8,9 @@ from dao.SingleCardDAO import SingleCardDAO
 from dao.StaffDAO import StaffDAO
 from dao.VehicleDAO import VehicleDAO
 from model.Card import Card
+from model.MonthlyCard import MonthlyCard
 from model.Payment import Payment
+from model.SingleCard import SingleCard
 from model.User import User
 from model.Vehicle import Vehicle
 
@@ -26,14 +28,14 @@ class Application:
         if self.__initialized:
             return
         self.__initialized = True
-        self._users: Set[User] = set(CustomerDAO().get_all()) | set(StaffDAO().get_all())
-        self._cards: Set[Card] = set(SingleCardDAO().get_all()) | set(MonthlyCardDAO(CustomerDAO(), VehicleDAO()).get_all())
-        self._vehicles: Set[Vehicle] = set(VehicleDAO().get_all())
-        self._payments: Set[Payment] = set(PaymentDAO().get_all())
+        self.__users: Set[User] = set(CustomerDAO().get_all()) | set(StaffDAO().get_all())
+        self.__cards: Set[Card] = set(SingleCardDAO().get_all()) | set(MonthlyCardDAO(CustomerDAO(), VehicleDAO()).get_all())
+        self.__vehicles: Set[Vehicle] = set(VehicleDAO().get_all())
+        self.__payments: Set[Payment] = set(PaymentDAO().get_all())
 
     def check_in(self, card: Card, plate: str) -> Card | None:
         if card is None:
-            cards = [c for c in self._cards if c.has_check_out()]
+            cards = [c for c in self.__cards if c.has_check_out()]
             if len([c for c in cards if c.is_single_card()]) == 0:
                 return None
             card = random.choice(cards)
@@ -45,7 +47,7 @@ class Application:
 
     def check_out(self, card: Card, plate: str) -> Card | None:
         if card is None:
-            cards = [c for c in self._cards if c.has_check_in()]
+            cards = [c for c in self.__cards if c.has_check_in()]
             card = next((c for c in cards if c.is_same_plate(plate)), None)
             if card is None:
                 return card
@@ -54,3 +56,19 @@ class Application:
         except Exception as e:
             raise Exception(e) from e
         return card
+
+    def apply_single_day_fee(self, single_day_fee: int):
+        cards = [cast(SingleCard,c) for c in self.__cards if c.is_single_card()]
+        try:
+            for card in cards:
+                card.apply_single_day_fee(single_day_fee)
+        except ValueError as e:
+            raise ValueError(e) from e
+
+    def apply_single_night_fee(self, single_night_fee: int):
+        cards = [cast(SingleCard, c) for c in self.__cards if c.is_single_card()]
+        try:
+            for card in cards:
+                card.apply_single_night_fee(single_night_fee)
+        except ValueError as e:
+            raise ValueError(e) from e

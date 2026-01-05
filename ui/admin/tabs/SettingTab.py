@@ -37,23 +37,6 @@ class SettingTab(QWidget):
         layout.addWidget(QLabel("Phí tháng (VND):"))
         layout.addWidget(self.monthly_fee_input)
 
-        # Single ticket (vé thường) configuration - motorbike only, day/night rates
-        layout.addWidget(QLabel("--- Cấu hình vé thường (Xe máy) theo Ngày/Đêm ---"))
-
-        # Day start/end (hours)
-        hours_layout = QHBoxLayout()
-        hours_layout.addWidget(QLabel("Bắt đầu Ngày (giờ 0-23):"))
-        self.day_start_spin = QSpinBox()
-        self.day_start_spin.setRange(0, 23)
-        hours_layout.addWidget(self.day_start_spin)
-
-        hours_layout.addWidget(QLabel("Kết thúc Ngày (giờ 0-23):"))
-        self.day_end_spin = QSpinBox()
-        self.day_end_spin.setRange(0, 23)
-        hours_layout.addWidget(self.day_end_spin)
-
-        layout.addLayout(hours_layout)
-
         # Day rate
         self.single_day_input = QLineEdit()
         self.single_day_input.setPlaceholderText("Phí ban ngày (VND)")
@@ -69,7 +52,7 @@ class SettingTab(QWidget):
         # Buttons
         btn_layout = QHBoxLayout()
         self.save_btn = QPushButton("Lưu cấu hình")
-
+        self.save_btn.clicked.connect(self.__on_save_clicked)
         btn_layout.addWidget(self.save_btn)
 
         self.reset_btn = QPushButton("Khôi phục mặc định")
@@ -82,11 +65,14 @@ class SettingTab(QWidget):
     def set_data(self, settings: Settings):
         self.slots_spin.setValue(settings.total_slots)
         self.monthly_fee_input.setText(str(settings.monthly_fee))
-        self.day_start_spin.setValue(settings.day_start)
-        self.day_end_spin.setValue(settings.day_end)
         self.single_day_input.setText(str(settings.single_day_fee))
         self.single_night_input.setText(str(settings.single_night_fee))
 
-
+    def __on_save_clicked(self):
+        try:
+            self.__controller.save_settings()
+            QMessageBox.information(self, "Thành công", "Lưu cấu hình thành công.")
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Lưu cấu hình thất bại: {e}")
 
 

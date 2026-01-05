@@ -16,19 +16,15 @@ class Settings:
         self.__initialized = True
         self.__total_slots = 250
         self.__monthly_fee = 150000
-        self.__day_start = 6
-        self.__day_end = 22
         self.__single_day_fee = 3000
         self.__single_night_fee = 5000
 
-        settings_file = Path("settings.json")
-        if settings_file.exists():
-            with open(settings_file, "r") as file:
+        self.__settings_file = Path("settings.json")
+        if self.__settings_file.exists():
+            with open(self.__settings_file, "r") as file:
                 data = json.load(file)
                 self.__total_slots = data.get("total_slots", self.__total_slots)
                 self.__monthly_fee = data.get("monthly_fee", self.__monthly_fee)
-                self.__day_start = data.get("day_start", self.__day_start)
-                self.__day_end = data.get("day_end", self.__day_end)
                 self.__single_day_fee = data.get("single_day_fee", self.__single_day_fee)
                 self.__single_night_fee = data.get("single_night_fee", self.__single_night_fee)
 
@@ -49,22 +45,6 @@ class Settings:
         self.__monthly_fee = value
 
     @property
-    def day_start(self):
-        return self.__day_start
-
-    @day_start.setter
-    def day_start(self, value: int):
-        self.__day_start = value
-
-    @property
-    def day_end(self):
-        return self.__day_end
-
-    @day_end.setter
-    def day_end(self, value: int):
-        self.__day_end = value
-
-    @property
     def single_day_fee(self):
         return self.__single_day_fee
 
@@ -79,3 +59,26 @@ class Settings:
     @single_night_fee.setter
     def single_night_fee(self, value: int):
         self.__single_night_fee = value
+
+    def save_data(self) -> None:
+        try:
+            data = {
+                "total_slots": self.__total_slots,
+                "monthly_fee": self.__monthly_fee,
+                "single_day_fee": self.__single_day_fee,
+                "single_night_fee": self.__single_night_fee,
+            }
+
+            with open(self.__settings_file, "w") as file:
+                json.dump(data, file, indent=4)
+        except Exception as e:
+            raise Exception(e) from e
+
+    def eq_monthly_fee(self, monthly_fee: int) -> bool:
+        return self.__monthly_fee == monthly_fee
+
+    def eq_single_day_fee(self, single_day_fee: int) -> bool:
+        return self.__single_day_fee == single_day_fee
+
+    def eq_single_night_fee(self, single_night_fee: int) -> bool:
+        return self.__single_night_fee == single_night_fee
