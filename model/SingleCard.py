@@ -5,9 +5,10 @@ from model.CardLog import CardLog
 
 
 class SingleCard(Card):
-    def __init__(self, card_id: int, card_code: str, price: int, card_log: CardLog =None):
+    def __init__(self, card_id: int, card_code: str, price: int, night_price: int, card_log: CardLog =None):
         super().__init__(card_id, card_code)
         self._price = price
+        self.__night_price = night_price
         self._card_log = card_log
 
     def set_card_log(self, card_log: CardLog):
@@ -20,6 +21,10 @@ class SingleCard(Card):
     @property
     def price(self) -> int:
         return self._price
+
+    @property
+    def night_price(self) -> int:
+        return self.__night_price
 
     def duration(self) -> int:
         return self._card_log.duration()
@@ -71,4 +76,6 @@ class SingleCard(Card):
         if night_fee <= 0:
             raise ValueError("Giá tiền phải lớn hơn 0")
         self._price = night_fee
-        # save night price
+
+        from dao.SingleCardDAO import SingleCardDAO
+        SingleCardDAO().update_night_price(night_fee)

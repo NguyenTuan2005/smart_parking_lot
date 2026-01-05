@@ -193,7 +193,7 @@ class SingleCardManagementController:
 
     def create_card(self, data):
         try:
-            self.service.create_card(data["card_code"], data["price"])
+            self.service.create_card(data["card_code"], data["price"], data["night_price"])
             self.load_data()
         except Exception as e:
             print(f"Error creating card: {e}")

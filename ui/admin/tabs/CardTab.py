@@ -1555,6 +1555,14 @@ class SingleCardDialog(QDialog):
             self.txtCode.setReadOnly(True)
             self.txtPrice.setText(str(self._card.price))
 
+        self.txtNightPrice = self._create_form_row("Giá vé (VND):", QLineEdit(), layout)
+        self.txtNightPrice.setPlaceholderText("Nhập giá vé")
+
+        if self._card:
+            self.txtCode.setText(self._card.card_code)
+            self.txtCode.setReadOnly(True)
+            self.txtNightPrice.setText(str(self._card.night_price))
+
         # Buttons
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
@@ -1614,4 +1622,5 @@ class SingleCardDialog(QDialog):
         return {
             "card_code": self.txtCode.text(),
             "price": int(self.txtPrice.text() or 0),
+            "night_price": int(self.txtNightPrice.text() or 0)
         }

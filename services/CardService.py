@@ -30,8 +30,8 @@ class SingleCardService:
     def search_single_cards(self, keyword):
         return self.single_card_dao.search_cards(keyword)
 
-    def create_card(self, card_code, price):
-        return self.single_card_dao.create(card_code, price)
+    def create_card(self, card_code, price, night_price):
+        return self.single_card_dao.create(card_code, price, night_price)
 
     def update_card(self, card_id, price):
         return self.single_card_dao.update_price(card_id, price)
