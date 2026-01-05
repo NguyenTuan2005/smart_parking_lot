@@ -11,7 +11,7 @@ class StatisticsService:
         self._dao = StatisticsDAO()
 
     def get_revenue_trend_data(
-        self, year: int = None, start_date: datetime = None, end_date: datetime = None
+            self, year: int = None, start_date: datetime = None, end_date: datetime = None
     ) -> Tuple[List[str], List[float]]:
         """
         Lấy dữ liệu doanh thu theo tháng để vẽ biểu đồ
@@ -21,55 +21,74 @@ class StatisticsService:
         if not data:
             # Trả về dữ liệu mẫu nếu không có dữ liệu
             if start_date and end_date:
-                # Nếu có khoảng thời gian, trả về các tháng trong khoảng đó
-                start_month = start_date.month
-                end_month = end_date.month
-                months = [f"T{i}" for i in range(start_month, end_month + 1)]
-                revenues = [0.0] * len(months)
+                # Tính số tháng giữa start_date và end_date
+                months_diff = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month) + 1
+                months = []
+                revenues = []
+
+                current_date = start_date.replace(day=1)
+                for _ in range(months_diff):
+                    months.append(f"T{current_date.month}")
+                    revenues.append(0.0)
+                    # Chuyển sang tháng tiếp theo
+                    if current_date.month == 12:
+                        current_date = current_date.replace(year=current_date.year + 1, month=1)
+                    else:
+                        current_date = current_date.replace(month=current_date.month + 1)
             else:
                 months = [
-                    "T1",
-                    "T2",
-                    "T3",
-                    "T4",
-                    "T5",
-                    "T6",
-                    "T7",
-                    "T8",
-                    "T9",
-                    "T10",
-                    "T11",
-                    "T12",
+                    "T1", "T2", "T3", "T4", "T5", "T6",
+                    "T7", "T8", "T9", "T10", "T11", "T12"
                 ]
                 revenues = [0.0] * 12
             return months, revenues
 
-        # Nếu có khoảng thời gian, chỉ trả về các tháng trong khoảng đó
+        # Nếu có khoảng thời gian, tạo tất cả các tháng trong khoảng đó
         if start_date and end_date:
-            start_month = start_date.month
-            end_month = end_date.month
-            months = [f"T{i}" for i in range(start_month, end_month + 1)]
-            revenues = [0.0] * (end_month - start_month + 1)
-            
+            # Tính tất cả các tháng từ start_date đến end_date
+            months_diff = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month) + 1
+
+            # Tạo dict ánh xạ (year, month) -> index
+            month_labels = []
+            month_mapping = {}  # {(year, month): index}
+
+            current_date = start_date.replace(day=1)
+            for idx in range(months_diff):
+                year_month = (current_date.year, current_date.month)
+                month_mapping[year_month] = idx
+
+                # Label hiển thị: nếu nhiều năm thì thêm năm vào label
+                if end_date.year - start_date.year > 0:
+                    month_labels.append(f"T{current_date.month}")
+                else:
+                    month_labels.append(f"T{current_date.month}")
+
+                # Chuyển sang tháng tiếp theo
+                if current_date.month == 12:
+                    current_date = current_date.replace(year=current_date.year + 1, month=1)
+                else:
+                    current_date = current_date.replace(month=current_date.month + 1)
+
+            # Khởi tạo revenues với 0
+            revenues = [0.0] * months_diff
+
+            # Điền dữ liệu thực tế từ database
             for item in data:
-                month_idx = item["month"] - start_month  # index từ 0 trong khoảng
-                if 0 <= month_idx < len(revenues):
-                    revenues[month_idx] = item["revenue"] / 1000  # nghìn đồng
+                month_num = item["month"]
+
+                # Tìm năm tương ứng (vì data chỉ có month, cần xác định year)
+                # Giả định dữ liệu đã được lọc đúng theo start_date, end_date trong DAO
+                for (y, m), idx in month_mapping.items():
+                    if m == month_num:
+                        revenues[idx] += item["revenue"] / 1000  # nghìn đồng
+                        break
+
+            return month_labels, revenues
         else:
             # Chuyển đổi sang format cho biểu đồ (toàn bộ năm)
             month_names = [
-                "T1",
-                "T2",
-                "T3",
-                "T4",
-                "T5",
-                "T6",
-                "T7",
-                "T8",
-                "T9",
-                "T10",
-                "T11",
-                "T12",
+                "T1", "T2", "T3", "T4", "T5", "T6",
+                "T7", "T8", "T9", "T10", "T11", "T12"
             ]
             revenues = [0.0] * 12
 
@@ -83,7 +102,7 @@ class StatisticsService:
         return months, revenues
 
     def get_daily_revenue_data(
-        self, month: int = None, year: int = None
+            self, month: int = None, year: int = None
     ) -> Tuple[List[str], List[float]]:
         now = datetime.now()
         m = month if month else now.month
@@ -103,7 +122,7 @@ class StatisticsService:
         return days, revenues
 
     def get_vehicle_mix_data(
-        self, start_date: datetime = None, end_date: datetime = None
+            self, start_date: datetime = None, end_date: datetime = None
     ) -> Tuple[List[str], List[int]]:
         """
         Lấy dữ liệu cơ cấu lượt xe
@@ -117,7 +136,7 @@ class StatisticsService:
         return labels, values
 
     def get_duration_boxplot_data(
-        self, start_date: datetime = None, end_date: datetime = None
+            self, start_date: datetime = None, end_date: datetime = None
     ) -> Dict[str, List[int]]:
         """
         Lấy dữ liệu thời gian đỗ theo nhóm khách
@@ -130,21 +149,7 @@ class StatisticsService:
             return {
                 "Thẻ Tháng": [120, 90, 80, 150, 110, 95, 130],
                 "Lượt / Vãng lai": [
-                    20,
-                    35,
-                    40,
-                    50,
-                    60,
-                    30,
-                    25,
-                    45,
-                    15,
-                    20,
-                    18,
-                    25,
-                    30,
-                    22,
-                    28,
+                    20, 35, 40, 50, 60, 30, 25, 45, 15, 20, 18, 25, 30, 22, 28,
                 ],
             }
 
@@ -154,7 +159,7 @@ class StatisticsService:
         }
 
     def get_traffic_heatmap_data(
-        self, start_date: datetime = None, end_date: datetime = None
+            self, start_date: datetime = None, end_date: datetime = None
     ) -> Tuple[List[str], List[str], List[List[int]]]:
         """
         Lấy dữ liệu heatmap lượt xe theo giờ & ngày
@@ -187,7 +192,7 @@ class StatisticsService:
         return days, hours, traffic_matrix
 
     def get_dow_entries_data(
-        self, start_date: datetime = None, end_date: datetime = None
+            self, start_date: datetime = None, end_date: datetime = None
     ) -> Tuple[List[str], List[int], List[int]]:
         """
         Lấy dữ liệu lượt vào/ra theo ngày trong tuần
@@ -202,7 +207,7 @@ class StatisticsService:
         return days, entries, exits
 
     def get_fee_vs_duration_data(
-        self, start_date: datetime = None, end_date: datetime = None
+            self, start_date: datetime = None, end_date: datetime = None
     ) -> Tuple[List[int], List[float]]:
         """
         Lấy dữ liệu tương quan phí và thời gian đỗ
@@ -222,7 +227,7 @@ class StatisticsService:
         return durations, fees
 
     def get_hour_histogram_data(
-        self, start_date: datetime = None, end_date: datetime = None
+            self, start_date: datetime = None, end_date: datetime = None
     ) -> List[int]:
         """
         Lấy dữ liệu phân bố lượt xe theo giờ
@@ -233,36 +238,14 @@ class StatisticsService:
         if not data or sum(data) == 0:
             # Dữ liệu mẫu
             return [
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                1,
-                2,
-                3,
-                2,
-                1,
-                1,
-                1,
-                0,
-                1,
-                2,
-                3,
-                4,
-                3,
-                2,
-                1,
-                0,
-                0,
-                0,
+                0, 0, 0, 0, 0, 0, 1, 2, 3, 2, 1, 1,
+                1, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0,
             ]
 
         return data
 
     def get_date_range_from_quick_filter(
-        self, filter_name: str
+            self, filter_name: str
     ) -> Tuple[datetime, datetime]:
         """
         Chuyển đổi filter nhanh thành khoảng thời gian
