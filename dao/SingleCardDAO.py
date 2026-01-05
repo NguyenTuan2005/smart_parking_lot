@@ -31,7 +31,9 @@ class SingleCardDAO:
             if card_log is None:
                 card_log = CardLog()
 
-            return SingleCard(row.id, row.card_code, row.price, row.night_price, card_log=card_log)
+            return SingleCard(
+                row.id, row.card_code, row.price, row.night_price, card_log=card_log
+            )
         except Exception as e:
             print("Error in get_by_id:", e)
 
@@ -86,7 +88,11 @@ class SingleCardDAO:
                 card_log = self._card_log_dao.get_by_card_id(r.id)
                 if card_log is None:
                     card_log = CardLog()
-                cards.append(SingleCard(r.id, r.card_code, r.price, r.night_price, card_log=card_log))
+                cards.append(
+                    SingleCard(
+                        r.id, r.card_code, r.price, r.night_price, card_log=card_log
+                    )
+                )
 
             return cards
         except Exception as e:
@@ -113,24 +119,28 @@ class SingleCardDAO:
                 card_log = self._card_log_dao.get_by_card_id(r.id)
                 if card_log is None:
                     card_log = CardLog()
-                cards.append(SingleCard(r.id, r.card_code, r.price, r.night_price, card_log=card_log))
+                cards.append(
+                    SingleCard(
+                        r.id, r.card_code, r.price, r.night_price, card_log=card_log
+                    )
+                )
 
             return cards
         except Exception as e:
             print("Error in search_cards:", e)
             return []
 
-    def create(self, card_code: str, price: int, night_price: int):
+    def create(self, card: SingleCard):
         try:
             conn = self._db.connect()
             cursor = conn.cursor()
 
             sql = """
                   INSERT INTO cards (card_code, price, night_price)
-                  VALUES (?, ?, ?) \
+                  VALUES (?, ?, ?)
                   """
 
-            cursor.execute(sql, card_code, price, night_price)
+            cursor.execute(sql, card.card_code, card.price, card.night_price)
             conn.commit()
             conn.close()
         except Exception as e:

@@ -1,4 +1,3 @@
-
 from dao.CustomerDAO import CustomerDAO
 from dao.VehicleDAO import VehicleDAO
 from db.database import Database
@@ -7,7 +6,11 @@ from model.MonthlyCard import MonthlyCard
 
 
 class MonthlyCardDAO:
-    def __init__(self, customer_dao: CustomerDAO = CustomerDAO(), vehicle_dao: VehicleDAO = VehicleDAO()):
+    def __init__(
+        self,
+        customer_dao: CustomerDAO = CustomerDAO(),
+        vehicle_dao: VehicleDAO = VehicleDAO(),
+    ):
         self._db = Database()
         self._customer_dao = customer_dao
         self._vehicle_dao = vehicle_dao
@@ -96,42 +99,34 @@ class MonthlyCardDAO:
             print(f"Error in MonthlyCardDAO.search_cards: {e}")
             return []
 
-    def save(self, card_dto: MonthlyCardDTO) -> bool:
-
-        conn = self._db.connect()
-        cursor = conn.cursor()
-
+    def save(self, card: MonthlyCard) -> bool:
         try:
-            start_date_str = card_dto.start_date.strftime("%Y-%m-%d")
-            expiry_date_str = card_dto.expiry_date.strftime("%Y-%m-%d")
+            conn = self._db.connect()
+            cursor = conn.cursor()
 
+            sql = """
+                  INSERT INTO monthly_cards (card_code, customer_id, vehicle_id, monthly_fee,
+                                             start_date, expiry_date, is_paid)
+                  VALUES (?, ?, ?, ?, ?, ?, ?)
+                  """
             cursor.execute(
-                """
-                           INSERT INTO monthly_cards (card_code, customer_id, vehicle_id, monthly_fee,
-                                                      start_date, expiry_date, is_paid)
-                           VALUES (?, ?, ?, ?, ?, ?, ?)
-                           """,
+                sql,
                 (
-                    card_dto.card_code,
-                    card_dto.customer_id,
-                    card_dto.vehicle_id,
-                    card_dto.monthly_fee,
-                    start_date_str,
-                    expiry_date_str,
-                    card_dto.is_paid,
+                    card.card_code,
+                    card.customer.id,
+                    card.vehicle.vehicle_id,
+                    card.monthly_fee,
+                    card.start_date,
+                    card.expiry_date,
+                    card.is_paid,
                 ),
             )
             conn.commit()
-
-            return cursor.rowcount > 0
-
-        except Exception as e:
-            print(f"Lỗi DB MonthlyCardDAO.insert: {e}")
-            conn.rollback()
-            return False
-        finally:
-            cursor.close()
             conn.close()
+            return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error in MonthlyCardDAO.save: {e}")
+            return False
 
     def update_payment(self, card_id: int, is_paid: bool):
         try:

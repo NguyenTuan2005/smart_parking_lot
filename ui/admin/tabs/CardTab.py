@@ -1351,17 +1351,17 @@ class SingleCardManagementTab(QWidget):
         # Table
         self.table = QTableWidget()
         self.table.verticalHeader().setDefaultSectionSize(55)
-        self.table.setColumnCount(4)
+        self.table.setColumnCount(5)
         self.table.setSortingEnabled(True)
         self.table.setAlternatingRowColors(True)
         self.table.setHorizontalHeaderLabels(
-            ["MÃ THẺ", "GIÁ VÉ", "TRẠNG THÁI", "HÀNH ĐỘNG"]
+            ["MÃ THẺ", "GIÁ VÉ", "GIÁ VÉ ĐÊM", "TRẠNG THÁI", "HÀNH ĐỘNG"]
         )
 
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
-        self.table.setColumnWidth(3, 150)
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)
+        self.table.setColumnWidth(4, 150)
 
         self.table.verticalHeader().setVisible(False)
         self.table.setStyleSheet(
@@ -1416,9 +1416,15 @@ class SingleCardManagementTab(QWidget):
         for card in cards:
             row = self.table.rowCount()
             self.table.insertRow(row)
-            self.table.setItem(row, 0, QTableWidgetItem(card.card_code))
-            self.table.setItem(row, 1, QTableWidgetItem(f"{card.price:,}"))
-            self.table.setItem(row, 2, QTableWidgetItem("Hoạt động"))
+            self.table.setItem(row, 0, QTableWidgetItem(str(card.card_code or "")))
+
+            price = card.price if card.price is not None else 0
+            self.table.setItem(row, 1, QTableWidgetItem(f"{price:,}"))
+
+            night_price = card.night_price if card.night_price is not None else 0
+            self.table.setItem(row, 2, QTableWidgetItem(f"{night_price:,}"))
+
+            self.table.setItem(row, 3, QTableWidgetItem("Hoạt động"))
 
             container = QWidget()
             container.setStyleSheet("background-color: transparent;")
@@ -1443,8 +1449,7 @@ class SingleCardManagementTab(QWidget):
 
             layout.addWidget(btn_edit)
             layout.addWidget(btn_delete)
-            layout.addWidget(btn_delete)
-            self.table.setCellWidget(row, 3, container)
+            self.table.setCellWidget(row, 4, container)
 
         self.table.setSortingEnabled(True)
 
@@ -1555,8 +1560,10 @@ class SingleCardDialog(QDialog):
             self.txtCode.setReadOnly(True)
             self.txtPrice.setText(str(self._card.price))
 
-        self.txtNightPrice = self._create_form_row("Giá vé (VND):", QLineEdit(), layout)
-        self.txtNightPrice.setPlaceholderText("Nhập giá vé")
+        self.txtNightPrice = self._create_form_row(
+            "Giá vé đêm (VND):", QLineEdit(), layout
+        )
+        self.txtNightPrice.setPlaceholderText("Nhập giá vé đêm")
 
         if self._card:
             self.txtCode.setText(self._card.card_code)
@@ -1622,5 +1629,5 @@ class SingleCardDialog(QDialog):
         return {
             "card_code": self.txtCode.text(),
             "price": int(self.txtPrice.text() or 0),
-            "night_price": int(self.txtNightPrice.text() or 0)
+            "night_price": int(self.txtNightPrice.text() or 0),
         }
