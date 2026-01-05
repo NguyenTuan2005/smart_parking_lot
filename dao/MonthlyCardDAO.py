@@ -1,5 +1,3 @@
-from datetime import date
-from typing import List, Optional
 
 from dao.CustomerDAO import CustomerDAO
 from dao.VehicleDAO import VehicleDAO
@@ -9,7 +7,7 @@ from model.MonthlyCard import MonthlyCard
 
 
 class MonthlyCardDAO:
-    def __init__(self, customer_dao: CustomerDAO, vehicle_dao: VehicleDAO):
+    def __init__(self, customer_dao: CustomerDAO = CustomerDAO(), vehicle_dao: VehicleDAO = VehicleDAO()):
         self._db = Database()
         self._customer_dao = customer_dao
         self._vehicle_dao = vehicle_dao

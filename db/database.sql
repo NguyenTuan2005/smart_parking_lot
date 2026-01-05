@@ -58,6 +58,7 @@ CREATE TABLE [cards] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
   [card_code] varchar(10) NOT NULL,
   [price] BIGINT,
+  [night_price] BIGINT,
   [created_at] datetime NOT NULL DEFAULT GETDATE(),
   [updated_at] datetime NOT NULL DEFAULT GETDATE(),
   [is_active] bit NOT NULL DEFAULT 1,
