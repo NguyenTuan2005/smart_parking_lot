@@ -7,7 +7,9 @@ class StatisticsDAO:
     def __init__(self):
         self._db = Database()
 
-    def get_revenue_by_month(self, year: int = None, start_date: datetime = None, end_date: datetime = None) -> List[Dict]:
+    def get_revenue_by_month(self, year: int = None, start_date: datetime = None, end_date: datetime = None) -> List[
+        Dict]:
+        """Doanh thu theo tháng - BÁO CÁO CẢ NĂM VÀ THÁNG"""
         conn = None
         cursor = None
         try:
@@ -16,10 +18,10 @@ class StatisticsDAO:
             result = []
 
             if year or (start_date and end_date):
-                # Xác định điều kiện filter
+                # Điều kiện filter
                 date_condition = ""
                 params = []
-                
+
                 if start_date and end_date:
                     date_condition = "AND exit_at BETWEEN ? AND ?"
                     params = [start_date, end_date]
@@ -27,24 +29,23 @@ class StatisticsDAO:
                     date_condition = "AND YEAR(exit_at) = ?"
                     params = [year]
 
-                # Doanh thu từ thẻ lượt - Lấy từ bảng cards
+                # Doanh thu từ thẻ lượt - Luôn GROUP BY MONTH
                 sql_single = f"""
-                             SELECT
-                                 MONTH (exit_at) as month, SUM (fee) as revenue
-                             FROM cards
-                             WHERE exit_at IS NOT NULL
-                               AND fee IS NOT NULL
-                               AND card_type = 'single'
-                               {date_condition}
-                             GROUP BY MONTH (exit_at) \
-                             """
+                    SELECT
+                        MONTH(exit_at) as month, 
+                        SUM(fee) as revenue
+                    FROM card_logs
+                    WHERE exit_at IS NOT NULL
+                      AND fee IS NOT NULL
+                      {date_condition}
+                    GROUP BY MONTH(exit_at)
+                """
                 single_cards = cursor.execute(sql_single, params).fetchall()
 
-                # Doanh thu từ thẻ tháng - Lấy từ bảng monthly_cards
-                # Dùng start_date làm tháng ghi nhận doanh thu
+                # Doanh thu từ thẻ tháng - Luôn GROUP BY MONTH
                 monthly_condition = ""
                 monthly_params = []
-                
+
                 if start_date and end_date:
                     monthly_condition = "AND start_date BETWEEN ? AND ?"
                     monthly_params = [start_date.date(), end_date.date()]
@@ -53,27 +54,31 @@ class StatisticsDAO:
                     monthly_params = [year]
 
                 sql_monthly = f"""
-                              SELECT
-                                  MONTH (start_date) as month, SUM (monthly_fee) as revenue
-                              FROM monthly_cards
-                              WHERE is_paid = 1
-                                {monthly_condition}
-                              GROUP BY MONTH (start_date) \
-                              """
+                    SELECT
+                        MONTH(start_date) as month, 
+                        SUM(monthly_fee) as revenue
+                    FROM monthly_cards
+                    WHERE is_paid = 1
+                      {monthly_condition}
+                    GROUP BY MONTH(start_date)
+                """
                 monthly_cards = cursor.execute(sql_monthly, monthly_params).fetchall()
 
-                # Gộp doanh thu
+                # Gộp doanh thu theo month
                 revenue_dict = {}
                 for row in single_cards:
-                    month = row[0]
-                    revenue_dict[month] = revenue_dict.get(month, 0) + int(row[1] or 0)
+                    month_val = row[0]
+                    revenue_dict[month_val] = revenue_dict.get(month_val, 0) + int(row[1] or 0)
 
                 for row in monthly_cards:
-                    month = row[0]
-                    revenue_dict[month] = revenue_dict.get(month, 0) + int(row[1] or 0)
+                    month_val = row[0]
+                    revenue_dict[month_val] = revenue_dict.get(month_val, 0) + int(row[1] or 0)
 
-                result = [{'month': month, 'revenue': revenue}
-                          for month, revenue in sorted(revenue_dict.items())]
+                # Đảm bảo có tất cả tháng 1-12, với revenue = 0 nếu không có dữ liệu
+                result = [
+                    {'month': month, 'revenue': revenue_dict.get(month, 0)}
+                    for month in range(1, 13)
+                ]
 
             return result
         except Exception as e:
@@ -87,32 +92,35 @@ class StatisticsDAO:
             if conn:
                 conn.close()
 
-    # Doanh thu theo ngày trong tháng
     def get_revenue_by_day_in_month(self, month: int, year: int) -> List[Dict]:
+        """Doanh thu theo ngày trong tháng"""
         conn = None
         cursor = None
         try:
             conn = self._db.connect()
             cursor = conn.cursor()
-            
+
             # Doanh thu thẻ lượt
             sql_single = """
-                SELECT DAY(exit_at) as day, SUM(fee) as revenue
-                FROM card_logs
-                WHERE YEAR(exit_at) = ? AND MONTH(exit_at) = ?
-                AND exit_at IS NOT NULL AND fee IS NOT NULL
-                GROUP BY DAY(exit_at)
-            """
+                         SELECT DAY (exit_at) as day, SUM (fee) as revenue
+                         FROM card_logs
+                         WHERE YEAR (exit_at) = ? \
+                           AND MONTH (exit_at) = ?
+                           AND exit_at IS NOT NULL \
+                           AND fee IS NOT NULL
+                         GROUP BY DAY (exit_at) \
+                         """
             single_cards = cursor.execute(sql_single, year, month).fetchall()
 
             # Doanh thu thẻ tháng
             sql_monthly = """
-                SELECT DAY(created_at) as day, SUM(monthly_fee) as revenue
-                FROM monthly_cards
-                WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?
-                AND is_paid = 1
-                GROUP BY DAY(created_at)
-            """
+                          SELECT DAY (start_date) as day, SUM (monthly_fee) as revenue
+                          FROM monthly_cards
+                          WHERE YEAR (start_date) = ? \
+                            AND MONTH (start_date) = ?
+                            AND is_paid = 1
+                          GROUP BY DAY (start_date) \
+                          """
             monthly_cards = cursor.execute(sql_monthly, year, month).fetchall()
 
             revenue_dict = {}
@@ -132,17 +140,18 @@ class StatisticsDAO:
             if conn: conn.close()
 
     def get_vehicle_mix(self, start_date: datetime = None, end_date: datetime = None) -> Dict[str, int]:
+        """Cơ cấu loại xe: thẻ lượt vs thẻ tháng"""
         conn = None
         cursor = None
         try:
             conn = self._db.connect()
             cursor = conn.cursor()
 
-            # Đếm thẻ lượt: Những xe trong cards mà card_type = 'single'
+            # Đếm thẻ lượt: Số lượt từ card_logs
             single_sql = """
                          SELECT COUNT(*)
-                         FROM cards
-                         WHERE card_type = 'single'
+                         FROM card_logs
+                         WHERE 1 = 1 \
                          """
             params = []
             if start_date and end_date:
@@ -151,18 +160,19 @@ class StatisticsDAO:
 
             single_count = cursor.execute(single_sql, tuple(params) if params else ()).fetchone()[0] or 0
 
-            # Đếm thẻ tháng: Những xe trong monthly_cards
+            # Đếm thẻ tháng: Số thẻ tháng đang hoạt động
             monthly_sql = """
                           SELECT COUNT(*)
                           FROM monthly_cards
-                          WHERE is_active = 1
+                          WHERE is_active = 1 \
                           """
             monthly_params = []
             if start_date and end_date:
                 monthly_sql += " AND start_date <= ? AND expiry_date >= ?"
                 monthly_params.extend([end_date.date(), start_date.date()])
 
-            monthly_count = cursor.execute(monthly_sql, tuple(monthly_params) if monthly_params else ()).fetchone()[0] or 0
+            monthly_count = cursor.execute(monthly_sql, tuple(monthly_params) if monthly_params else ()).fetchone()[
+                                0] or 0
 
             return {
                 'single': single_count,
@@ -176,22 +186,19 @@ class StatisticsDAO:
             if conn: conn.close()
 
     def get_duration_by_card_type(self, start_date: datetime = None, end_date: datetime = None) -> Dict[str, List[int]]:
-        """
-        Thời gian đỗ xe theo loại thẻ - SỬA ĐỂ DÙNG cards
-        """
+        """Thời gian đỗ xe theo loại thẻ"""
         conn = None
         cursor = None
         try:
             conn = self._db.connect()
             cursor = conn.cursor()
 
-            # Thời gian đỗ cho thẻ lượt
+            # Thời gian đỗ cho thẻ lượt từ card_logs
             single_sql = """
-                SELECT DATEDIFF(MINUTE, entry_at, exit_at)
-                FROM cards
-                WHERE exit_at IS NOT NULL
-                  AND card_type = 'single'
-            """
+                         SELECT DATEDIFF(MINUTE, entry_at, exit_at)
+                         FROM card_logs
+                         WHERE exit_at IS NOT NULL \
+                         """
             params = []
             if start_date and end_date:
                 single_sql += " AND entry_at BETWEEN ? AND ?"
@@ -200,21 +207,8 @@ class StatisticsDAO:
             single_rows = cursor.execute(single_sql, tuple(params) if params else ()).fetchall()
             single_durations = [row[0] for row in single_rows if row[0] is not None and row[0] > 0]
 
-            # Thẻ tháng - tính thời gian đỗ từ card_logs nếu có, hoặc giả định
-            monthly_sql = """
-                SELECT DATEDIFF(MINUTE, cl.entry_at, cl.exit_at)
-                FROM card_logs cl
-                JOIN monthly_cards mc ON cl.card_id = mc.id
-                WHERE cl.exit_at IS NOT NULL
-                  AND mc.is_active = 1
-            """
-            monthly_params = []
-            if start_date and end_date:
-                monthly_sql += " AND cl.entry_at BETWEEN ? AND ?"
-                monthly_params.extend([start_date, end_date])
-
-            monthly_rows = cursor.execute(monthly_sql, tuple(monthly_params) if monthly_params else ()).fetchall()
-            monthly_durations = [row[0] for row in monthly_rows if row[0] is not None and row[0] > 0]
+            # Thẻ tháng - không có dữ liệu vào/ra riêng, trả về mảng rỗng
+            monthly_durations = []
 
             return {
                 'single': single_durations,
@@ -228,27 +222,22 @@ class StatisticsDAO:
             if conn: conn.close()
 
     def get_traffic_by_hour_and_day(self, start_date: datetime = None, end_date: datetime = None) -> List[Dict]:
-        """
-        Lưu lượng xe theo giờ và ngày - SỬA ĐỂ DÙNG cards
-        Dùng DATEPART(WEEKDAY) của SQL Server
-        """
+        """Lưu lượng xe theo giờ và ngày trong tuần"""
         conn = None
         cursor = None
         try:
             conn = self._db.connect()
             cursor = conn.cursor()
 
-            # SQL Server: DATEPART(WEEKDAY) trả về 1=Chủ Nhật, 2=Thứ 2, ..., 7=Thứ 7
-            # Chuyển đổi: Thứ 2=1, ..., Chủ Nhật=7
             sql = """
-                  SELECT CASE 
-                             WHEN DATEPART(WEEKDAY, entry_at) = 1 THEN 7 -- Chủ Nhật 
-                             ELSE DATEPART(WEEKDAY, entry_at) - 1 -- Thứ 2-7 
-                             END as day_of_week, 
+                  SELECT CASE \
+                             WHEN DATEPART(WEEKDAY, entry_at) = 1 THEN 7 \
+                             ELSE DATEPART(WEEKDAY, entry_at) - 1 \
+                             END as day_of_week, \
                          DATEPART(HOUR, entry_at) as hour,
-                       COUNT(*) as count
-                  FROM cards
-                  WHERE 1=1 
+                    COUNT(*) as count
+                  FROM card_logs
+                  WHERE 1=1 \
                   """
             params = []
             if start_date and end_date:
@@ -256,14 +245,14 @@ class StatisticsDAO:
                 params.extend([start_date, end_date])
 
             sql += """
-                   GROUP BY 
-                       CASE 
-                           WHEN DATEPART(WEEKDAY, entry_at) = 1 THEN 7
-                           ELSE DATEPART(WEEKDAY, entry_at) - 1
-                       END,
-                       DATEPART(HOUR, entry_at)
-                   ORDER BY day_of_week, hour
-               """
+                GROUP BY 
+                    CASE 
+                        WHEN DATEPART(WEEKDAY, entry_at) = 1 THEN 7
+                        ELSE DATEPART(WEEKDAY, entry_at) - 1
+                    END,
+                    DATEPART(HOUR, entry_at)
+                ORDER BY day_of_week, hour
+            """
 
             rows = cursor.execute(sql, tuple(params) if params else ()).fetchall()
             return [{'day_of_week': row[0], 'hour': row[1], 'count': row[2]} for row in rows]
@@ -275,26 +264,26 @@ class StatisticsDAO:
         finally:
             if cursor: cursor.close()
             if conn: conn.close()
-    def get_entries_exits_by_day_of_week(self, start_date: datetime = None, end_date: datetime = None) -> Dict[str, List[int]]:
-        """
-        Lượt vào/ra theo ngày trong tuần - SỬA ĐỂ DÙNG cards
-        """
+
+    def get_entries_exits_by_day_of_week(self, start_date: datetime = None, end_date: datetime = None) -> Dict[
+        str, List[int]]:
+        """Lượt vào/ra theo ngày trong tuần"""
         conn = None
         cursor = None
         try:
             conn = self._db.connect()
             cursor = conn.cursor()
 
+            # Lượt vào
             entry_sql = """
-                SELECT 
-                    CASE 
-                        WHEN DATEPART(WEEKDAY, entry_at) = 1 THEN 7
-                        ELSE DATEPART(WEEKDAY, entry_at) - 1
-                    END as day_of_week,
-                    COUNT(*) as count
-                FROM cards
-                WHERE 1=1
-            """
+                        SELECT CASE \
+                                   WHEN DATEPART(WEEKDAY, entry_at) = 1 THEN 7 \
+                                   ELSE DATEPART(WEEKDAY, entry_at) - 1 \
+                                   END as day_of_week, \
+                               COUNT(*) as count
+                        FROM card_logs
+                        WHERE 1=1 \
+                        """
             params = []
             if start_date and end_date:
                 entry_sql += " AND entry_at BETWEEN ? AND ?"
@@ -307,16 +296,16 @@ class StatisticsDAO:
                     END
             """
 
+            # Lượt ra
             exit_sql = """
-                SELECT 
-                    CASE 
-                        WHEN DATEPART(WEEKDAY, exit_at) = 1 THEN 7
-                        ELSE DATEPART(WEEKDAY, exit_at) - 1
-                    END as day_of_week,
-                    COUNT(*) as count
-                FROM cards
-                WHERE exit_at IS NOT NULL
-            """
+                       SELECT CASE \
+                                  WHEN DATEPART(WEEKDAY, exit_at) = 1 THEN 7 \
+                                  ELSE DATEPART(WEEKDAY, exit_at) - 1 \
+                                  END as day_of_week, \
+                              COUNT(*) as count
+                       FROM card_logs
+                       WHERE exit_at IS NOT NULL \
+                       """
             exit_params = []
             if start_date and end_date:
                 exit_sql += " AND exit_at BETWEEN ? AND ?"
@@ -341,31 +330,26 @@ class StatisticsDAO:
             }
         except Exception as e:
             print(f"Lỗi StatisticsDAO.get_entries_exits_by_day_of_week: {e}")
-            return {'entries': [0]*7, 'exits': [0]*7}
+            return {'entries': [0] * 7, 'exits': [0] * 7}
         finally:
             if cursor: cursor.close()
             if conn: conn.close()
 
     def get_fee_vs_duration(self, start_date: datetime = None, end_date: datetime = None) -> List[Dict]:
-        """
-        Tương quan phí và thời gian đỗ - CHỈ LẤY THẺ LƯỢT (thẻ tháng không có phí)
-        """
+        """Tương quan phí và thời gian đỗ - CHỈ thẻ lượt"""
         conn = None
         cursor = None
         try:
             conn = self._db.connect()
             cursor = conn.cursor()
 
-            # Chỉ lấy từ cards (thẻ lượt có fee)
             sql = """
-                SELECT 
-                    DATEDIFF(MINUTE, entry_at, exit_at) as duration,
-                    fee
-                FROM cards
-                WHERE exit_at IS NOT NULL 
-                  AND fee IS NOT NULL
-                  AND card_type = 'single'
-            """
+                  SELECT DATEDIFF(MINUTE, entry_at, exit_at) as duration, \
+                         fee
+                  FROM card_logs
+                  WHERE exit_at IS NOT NULL
+                    AND fee IS NOT NULL \
+                  """
             params = []
             if start_date and end_date:
                 sql += " AND entry_at BETWEEN ? AND ?"
@@ -373,7 +357,7 @@ class StatisticsDAO:
 
             rows = cursor.execute(sql, tuple(params) if params else ()).fetchall()
             return [{'duration': row[0], 'fee': float(row[1] or 0)}
-                   for row in rows if row[0] is not None and row[0] > 0]
+                    for row in rows if row[0] is not None and row[0] > 0]
         except Exception as e:
             print(f"Lỗi StatisticsDAO.get_fee_vs_duration: {e}")
             return []
@@ -382,9 +366,7 @@ class StatisticsDAO:
             if conn: conn.close()
 
     def get_traffic_by_hour(self, start_date: datetime = None, end_date: datetime = None) -> List[int]:
-        """
-        Lưu lượng xe theo giờ - SỬA ĐỂ DÙNG cards
-        """
+        """Lưu lượng xe theo giờ trong ngày"""
         conn = None
         cursor = None
         try:
@@ -393,7 +375,7 @@ class StatisticsDAO:
 
             sql = """
                   SELECT DATEPART(HOUR, entry_at) as hour, COUNT(*) as count
-                  FROM cards
+                  FROM card_logs
                   WHERE 1=1 \
                   """
             params = []
@@ -412,20 +394,21 @@ class StatisticsDAO:
             if cursor: cursor.close()
             if conn: conn.close()
 
-    # xe qua đêm (sau 10 tối đến 6h sáng)
     def get_overnight_vehicles_count(self) -> int:
+        """Xe qua đêm (sau 10 tối đến 6h sáng hoặc chưa ra)"""
         conn = None
         cursor = None
         try:
             conn = self._db.connect()
             cursor = conn.cursor()
             sql = """
-                  SELECT COUNT(*) FROM card_logs 
-                  WHERE exit_at IS NULL 
-                  AND (
-                    (DATEPART(HOUR, entry_at) >= 22 OR DATEPART(HOUR, entry_at) < 6)
-                    OR entry_at < CAST(GETDATE() AS DATE)
-                  )
+                  SELECT COUNT(*)
+                  FROM card_logs
+                  WHERE exit_at IS NULL
+                    AND (
+                      (DATEPART(HOUR, entry_at) >= 22 OR DATEPART(HOUR, entry_at) < 6)
+                          OR entry_at < CAST(GETDATE() AS DATE)
+                      ) \
                   """
             return cursor.execute(sql).fetchone()[0] or 0
         except Exception as e:
@@ -436,15 +419,18 @@ class StatisticsDAO:
             if conn: conn.close()
 
     def get_expiring_monthly_cards_count(self, days: int = 3) -> int:
+        """Thẻ tháng sắp hết hạn"""
         conn = None
         cursor = None
         try:
             conn = self._db.connect()
             cursor = conn.cursor()
             sql = """
-                  SELECT COUNT(*) FROM monthly_cards 
-                  WHERE is_active = 1 AND is_paid = 1
-                  AND expiry_date BETWEEN GETDATE() AND DATEADD(day, ?, GETDATE())
+                  SELECT COUNT(*) \
+                  FROM monthly_cards
+                  WHERE is_active = 1 \
+                    AND is_paid = 1
+                    AND expiry_date BETWEEN GETDATE() AND DATEADD(day, ?, GETDATE()) \
                   """
             return cursor.execute(sql, days).fetchone()[0] or 0
         except Exception as e:
@@ -455,6 +441,7 @@ class StatisticsDAO:
             if conn: conn.close()
 
     def get_active_cameras_count(self) -> int:
+        """Số camera đang hoạt động"""
         conn = None
         cursor = None
         try:
