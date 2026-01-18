@@ -43,6 +43,15 @@ CREATE TABLE [monthly_cards] (
   [updated_at] datetime NOT NULL DEFAULT GETDATE()
 )
 
+CREATE TABLE [monthly_card_logs] (
+  [id] BIGINT PRIMARY KEY NOT NULL IDENTITY(1,1),
+  [monthly_card_id] BIGINT NOT NULL,
+  [entry_at] DATETIME NOT NULL DEFAULT GETDATE(),
+  [exit_at] DATETIME,
+  [created_by] BIGINT,
+  [closed_by] BIGINT
+);
+
 CREATE TABLE [customers] (
   [id] bigint PRIMARY KEY NOT NULL IDENTITY(1, 1),
   [full_name] nvarchar(100),

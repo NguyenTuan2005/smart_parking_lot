@@ -2,6 +2,7 @@ from datetime import date
 
 from model.Card import Card
 from model.Customer import Customer
+from model.MonthlyCardLog import MonthlyCardLog
 from model.Vehicle import Vehicle
 
 
@@ -15,7 +16,8 @@ class MonthlyCard(Card):
         monthly_fee: int,
         start_date: date,
         expiry_date: date,
-        is_paid: bool
+        is_paid: bool,
+        monthly_card_log: MonthlyCardLog = None
     ):
         super().__init__(card_id, card_code)
         self._customer = customer
@@ -24,6 +26,7 @@ class MonthlyCard(Card):
         self._start_date = start_date
         self._expiry_date = expiry_date
         self._is_paid = is_paid
+        self._monthly_card_log = monthly_card_log
 
     def is_valid(self) -> bool:
         return self._is_paid and date.today() <= self._expiry_date

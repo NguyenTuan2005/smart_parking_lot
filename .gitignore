@@ -6,3 +6,4 @@
 .vscode
 .venv
 send_mail.bat
+settings.json
