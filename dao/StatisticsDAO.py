@@ -140,7 +140,7 @@ class StatisticsDAO:
             if conn: conn.close()
 
     def get_vehicle_mix(self, start_date: datetime = None, end_date: datetime = None) -> Dict[str, int]:
-        """Cơ cấu loại xe: thẻ lượt vs thẻ tháng"""
+        """Cơ cấu loại xe: thẻ lượt vs thẻ tháng (dựa trên lượt vào/ra)"""
         conn = None
         cursor = None
         try:
@@ -160,16 +160,16 @@ class StatisticsDAO:
 
             single_count = cursor.execute(single_sql, tuple(params) if params else ()).fetchone()[0] or 0
 
-            # Đếm thẻ tháng: Số thẻ tháng đang hoạt động
+            # Đếm thẻ tháng: Số lượt vào từ monthly_card_logs (entry_at có giá trị)
             monthly_sql = """
                           SELECT COUNT(*)
-                          FROM monthly_cards
-                          WHERE is_active = 1 \
+                          FROM monthly_card_logs
+                          WHERE entry_at IS NOT NULL \
                           """
             monthly_params = []
             if start_date and end_date:
-                monthly_sql += " AND start_date <= ? AND expiry_date >= ?"
-                monthly_params.extend([end_date.date(), start_date.date()])
+                monthly_sql += " AND entry_at BETWEEN ? AND ?"
+                monthly_params.extend([start_date, end_date])
 
             monthly_count = cursor.execute(monthly_sql, tuple(monthly_params) if monthly_params else ()).fetchone()[
                                 0] or 0
@@ -207,8 +207,19 @@ class StatisticsDAO:
             single_rows = cursor.execute(single_sql, tuple(params) if params else ()).fetchall()
             single_durations = [row[0] for row in single_rows if row[0] is not None and row[0] > 0]
 
-            # Thẻ tháng - không có dữ liệu vào/ra riêng, trả về mảng rỗng
-            monthly_durations = []
+            # Thẻ tháng - Lấy dữ liệu từ monthly_card_logs
+            monthly_sql = """
+                          SELECT DATEDIFF(MINUTE, entry_at, exit_at)
+                          FROM monthly_card_logs
+                          WHERE exit_at IS NOT NULL \
+                          """
+            monthly_params = []
+            if start_date and end_date:
+                monthly_sql += " AND entry_at BETWEEN ? AND ?"
+                monthly_params.extend([start_date, end_date])
+
+            monthly_rows = cursor.execute(monthly_sql, tuple(monthly_params) if monthly_params else ()).fetchall()
+            monthly_durations = [row[0] for row in monthly_rows if row[0] is not None and row[0] > 0]
 
             return {
                 'single': single_durations,
@@ -336,14 +347,17 @@ class StatisticsDAO:
             if conn: conn.close()
 
     def get_fee_vs_duration(self, start_date: datetime = None, end_date: datetime = None) -> List[Dict]:
-        """Tương quan phí và thời gian đỗ - CHỈ thẻ lượt"""
+        """Tương quan phí và thời gian đỗ - kết hợp thẻ lượt và thẻ tháng"""
         conn = None
         cursor = None
         try:
             conn = self._db.connect()
             cursor = conn.cursor()
 
-            sql = """
+            result = []
+
+            # Dữ liệu từ thẻ lượt (card_logs)
+            sql_single = """
                   SELECT DATEDIFF(MINUTE, entry_at, exit_at) as duration, \
                          fee
                   FROM card_logs
@@ -352,12 +366,33 @@ class StatisticsDAO:
                   """
             params = []
             if start_date and end_date:
-                sql += " AND entry_at BETWEEN ? AND ?"
+                sql_single += " AND entry_at BETWEEN ? AND ?"
                 params.extend([start_date, end_date])
 
-            rows = cursor.execute(sql, tuple(params) if params else ()).fetchall()
-            return [{'duration': row[0], 'fee': float(row[1] or 0)}
-                    for row in rows if row[0] is not None and row[0] > 0]
+            rows = cursor.execute(sql_single, tuple(params) if params else ()).fetchall()
+            for row in rows:
+                if row[0] is not None and row[0] > 0:
+                    result.append({'duration': row[0], 'fee': float(row[1] or 0)})
+
+            # Dữ liệu từ thẻ tháng (monthly_card_logs + monthly_cards)
+            sql_monthly = """
+                  SELECT DATEDIFF(MINUTE, mcl.entry_at, mcl.exit_at) as duration,
+                         mc.monthly_fee as fee
+                  FROM monthly_card_logs mcl
+                  JOIN monthly_cards mc ON mcl.monthly_card_id = mc.id
+                  WHERE mcl.exit_at IS NOT NULL \
+                  """
+            monthly_params = []
+            if start_date and end_date:
+                sql_monthly += " AND mcl.entry_at BETWEEN ? AND ?"
+                monthly_params.extend([start_date, end_date])
+
+            monthly_rows = cursor.execute(sql_monthly, tuple(monthly_params) if monthly_params else ()).fetchall()
+            for row in monthly_rows:
+                if row[0] is not None and row[0] > 0:
+                    result.append({'duration': row[0], 'fee': float(row[1] or 0)})
+
+            return result
         except Exception as e:
             print(f"Lỗi StatisticsDAO.get_fee_vs_duration: {e}")
             return []

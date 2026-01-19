@@ -199,6 +199,8 @@ class ChartsTab(QWidget):
         """Danh sách các loại biểu đồ"""
         return [
             ("revenue", "Doanh thu theo tháng"),
+            ("mix", "Cơ cấu lượt xe (gộp thẻ lượt & khách vãng lai)"),
+            ("duration", "Thời gian đỗ xe theo nhóm khách"),
             ("traffic", "Lượt xe theo giờ & ngày"),
             ("dow_entries", "Lượt vào/ra theo ngày trong tuần"),
             ("hour_hist", "Phân bố lượt xe theo giờ"),
@@ -208,6 +210,8 @@ class ChartsTab(QWidget):
         """Mô tả các loại biểu đồ"""
         return {
             "revenue": "Theo dõi xu hướng doanh thu các tháng để đánh giá tăng trưởng.",
+            "mix": "So sánh lượt vào/ra: thẻ tháng (monthly_card_logs) vs thẻ lượt (card_logs).",
+            "duration": "Phân bố thời gian đỗ của thẻ tháng vs thẻ lượt/vãng lai.",
             "traffic": "Nhận diện khung giờ và ngày cao điểm để bố trí nhân sự.",
             "dow_entries": "So sánh lượt vào/ra theo ngày để thấy ngày cao điểm.",
             "hour_hist": "Phân bố lượt xe theo giờ để chọn khung mở rộng/thu hẹp ca.",
@@ -228,16 +232,14 @@ class ChartsTab(QWidget):
         chart_widget = None
         if key == "revenue":
             chart_widget = self._chart_revenue_trend()
-        # elif key == "mix":
-        #     chart_widget = self._chart_vehicle_mix()
-        # elif key == "duration":
-        #     chart_widget = self._chart_duration_boxplot()
+        elif key == "mix":
+            chart_widget = self._chart_vehicle_mix()
+        elif key == "duration":
+            chart_widget = self._chart_duration_boxplot()
         elif key == "traffic":
             chart_widget = self._chart_traffic_heatmap()
         elif key == "dow_entries":
             chart_widget = self._chart_dow_entries()
-        # elif key == "fee_duration":
-        #     chart_widget = self._chart_fee_vs_duration()
         elif key == "hour_hist":
             chart_widget = self._chart_hour_hist()
 
@@ -323,25 +325,43 @@ class ChartsTab(QWidget):
         return FigureCanvas(figure)
 
     def _chart_vehicle_mix(self):
+        """Biểu đồ cơ cấu lượt xe - Đã cải tiến"""
         figure = self._create_figure()
         ax = figure.add_subplot(111)
 
         labels, values = self.controller.get_vehicle_mix_data(self.start_date, self.end_date)
 
         if HAS_SEABORN:
-            sns.barplot(x=labels, y=values,hue=labels, ax=ax, palette="Blues", legend=False)
+            sns.barplot(x=labels, y=values, hue=labels, ax=ax, palette="Blues", legend=False)
         else:
             ax.bar(labels, values, color="#3498DB")
 
-        ax.set_title("Cơ Cấu Lượt Xe", fontsize=14, fontweight='bold', pad=20)
-        ax.set_ylabel("Số lượt", fontsize=11)
-        ax.set_xlabel("Nhóm khách", fontsize=11)
+        # Thêm chú thích giá trị trên mỗi bar
+        for i, (label, value) in enumerate(zip(labels, values)):
+            ax.text(i, value + max(values) * 0.02, f'{value}',
+                    ha='center', va='bottom', fontsize=11, fontweight='bold', color='#2874A6')
+
+        # Tính tỷ lệ phần trăm
+        total = sum(values) if values else 1
+        percentages = [v / total * 100 for v in values]
+
+        # Thêm thông tin tỷ lệ phần trăm
+        info_text = " | ".join([f"{label}: {pct:.1f}%" for label, pct in zip(labels, percentages)])
+        ax.text(0.5, -0.20, info_text,
+                transform=ax.transAxes, fontsize=10, ha='center',
+                bbox=dict(boxstyle='round,pad=0.5', facecolor='#D5F4E6',
+                          edgecolor='#27AE60', alpha=0.8))
+
+        ax.set_title("Cơ Cấu Lượt Xe (Thẻ Tháng vs Thẻ Lượt)", fontsize=14, fontweight='bold', pad=20)
+        ax.set_ylabel("Số lượt", fontsize=11, fontweight='bold')
+        ax.set_xlabel("Loại thẻ", fontsize=11, fontweight='bold')
         ax.tick_params(axis="x", rotation=0)
         ax.grid(True, alpha=0.3, axis='y', linestyle='--')
 
         return FigureCanvas(figure)
 
     def _chart_duration_boxplot(self):
+        """Biểu đồ thời gian đỗ theo loại thẻ - Đã cải tiến"""
         figure = self._create_figure()
         ax = figure.add_subplot(111)
 
@@ -349,18 +369,42 @@ class ChartsTab(QWidget):
 
         labels = []
         durations = []
+        colors = []
+        color_map = {"Thẻ Tháng": "#9B59B6", "Lượt / Vãng lai": "#3498DB"}
+
         for k, vals in samples.items():
             labels.extend([k] * len(vals))
             durations.extend(vals)
+            colors.extend([color_map.get(k, "#95A5A6")] * len(vals))
 
         if HAS_SEABORN:
             sns.boxplot(x=labels, y=durations, ax=ax, hue=labels, palette="Set2", legend=False)
         else:
-            ax.scatter(labels, durations, alpha=0.6, color="#2ECC71")
+            # Thực hiện scatter plot đơn giản
+            unique_labels = list(set(labels))
+            for idx, label in enumerate(unique_labels):
+                label_durations = [d for l, d in zip(labels, durations) if l == label]
+                ax.scatter([idx] * len(label_durations), label_durations, 
+                          alpha=0.6, s=50, color=color_map.get(label, "#95A5A6"))
 
-        ax.set_title("Thời Gian Đỗ Xe Theo Nhóm", fontsize=14, fontweight='bold', pad=20)
-        ax.set_ylabel("Phút đỗ", fontsize=11)
-        ax.set_xlabel("Nhóm khách", fontsize=11)
+        # Tính thống kê
+        stats_text_parts = []
+        for card_type, vals in samples.items():
+            if vals:
+                avg = sum(vals) / len(vals)
+                min_val = min(vals)
+                max_val = max(vals)
+                stats_text_parts.append(f"{card_type}: TB={avg:.0f}p, Min={min_val}p, Max={max_val}p")
+
+        stats_text = " | ".join(stats_text_parts)
+        ax.text(0.5, -0.20, stats_text,
+                transform=ax.transAxes, fontsize=10, ha='center',
+                bbox=dict(boxstyle='round,pad=0.5', facecolor='#FFF3CD',
+                          edgecolor='#FFC107', alpha=0.8))
+
+        ax.set_title("Thời Gian Đỗ Xe Theo Loại Thẻ", fontsize=14, fontweight='bold', pad=20)
+        ax.set_ylabel("Phút đỗ", fontsize=11, fontweight='bold')
+        ax.set_xlabel("Loại thẻ", fontsize=11, fontweight='bold')
         ax.tick_params(axis="x", rotation=0)
         ax.grid(True, alpha=0.3, axis='y', linestyle='--')
 
@@ -483,34 +527,6 @@ class ChartsTab(QWidget):
 
         return FigureCanvas(figure)
 
-    def _chart_fee_vs_duration(self):
-        figure = self._create_figure()
-        ax = figure.add_subplot(111)
-
-        duration, fee = self.controller.get_fee_vs_duration_data(
-            self.start_date, self.end_date
-        )
-
-        if HAS_SEABORN:
-            sns.regplot(
-                x=duration, y=fee, ax=ax,
-                scatter_kws={"alpha": 0.5, "s": 30},
-                line_kws={"color": "#E74C3C", "linewidth": 2}
-            )
-        else:
-            ax.scatter(duration, fee, alpha=0.5, color="#2980B9", s=30)
-            if duration:
-                m, b = 0.4, 7
-                xs = [min(duration), max(duration)]
-                ys = [m * x + b for x in xs]
-                ax.plot(xs, ys, color="#E74C3C", linewidth=2)
-
-        ax.set_title("Tương Quan Phí vs Thời Gian Đỗ", fontsize=14, fontweight='bold', pad=15)
-        ax.set_xlabel("Phút đỗ", fontsize=11)
-        ax.set_ylabel("Phí (nghìn đồng)", fontsize=11)
-        ax.grid(True, alpha=0.3, linestyle='--')
-
-        return FigureCanvas(figure)
 
     def _chart_hour_hist(self):
         """Biểu đồ phân bố lượt xe theo giờ - Đã cải tiến"""
