@@ -26,7 +26,7 @@ class CardLogDAO:
             conn.close()
 
             if not row:
-                return None
+                return CardLog()
 
             return self._map_row_to_card_log(row)
         except Exception as e:

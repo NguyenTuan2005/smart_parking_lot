@@ -23,7 +23,7 @@ class Card(ABC):
         pass
 
     def has_check_out(self):
-        return True
+        pass
 
     def is_month_card(self):
         return False
@@ -32,7 +32,7 @@ class Card(ABC):
         return False
 
     def has_check_in(self):
-        return True
+        pass
 
     def is_same_plate(self, plate: str) -> bool:
         pass

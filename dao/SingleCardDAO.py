@@ -28,8 +28,6 @@ class SingleCardDAO:
                 return None
 
             card_log = self._card_log_dao.get_by_card_id(row.id)
-            if card_log is None:
-                card_log = CardLog()
 
             return SingleCard(
                 row.id, row.card_code, row.price, row.night_price, card_log=card_log
@@ -55,8 +53,6 @@ class SingleCardDAO:
                 return None
 
             card_log = self._card_log_dao.get_by_card_id(row.id)
-            if card_log is None:
-                card_log = CardLog()
 
             return SingleCard(
                 card_id=row.id,
@@ -86,8 +82,6 @@ class SingleCardDAO:
             cards: list[SingleCard] = []
             for r in rows:
                 card_log = self._card_log_dao.get_by_card_id(r.id)
-                if card_log is None:
-                    card_log = CardLog()
                 cards.append(
                     SingleCard(
                         r.id, r.card_code, r.price, r.night_price, card_log=card_log
@@ -117,8 +111,6 @@ class SingleCardDAO:
             cards: list[SingleCard] = []
             for r in rows:
                 card_log = self._card_log_dao.get_by_card_id(r.id)
-                if card_log is None:
-                    card_log = CardLog()
                 cards.append(
                     SingleCard(
                         r.id, r.card_code, r.price, r.night_price, card_log=card_log

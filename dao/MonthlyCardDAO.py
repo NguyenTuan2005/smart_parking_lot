@@ -1,7 +1,7 @@
 from dao.CustomerDAO import CustomerDAO
+from dao.MonthlyCardLogDAO import MonthlyCardLogDAO
 from dao.VehicleDAO import VehicleDAO
 from db.database import Database
-from dto.dtos import MonthlyCardDTO
 from model.MonthlyCard import MonthlyCard
 
 
@@ -10,10 +10,12 @@ class MonthlyCardDAO:
         self,
         customer_dao: CustomerDAO = CustomerDAO(),
         vehicle_dao: VehicleDAO = VehicleDAO(),
+        monthly_card_log_dao: MonthlyCardLogDAO = MonthlyCardLogDAO(),
     ):
         self._db = Database()
         self._customer_dao = customer_dao
         self._vehicle_dao = vehicle_dao
+        self._monthly_card_log_dao = monthly_card_log_dao
 
     def get_by_id(self, card_id: int) -> MonthlyCard | None:
         try:
@@ -232,6 +234,7 @@ class MonthlyCardDAO:
     def _map_row_to_monthly_card(self, row) -> MonthlyCard:
         customer = self._customer_dao.get_by_id(row.customer_id)
         vehicle = self._vehicle_dao.get_by_id(row.vehicle_id)
+        monthly_card_log = self._monthly_card_log_dao.get_by_monthly_card_id(row.id)
 
         return MonthlyCard(
             card_id=row.id,
@@ -242,4 +245,5 @@ class MonthlyCardDAO:
             start_date=row.start_date,
             expiry_date=row.expiry_date,
             is_paid=row.is_paid,
+            monthly_card_log=monthly_card_log,
         )

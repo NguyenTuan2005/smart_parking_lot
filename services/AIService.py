@@ -52,7 +52,7 @@ class AIService:
         return frame, new_plates
 
     def valid_plate(self, plate) -> bool:
-        if len(plate) == 10:
+        if len(plate) == 10 or len(plate) == 9:
             pattern = r'^[0-9]{2}[A-Z]{1,2}[0-9]-[0-9]{4,5}$'
             return re.match(pattern, plate) is not None
         return False
