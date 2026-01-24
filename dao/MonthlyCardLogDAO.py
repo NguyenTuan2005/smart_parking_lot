@@ -22,7 +22,7 @@ class MonthlyCardLogDAO:
             conn.close()
 
             if not row:
-                return None
+                return MonthlyCardLog()
 
             return self._map_row_to_monthly_card_log(row)
         except Exception as e:

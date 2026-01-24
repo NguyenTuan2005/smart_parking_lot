@@ -28,5 +28,5 @@ class Log(ABC):
 
     def duration(self):
         if  self._entry_at and self._exit_at:
-            return int(( self._exit_at - self._entry_at).total_seconds() / 60)
+            return int(( self._exit_at - self._entry_at).total_seconds() / 60 / 60)
         return 0

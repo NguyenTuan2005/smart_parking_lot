@@ -189,13 +189,13 @@ class LeftPanel(QWidget):
             self.__card_info_labels["MÃ THẺ"].setText(monthly.card_code)
             self.__card_info_labels["SỐ THẺ"].setText(str(monthly.card_id))
             self.__card_info_labels["CHỦ XE"].setText(str(monthly.customer.fullname))
-            self.__statusLabel1.setText("KHÁCH HÀNG CÓ THẺ THÁNG")
+            self.__statusLabel1.setText("THẺ THÁNG HỢP LỆ" if monthly.is_valid() else "THẺ THÁNG KHÔNG HỢP LỆ")
         else:
             singleCard: SingleCard = card
             self.__bsVaoLabel.setText(singleCard.card_log.vehicle.plate_number)
             self.__bsRaLabel.setText("" if singleCard.has_check_in() else singleCard.card_log.vehicle.plate_number)
             self.__durationValue.setText(str(singleCard.duration()))
-            self.__fee_label.setText(f"{singleCard.calculate_price(singleCard.duration())} VNĐ")
+            self.__fee_label.setText("" if singleCard.has_check_in() else f"{singleCard.calculate_price(singleCard.duration())} VNĐ")
             self.__card_info_labels["BIỂN SỐ ĐK"].setText(singleCard.card_log.vehicle.plate_number)
             self.__card_info_labels["MÃ THẺ"].setText(singleCard.card_code)
             self.__card_info_labels["T/G XE VÀO"].setText(str(singleCard.card_log.entry_at))

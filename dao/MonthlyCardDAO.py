@@ -2,7 +2,6 @@ from dao.CustomerDAO import CustomerDAO
 from dao.MonthlyCardLogDAO import MonthlyCardLogDAO
 from dao.VehicleDAO import VehicleDAO
 from db.database import Database
-from dto.dtos import MonthlyCardDTO
 from model.MonthlyCard import MonthlyCard
 
 
