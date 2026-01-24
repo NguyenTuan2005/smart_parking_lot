@@ -23,7 +23,7 @@ class Card(ABC):
         pass
 
     def has_check_out(self):
-        return True
+        pass
 
     def is_month_card(self):
         return False

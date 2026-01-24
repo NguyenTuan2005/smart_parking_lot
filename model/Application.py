@@ -35,9 +35,12 @@ class Application:
     def check_in(self, card: Card, plate: str) -> Card | None:
         if card is None:
             cards = [c for c in self.__cards if c.has_check_out()]
-            if len([c for c in cards if c.is_single_card()]) == 0:
-                return None
-            card = random.choice(cards)
+            card = next((c for c in cards if c.is_month_card() and c.is_same_plate(plate)), None)
+            if card is None :
+                single_cards = [c for c in cards if c.is_single_card()]
+                if len(single_cards) == 0:
+                    return None
+                card = random.choice(single_cards)
         try:
             card.check_in(plate)
         except Exception as e:
@@ -49,7 +52,7 @@ class Application:
             cards = [c for c in self.__cards if c.has_check_in()]
             card = next((c for c in cards if c.is_same_plate(plate)), None)
             if card is None:
-                return card
+                raise Exception(f"Không tìm thấy ghi nhận biển số {plate} vào bãi xe")
         try:
             card.check_out(plate)
         except Exception as e:

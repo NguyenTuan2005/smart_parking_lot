@@ -55,16 +55,19 @@ class MonthlyCard(Card):
     def is_paid(self) -> bool:
         return self._is_paid
 
+    def has_check_out(self):
+        return self._monthly_card_log.has_check_out()
+
     def check_in(self, plate: str):
         today = date.today()
         if today > self._expiry_date or not self._is_paid:
-            raise Exception("Monthly card is not valid for check-in.")
+            raise Exception("Thẻ tháng không hợp lệ để quẹt thẻ vào.")
         return self
 
     def check_out(self, plate: str):
         today = date.today()
         if today > self._expiry_date or not self._is_paid:
-            raise Exception("Monthly card is not valid for check-out.")
+            raise Exception("Thẻ tháng không hợp lệ để quẹt thẻ ra.")
         return self
 
     def is_month_card(self):
